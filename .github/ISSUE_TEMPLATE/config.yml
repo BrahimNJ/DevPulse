@@ -1,0 +1,13 @@
+##
+## Placeholder links below must be replaced with the real repository owner and
+## name before the repository is made public. The `OWNER/REPO` value is
+## deliberately left as a placeholder rather than guessed.
+##
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/OWNER/REPO/security/advisories/new
+    about: Report a vulnerability privately. Do not open a public issue.
+  - name: Question or discussion
+    url: https://github.com/OWNER/REPO/discussions
+    about: Ask a question or start a discussion that is not yet a bug or feature request.

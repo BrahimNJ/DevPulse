@@ -1,0 +1,61 @@
+name: Bug report
+description: Report a defect or unexpected behaviour
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues before opening a new one.
+        If the issue is a security vulnerability, do not disclose it publicly.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What is happening, and what should happen instead?
+      placeholder: The export job fails instead of producing a file.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: The smallest set of steps that triggers the problem.
+      placeholder: |
+        1. Open the settings page
+        2. Click "Export"
+        3. Observe the console error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: |
+        Operating system, runtime and tool versions, deployment target. The
+        technology stack for this repository is still being decided, so state what
+        you are using.
+      placeholder: |
+        OS: Linux 6.x
+        Runtime: (not yet decided)
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error output
+      description: Remove secrets, tokens, and personal data before pasting.
+    validations:
+      required: false
+  - type: input
+    id: related
+    attributes:
+      label: Related issues or pull requests
+    validations:
+      required: false

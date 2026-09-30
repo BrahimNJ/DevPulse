@@ -1,0 +1,48 @@
+name: Feature request
+description: Propose new functionality or a change to existing behaviour
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature proposals are reviewed before any code is written. No application
+        functionality has been defined yet, so a proposal that describes behaviour
+        should be linked to an accepted design in docs/ARCHITECTURE.md.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is missing or difficult today? Describe the problem, not the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What should be built, and how would a user or operator use it?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: textarea
+    id: impact
+    attributes:
+      label: Scope and impact
+      description: Which components are affected, and what is the maintenance cost?
+      placeholder: Backend, frontend, infrastructure
+    validations:
+      required: false
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: New dependencies
+      description: |
+        If this requires a new library, runtime, or service, name it and explain why
+        an existing capability is insufficient. New dependencies require approval.
+    validations:
+      required: false
