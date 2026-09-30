@@ -1,0 +1,15 @@
+# Normalise line endings on checkout and in the index.
+* text=auto eol=lf
+
+# Files that must stay binary.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+
+# Lockfiles may be large and are best stored without text normalisation where the
+# tooling expects them verbatim.

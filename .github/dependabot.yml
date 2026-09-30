@@ -1,0 +1,11 @@
+##
+## Dependabot configuration is intentionally empty.
+##
+## Dependabot is only enabled once the technology stack is decided, since the
+## configuration depends on the package ecosystems in use (see
+## docs/ARCHITECTURE.md for the decision process).
+##
+## When the stack is decided, add the relevant `updates` entries and remove this
+## placeholder. See:
+## https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options
+##
