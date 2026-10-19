@@ -20,10 +20,10 @@ default from similar projects.
 
 ## Repository Layout
 
-| Path | Responsibility |
-| --- | --- |
-| `docs/` | Architecture decisions and development documentation |
-| `.github/` | Issue forms and pull request template |
+| Path       | Responsibility                                       |
+| ---------- | ---------------------------------------------------- |
+| `docs/`    | Architecture decisions and development documentation |
+| `.github/` | Issue forms and pull request template                |
 
 Constraint: a top-level source directory is created only by the decision record that
 introduces the component it holds. Each area is self-contained: code is placed in the
@@ -95,12 +95,12 @@ alternatives were considered, and that the consequences are stated honestly.
 
 ## Open Questions
 
-| Question | Notes |
-| --- | --- |
-| What is the problem DevPulse solves? | No product definition exists yet |
-| Which runtimes and frameworks? | Blocked on the product definition |
-| Deployment target? | Blocked on the stack decision |
-| Testing and coverage strategy? | Tool-independent expectations are defined in [CONTRIBUTING.md](CONTRIBUTING.md); tools pending the stack decision |
+| Question                             | Notes                                                                                                             |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| What is the problem DevPulse solves? | No product definition exists yet                                                                                  |
+| Which runtimes and frameworks?       | Blocked on the product definition                                                                                 |
+| Deployment target?                   | Blocked on the stack decision                                                                                     |
+| Testing and coverage strategy?       | Tool-independent expectations are defined in [CONTRIBUTING.md](CONTRIBUTING.md); tools pending the stack decision |
 
 These questions are open by design. They are listed here so that no decision is made
 silently.

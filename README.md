@@ -6,13 +6,13 @@ contains the engineering standards and documentation that govern development.
 
 ## Status
 
-| Area | State |
-| --- | --- |
-| Repository standards | Established |
-| Documentation | Established |
-| Technology stack | To be decided (see [Architecture](docs/ARCHITECTURE.md)) |
-| Application source code | Not started |
-| CI/CD pipelines | Not started (see [Development](docs/DEVELOPMENT.md)) |
+| Area                    | State                                                    |
+| ----------------------- | -------------------------------------------------------- |
+| Repository standards    | Established                                              |
+| Documentation           | Established                                              |
+| Technology stack        | To be decided (see [Architecture](docs/ARCHITECTURE.md)) |
+| Application source code | Not started                                              |
+| CI/CD pipelines         | Not started (see [Development](docs/DEVELOPMENT.md))     |
 
 The technology stack, module boundaries, and runtime architecture will be decided
 through Architecture Decision Records before any application code is written.

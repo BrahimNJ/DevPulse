@@ -16,18 +16,18 @@ pending and must not be treated as available.
 
 The following tools are decided for every change, regardless of stack:
 
-| Concern | Expectation | Status |
-| --- | --- | --- |
-| Line endings | LF, enforced by `.editorconfig` and `.gitattributes` | Decided |
-| Indentation | Spaces; 2 by default, 4 for Python | Decided |
-| Final newline | Required in every text file | Decided |
-| Trailing whitespace | Removed, except in Markdown hard line breaks | Decided |
-| Encoding | UTF-8 | Decided |
-| Editor and OS artefacts | Ignored, never committed | Decided |
-| Formatter | To be selected with the stack | Pending |
-| Linter | To be selected with the stack | Pending |
-| Formatter and linter for YAML and Markdown | To be selected | Pending |
-| Test runner | To be selected with the stack | Pending |
+| Concern                                    | Expectation                                          | Status  |
+| ------------------------------------------ | ---------------------------------------------------- | ------- |
+| Line endings                               | LF, enforced by `.editorconfig` and `.gitattributes` | Decided |
+| Indentation                                | Spaces; 2 by default, 4 for Python                   | Decided |
+| Final newline                              | Required in every text file                          | Decided |
+| Trailing whitespace                        | Removed, except in Markdown hard line breaks         | Decided |
+| Encoding                                   | UTF-8                                                | Decided |
+| Editor and OS artefacts                    | Ignored, never committed                             | Decided |
+| Formatter                                  | To be selected with the stack                        | Pending |
+| Linter                                     | To be selected with the stack                        | Pending |
+| Formatter and linter for YAML and Markdown | To be selected                                       | Pending |
+| Test runner                                | To be selected with the stack                        | Pending |
 
 ## Local Environment
 

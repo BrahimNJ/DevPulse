@@ -26,17 +26,17 @@ use a slash prefix matching the change type, and a short kebab-case description.
 
 Permitted prefixes:
 
-| Prefix | Use for |
-| --- | --- |
-| `feat/` | New functionality |
-| `fix/` | Bug fixes |
-| `docs/` | Documentation only |
-| `chore/` | Maintenance, dependency bumps, config |
-| `refactor/` | Behaviour-preserving code changes |
-| `test/` | Adding or correcting tests |
-| `perf/` | Performance improvements |
-| `ci/` | CI/CD workflow changes |
-| `build/` | Build system changes |
+| Prefix      | Use for                               |
+| ----------- | ------------------------------------- |
+| `feat/`     | New functionality                     |
+| `fix/`      | Bug fixes                             |
+| `docs/`     | Documentation only                    |
+| `chore/`    | Maintenance, dependency bumps, config |
+| `refactor/` | Behaviour-preserving code changes     |
+| `test/`     | Adding or correcting tests            |
+| `perf/`     | Performance improvements              |
+| `ci/`       | CI/CD workflow changes                |
+| `build/`    | Build system changes                  |
 
 Rules:
 
@@ -71,19 +71,19 @@ Every commit message follows [Conventional Commits](https://www.conventionalcomm
 
 ### Types
 
-| Type | Meaning |
-| --- | --- |
-| `feat` | New functionality |
-| `fix` | Bug fix |
-| `docs` | Documentation changes |
-| `style` | Formatting only, no logic change |
+| Type       | Meaning                            |
+| ---------- | ---------------------------------- |
+| `feat`     | New functionality                  |
+| `fix`      | Bug fix                            |
+| `docs`     | Documentation changes              |
+| `style`    | Formatting only, no logic change   |
 | `refactor` | Code change with no feature or fix |
-| `perf` | Performance improvement |
-| `test` | Adding or correcting tests |
-| `build` | Build system or packaging changes |
-| `ci` | CI/CD configuration changes |
-| `chore` | Maintenance that fits nowhere else |
-| `revert` | Revert of a previous commit |
+| `perf`     | Performance improvement            |
+| `test`     | Adding or correcting tests         |
+| `build`    | Build system or packaging changes  |
+| `ci`       | CI/CD configuration changes        |
+| `chore`    | Maintenance that fits nowhere else |
+| `revert`   | Revert of a previous commit        |
 
 ### Rules
 
@@ -190,7 +190,7 @@ Principles:
 - New dependencies require an issue explaining what problem they solve, why the
   standard library or an existing dependency is insufficient, the maintenance status,
   and the licence. Approval is required before adding one.
-- Keep comments for *why* a decision was made. Comments restating the code are removed.
+- Keep comments for _why_ a decision was made. Comments restating the code are removed.
 - Documentation is updated in the same change as the behaviour it describes.
 - Technical decisions are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
