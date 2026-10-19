@@ -37,3 +37,13 @@ The application framework, data stores and deployment target remain undecided.
 - Contributors need Node.js 24 installed. `npm ci` provides everything else.
 - `npm run check` runs every gate locally, and CI runs the same commands.
 - Moving to another language later requires a superseding record and a new lint setup.
+- **Advisory policy.** Runtime dependencies must have no known advisory of moderate
+  severity or higher; CI enforces this with `npm audit --omit=dev` and dependency
+  review. A development-only advisory without a compatible fix may be accepted when the
+  affected package receives no untrusted input. It is listed below, and Dependabot
+  proposes the fix once one exists.
+
+| Advisory            | Package (via)              | Reason accepted                                   |
+| ------------------- | -------------------------- | ------------------------------------------------- |
+| GHSA-vfj7-8cjw-p6xm | braces (markdownlint-cli2) | No patched release; only parses our own globs     |
+| GHSA-238p-pmpm-9mq7 | katex (markdownlint)       | Fix outside the accepted range; math not rendered |
