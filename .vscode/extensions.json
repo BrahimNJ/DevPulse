@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "editorconfig.editorconfig",
+    "davidanson.vscode-markdownlint",
+    "github.vscode-github-actions",
+    "anthropic.claude-code"
+  ]
+}
