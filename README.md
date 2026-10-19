@@ -1,47 +1,55 @@
 # DevPulse
 
-DevPulse is a software project under active bootstrapping. This repository currently
-contains the engineering standards and documentation that govern development.
-**No application functionality has been defined or implemented yet.**
+[![CI](https://github.com/BrahimNJ/DevPulse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/BrahimNJ/DevPulse/actions/workflows/ci.yml)
+
+DevPulse is a software project in its bootstrapping phase. The repository contains the
+engineering standards, quality tooling, CI/CD, and AI agent configuration that govern
+development. **No application functionality has been defined or implemented yet.**
 
 ## Status
 
-| Area                    | State                                                    |
-| ----------------------- | -------------------------------------------------------- |
-| Repository standards    | Established                                              |
-| Documentation           | Established                                              |
-| Technology stack        | To be decided (see [Architecture](docs/ARCHITECTURE.md)) |
-| Application source code | Not started                                              |
-| CI/CD pipelines         | Not started (see [Development](docs/DEVELOPMENT.md))     |
+| Area                       | State                                                                                              |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
+| Standards and workflow     | Established                                                                                        |
+| Language and runtime       | TypeScript, Node.js 24 LTS, npm ([ADR 0002](docs/decisions/0002-adopt-typescript-node-and-npm.md)) |
+| Lint, format, commit gates | Enforced locally and in CI                                                                         |
+| CI/CD                      | CI and release automation active; local deployment proposed                                        |
+| Claude Code configuration  | Established ([guide](docs/ai/CLAUDE_CODE.md))                                                      |
+| Application source code    | Not started; no product definition yet                                                             |
 
-The technology stack, module boundaries, and runtime architecture will be decided
-through Architecture Decision Records before any application code is written.
+## Quick start
 
-## Repository Layout
+```sh
+npm ci
+npm run check
+```
+
+Prerequisites and every command are listed in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+
+## Repository layout
 
 ```text
 DevPulse/
-├── README.md            Project overview and entry point
-├── CONTRIBUTING.md      Contributor workflow and standards
-├── AGENTS.md            Rules for AI agents operating in this repository
+├── CLAUDE.md                Claude Code entry point (imports AGENTS.md)
+├── AGENTS.md                Rules for AI coding agents
+├── CONTRIBUTING.md          Branching, commits, pull requests, testing, code quality
+├── SECURITY.md              Vulnerability reporting
 ├── docs/
-│   ├── ARCHITECTURE.md  Architectural constraints and decision process
-│   └── DEVELOPMENT.md   Local setup, quality gates, CI/CD role
-└── .github/             Issue forms and pull request template
+│   ├── ARCHITECTURE.md      Architectural constraints and decision process
+│   ├── DEVELOPMENT.md       Setup, commands, quality gates, CI/CD
+│   ├── GIT_WORKFLOW.md      Issue to release, end to end
+│   ├── ai/CLAUDE_CODE.md    Using Claude Code agents, skills and hooks
+│   └── decisions/           Architecture decision records
+├── .claude/                 Shared Claude Code settings, hooks, subagents, skills
+├── .github/                 Workflows, Dependabot, issue forms, PR template, CODEOWNERS
+└── .husky/                  Git hooks
 ```
 
 Source directories are created when the first component that needs them is accepted,
 not in advance.
 
-## Documentation
-
-- [CONTRIBUTING.md](CONTRIBUTING.md) — how to contribute: branching, commits, pull requests.
-- [AGENTS.md](AGENTS.md) — mandatory rules for AI coding agents working on this repository.
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — architectural constraints and the decision process.
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — environment expectations, quality gates, CI/CD role.
-
 ## Contributing
 
-All contributions follow the workflow in [CONTRIBUTING.md](CONTRIBUTING.md). The short
-version: branch from `main`, use Conventional Commits, open a pull request, and keep
-`main` passing CI. Do not introduce dependencies without prior discussion.
+Read [CONTRIBUTING.md](CONTRIBUTING.md), then follow
+[docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md). AI agents also follow
+[AGENTS.md](AGENTS.md). Do not introduce dependencies without prior discussion.
