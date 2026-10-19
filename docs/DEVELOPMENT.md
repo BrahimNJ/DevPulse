@@ -39,21 +39,10 @@ The following tools are decided for every change, regardless of stack:
 
 ## Development Loop
 
-1. **Update `main`.** Work only from an up-to-date `main`.
-2. **Open or comment on an issue.** Non-trivial changes are discussed before code is
-   written.
-3. **Create a branch** named `<type>/<short-kebab-case-description>`. See
-   [CONTRIBUTING.md](../CONTRIBUTING.md) for the permitted prefixes.
-4. **Make the change.** One concern per branch. Follow the conventions already present
-   in the files you touch.
-5. **Verify locally.** Run the project's format, lint, and test commands. When a
-   command does not exist yet, record that it does not exist rather than claiming the
-   change is verified.
-6. **Update documentation** in the same change as the behaviour it describes.
-7. **Open a pull request** using
-   [.github/PULL_REQUEST_TEMPLATE.md](../.github/PULL_REQUEST_TEMPLATE.md) and reference
-   the issue with `Closes #<number>`.
-8. **Respond to review** and merge only when CI is green and a reviewer has approved.
+Issue → branch from an up-to-date `main` → change → local verification → pull request
+→ review → merge. Naming, commit, and pull request rules are in
+[CONTRIBUTING.md](../CONTRIBUTING.md). When a verification command does not exist yet,
+record that it does not exist rather than claiming the change is verified.
 
 ## Quality Gates
 
@@ -83,8 +72,8 @@ A change is complete when all of the following hold.
 
 ## CI/CD Role
 
-CI exists to make the quality gates objective. It is the mechanism that enforces
-[CONTRIBUTING.md](../CONTRIBUTING.md) without relying on reviewer memory.
+CI exists to make the quality gates objective, so that
+[CONTRIBUTING.md](../CONTRIBUTING.md) is enforced without relying on reviewer memory.
 
 Continuous integration is expected to:
 
@@ -92,7 +81,7 @@ Continuous integration is expected to:
 - Report a pass/fail status on the pull request and block merge on failure.
 - Be reproducible: the same commit yields the same result.
 - Pin the versions of all actions and runtimes it uses.
-- Use pull requests with least-privilege permissions and no write scope by default.
+- Run with least-privilege permissions and no write scope by default.
 - Document every required repository or organisation secret, and use secrets only for
   credentials that cannot be avoided.
 
