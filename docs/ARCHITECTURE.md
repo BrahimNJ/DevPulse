@@ -6,24 +6,34 @@ features, because none have been defined.
 
 ## Current State
 
-DevPulse has no application code. The repository contains standards and documentation
-only. The following are all undecided:
+DevPulse has no application code. The repository contains standards, documentation,
+quality tooling, CI/CD, and agent configuration.
 
-- Language and runtime for the backend.
-- Framework and build tooling for the frontend.
+Decided, see [decision records](decisions/):
+
+- TypeScript in strict mode on Node.js 24 LTS, with npm (ADR 0002).
+- Linting, formatting, and commit validation tools (ADR 0002).
+- Shared Claude Code configuration (ADR 0003).
+- Release automation with release-please (ADR 0004).
+
+Undecided:
+
+- Application framework, for any server or client component.
 - Data stores, messaging, and external services.
-- Deployment target and hosting model.
-- Testing, linting, and formatting tools.
+- Hosting model beyond local deployment, which is proposed in ADR 0004.
+- Test runner.
 
 These decisions are made through the process in this document, not by assuming a
 default from similar projects.
 
 ## Repository Layout
 
-| Path | Responsibility |
-| --- | --- |
-| `docs/` | Architecture decisions and development documentation |
-| `.github/` | Issue forms and pull request template |
+| Path       | Responsibility                                            |
+| ---------- | --------------------------------------------------------- |
+| `docs/`    | Architecture decisions and development documentation      |
+| `.github/` | Workflows, Dependabot, issue forms, pull request template |
+| `.claude/` | Shared Claude Code settings, hooks, subagents, skills     |
+| `.husky/`  | Git hooks                                                 |
 
 Constraint: a top-level source directory is created only by the decision record that
 introduces the component it holds. Each area is self-contained: code is placed in the
@@ -58,7 +68,7 @@ These constraints hold regardless of the stack that is chosen.
 Technical decisions are recorded here, not in issue comments. Each decision is a new
 file under `docs/decisions/`, numbered sequentially:
 
-```
+```text
 docs/decisions/0001-record-architecture-decisions.md
 ```
 
@@ -95,12 +105,12 @@ alternatives were considered, and that the consequences are stated honestly.
 
 ## Open Questions
 
-| Question | Notes |
-| --- | --- |
-| What is the problem DevPulse solves? | No product definition exists yet |
-| Which runtimes and frameworks? | Blocked on the product definition |
-| Deployment target? | Blocked on the stack decision |
-| Testing and coverage strategy? | Tool-independent expectations are defined in [CONTRIBUTING.md](CONTRIBUTING.md); tools pending the stack decision |
+| Question                             | Notes                                                                                  |
+| ------------------------------------ | -------------------------------------------------------------------------------------- |
+| What is the problem DevPulse solves? | No product definition exists yet                                                       |
+| Which application framework?         | Blocked on the product definition                                                      |
+| Hosting beyond local deployment?     | Blocked on the product definition; local deployment proposed (ADR 0004)                |
+| Which test runner?                   | Expectations in [CONTRIBUTING.md](../CONTRIBUTING.md); tool chosen with the first code |
 
 These questions are open by design. They are listed here so that no decision is made
 silently.

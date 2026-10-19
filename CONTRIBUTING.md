@@ -20,23 +20,23 @@ also read [AGENTS.md](AGENTS.md).
 All work branches are created from an up-to-date `main`. Branch names are lowercase,
 use a slash prefix matching the change type, and a short kebab-case description.
 
-```
+```text
 <type>/<short-description>
 ```
 
 Permitted prefixes:
 
-| Prefix | Use for |
-| --- | --- |
-| `feat/` | New functionality |
-| `fix/` | Bug fixes |
-| `docs/` | Documentation only |
-| `chore/` | Maintenance, dependency bumps, config |
-| `refactor/` | Behaviour-preserving code changes |
-| `test/` | Adding or correcting tests |
-| `perf/` | Performance improvements |
-| `ci/` | CI/CD workflow changes |
-| `build/` | Build system changes |
+| Prefix      | Use for                               |
+| ----------- | ------------------------------------- |
+| `feat/`     | New functionality                     |
+| `fix/`      | Bug fixes                             |
+| `docs/`     | Documentation only                    |
+| `chore/`    | Maintenance, dependency bumps, config |
+| `refactor/` | Behaviour-preserving code changes     |
+| `test/`     | Adding or correcting tests            |
+| `perf/`     | Performance improvements              |
+| `ci/`       | CI/CD workflow changes                |
+| `build/`    | Build system changes                  |
 
 Rules:
 
@@ -48,7 +48,7 @@ Rules:
 
 Examples:
 
-```
+```text
 feat/user-authentication
 fix/session-timeout-handling
 docs/update-contribution-guidelines
@@ -61,7 +61,7 @@ chore/initialise-toolchain
 
 Every commit message follows [Conventional Commits](https://www.conventionalcommits.org/).
 
-```
+```text
 <type>(<optional scope>): <short description>
 
 <optional body>
@@ -71,19 +71,19 @@ Every commit message follows [Conventional Commits](https://www.conventionalcomm
 
 ### Types
 
-| Type | Meaning |
-| --- | --- |
-| `feat` | New functionality |
-| `fix` | Bug fix |
-| `docs` | Documentation changes |
-| `style` | Formatting only, no logic change |
+| Type       | Meaning                            |
+| ---------- | ---------------------------------- |
+| `feat`     | New functionality                  |
+| `fix`      | Bug fix                            |
+| `docs`     | Documentation changes              |
+| `style`    | Formatting only, no logic change   |
 | `refactor` | Code change with no feature or fix |
-| `perf` | Performance improvement |
-| `test` | Adding or correcting tests |
-| `build` | Build system or packaging changes |
-| `ci` | CI/CD configuration changes |
-| `chore` | Maintenance that fits nowhere else |
-| `revert` | Revert of a previous commit |
+| `perf`     | Performance improvement            |
+| `test`     | Adding or correcting tests         |
+| `build`    | Build system or packaging changes  |
+| `ci`       | CI/CD configuration changes        |
+| `chore`    | Maintenance that fits nowhere else |
+| `revert`   | Revert of a previous commit        |
 
 ### Rules
 
@@ -98,7 +98,7 @@ Every commit message follows [Conventional Commits](https://www.conventionalcomm
 
 Mark breaking changes with an exclamation mark and a footer:
 
-```
+```text
 feat(api)!: change authentication response shape
 
 Clients previously received a token wrapper. The token is now returned directly,
@@ -109,7 +109,7 @@ BREAKING CHANGE: the `data.access_token` field is removed.
 
 ### Examples
 
-```
+```text
 docs: define branch naming conventions
 chore: add editor configuration
 feat: add initial project scaffolding
@@ -190,7 +190,7 @@ Principles:
 - New dependencies require an issue explaining what problem they solve, why the
   standard library or an existing dependency is insufficient, the maintenance status,
   and the licence. Approval is required before adding one.
-- Keep comments for *why* a decision was made. Comments restating the code are removed.
+- Keep comments for _why_ a decision was made. Comments restating the code are removed.
 - Documentation is updated in the same change as the behaviour it describes.
 - Technical decisions are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 

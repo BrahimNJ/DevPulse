@@ -1,100 +1,145 @@
 # Development Guide
 
-This document covers environment expectations, the daily development loop, quality
-gates, and the role of CI/CD. It is deliberately tool-independent: the concrete
-commands are defined once the technology stack is decided (see
-[ARCHITECTURE.md](ARCHITECTURE.md)).
+Environment setup, commands, quality gates, CI/CD, and the Definition of Done. The
+contribution workflow itself is in [CONTRIBUTING.md](../CONTRIBUTING.md); the Git
+workflow end to end is in [GIT_WORKFLOW.md](GIT_WORKFLOW.md).
 
 ## Current State
 
-There is **no application code, no build system, and no CI pipeline** in this
-repository yet. Therefore there is currently no test, lint, or build command to run.
-Any instruction in this document that references a specific command is marked as
-pending and must not be treated as available.
+Repository tooling, CI and release automation are in place. There is **no application
+code, no build step, and no test runner** yet; gates that depend on them start applying
+when they are introduced.
 
-## Tooling Baseline
+## Prerequisites
 
-The following tools are decided for every change, regardless of stack:
+| Tool    | Version               | Notes                                        |
+| ------- | --------------------- | -------------------------------------------- |
+| Git     | 2.40 or later         |                                              |
+| Node.js | 24 LTS (see `.nvmrc`) | `engine-strict` rejects other major versions |
+| npm     | 11 or later           | Bundled with Node.js 24                      |
+| Docker  | Not required yet      | Required once local deployment is accepted   |
 
-| Concern | Expectation | Status |
-| --- | --- | --- |
-| Line endings | LF, enforced by `.editorconfig` and `.gitattributes` | Decided |
-| Indentation | Spaces; 2 by default, 4 for Python | Decided |
-| Final newline | Required in every text file | Decided |
-| Trailing whitespace | Removed, except in Markdown hard line breaks | Decided |
-| Encoding | UTF-8 | Decided |
-| Editor and OS artefacts | Ignored, never committed | Decided |
-| Formatter | To be selected with the stack | Pending |
-| Linter | To be selected with the stack | Pending |
-| Formatter and linter for YAML and Markdown | To be selected | Pending |
-| Test runner | To be selected with the stack | Pending |
+No secrets are needed for local development. When they are, they come from an
+untracked `.env` file; a committed `.env.example` carries placeholder values only.
 
-## Local Environment
+## Setup
 
-- Git is the only hard requirement at this stage.
-- A runtime and its package manager are required once the stack is decided. The
-  required version is pinned in the repository, not assumed from the host.
-- No secrets are needed for local development. When they are, they come from an
-  untracked `.env` file; a committed `.env.example` carries placeholder values only.
+```sh
+git clone https://github.com/BrahimNJ/DevPulse.git
+cd DevPulse
+npm ci            # installs pinned dependencies and activates the Git hooks
+npm run check     # every gate should pass on a fresh clone
+```
 
-## Development Loop
+## Commands
 
-Issue → branch from an up-to-date `main` → change → local verification → pull request
-→ review → merge. Naming, commit, and pull request rules are in
-[CONTRIBUTING.md](../CONTRIBUTING.md). When a verification command does not exist yet,
-record that it does not exist rather than claiming the change is verified.
+| Command                | What it does                                                 |
+| ---------------------- | ------------------------------------------------------------ |
+| `npm run check`        | Runs `format:check`, `lint`, `lint:md` and `typecheck`       |
+| `npm run format`       | Formats all files with Prettier                              |
+| `npm run format:check` | Fails if any file is not formatted                           |
+| `npm run lint`         | ESLint, type-aware, zero warnings allowed                    |
+| `npm run lint:fix`     | ESLint with automatic fixes                                  |
+| `npm run lint:md`      | markdownlint on every Markdown file                          |
+| `npm run typecheck`    | TypeScript in strict mode, JavaScript included via `checkJs` |
+| `npm run lint:commits` | commitlint on every commit between `origin/main` and `HEAD`  |
+
+## Tooling
+
+| Concern         | Tool                                              | Configuration                       |
+| --------------- | ------------------------------------------------- | ----------------------------------- |
+| Editor baseline | EditorConfig (LF, UTF-8, 2 spaces, final newline) | `.editorconfig`, `.gitattributes`   |
+| Formatting      | Prettier                                          | `.prettierrc.json`                  |
+| Linting         | ESLint with `typescript-eslint` strict rules      | `eslint.config.mjs`                 |
+| Types           | TypeScript, strict                                | `tsconfig.json`                     |
+| Documentation   | markdownlint                                      | `.markdownlint-cli2.jsonc`          |
+| Commit messages | commitlint, Conventional Commits                  | `commitlint.config.mjs`             |
+| Git hooks       | husky and lint-staged                             | `.husky/`, `lint-staged.config.mjs` |
+| Test runner     | Not selected                                      |                                     |
+
+### Git hooks
+
+| Hook         | Runs                                                           |
+| ------------ | -------------------------------------------------------------- |
+| `pre-commit` | lint-staged: ESLint, markdownlint and Prettier on staged files |
+| `commit-msg` | commitlint                                                     |
+| `pre-push`   | `npm run typecheck`                                            |
+
+Hooks are never skipped with `--no-verify`. If a hook is wrong, fix it in a pull request.
+
+### Editor
+
+`.vscode/extensions.json` recommends the ESLint, Prettier, EditorConfig and
+markdownlint extensions; `.vscode/settings.json` formats on save with Prettier.
 
 ## Quality Gates
 
 A change is complete when all of the following hold.
 
-**Before pushing**
+### Before pushing
 
 - The change is limited to one concern and the branch follows the naming convention.
 - Commits follow Conventional Commits and explain why.
-- Formatting and linting are clean.
-- Tests pass, and a bug fix includes a test that failed before the fix.
+- `npm run check` passes.
+- Once a test runner exists: tests pass, and a bug fix includes a test that failed
+  before the fix.
 - Documentation matches the behaviour.
 - No secrets, `.env` files, build output, or editor artefacts are staged.
 
-**In CI, on every pull request**
+### In CI, on every pull request
 
-- Tests pass.
-- Lint and format checks pass.
-- The project builds.
-- No secret is present in the diff.
+- Format, lint, Markdown and type checks pass.
+- Every commit message and the pull request title are valid Conventional Commits.
+- No secret is present in the history (gitleaks).
+- No runtime dependency with a known advisory is introduced; npm signatures verify.
+- Workflows pass actionlint.
+- Once they exist: tests pass and the project builds.
 
-**At merge**
+### At merge
 
 - At least one approving review.
 - All review comments resolved.
-- `main` is green.
+- `ci-success` and `pr-title` are green.
 
-## CI/CD Role
+## CI/CD
 
-CI exists to make the quality gates objective, so that
-[CONTRIBUTING.md](../CONTRIBUTING.md) is enforced without relying on reviewer memory.
+CI makes the quality gates objective, so that [CONTRIBUTING.md](../CONTRIBUTING.md) is
+enforced without relying on reviewer memory.
 
-Continuous integration is expected to:
+| Workflow           | Trigger                    | Jobs                                                                              |
+| ------------------ | -------------------------- | --------------------------------------------------------------------------------- |
+| `ci.yml`           | Pull request, push to main | format, lint, Markdown, types, commits, audit, actionlint, gitleaks, `ci-success` |
+| `pull-request.yml` | Pull request               | `pr-title`, `dependency-review`                                                   |
+| `release.yml`      | Push to main               | `release-please`                                                                  |
+| Dependabot         | Weekly, Monday             | Grouped updates for npm and GitHub Actions                                        |
 
-- Run on every pull request and on every push to a protected branch.
-- Report a pass/fail status on the pull request and block merge on failure.
-- Be reproducible: the same commit yields the same result.
-- Pin the versions of all actions and runtimes it uses.
-- Run with least-privilege permissions and no write scope by default.
-- Document every required repository or organisation secret, and use secrets only for
-  credentials that cannot be avoided.
+Pipeline rules:
 
-Continuous delivery and deployment are out of scope until a deployable application
-exists. When introduced, they will:
+- Every action is pinned to a full commit SHA, and images to a digest.
+- The default token is read-only; jobs request write scopes individually.
+- `ci-success` is the single required status check; it fails if any job fails.
+- CI runs the same npm scripts as local development.
 
-- Run only from `main` after continuous integration succeeds.
-- Produce an immutable, versioned artefact.
-- Require an explicit promotion step, never an automatic production change.
-- Be documented in this file, including the rollback procedure.
+### Required secrets
 
-No pipeline is implemented in this repository. This section is the contract that the
-first pipeline must satisfy.
+| Secret                 | Required | Purpose                                            |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `RELEASE_PLEASE_TOKEN` | Optional | Lets CI run on release pull requests; see ADR 0004 |
+
+`GITHUB_TOKEN` is provided automatically. No other secret is used.
+
+### Releases
+
+Defined in [ADR 0004](decisions/0004-release-and-local-deployment.md). release-please
+keeps a release pull request open on `main`. Merging it bumps the version, updates
+`CHANGELOG.md`, and creates the `vX.Y.Z` tag and GitHub release. Neither file is
+edited by hand.
+
+### Local deployment (proposed)
+
+When the first runnable component is accepted, `docker compose up --build` will start
+it locally from the repository root, with configuration from `.env`. Nothing is
+deployed yet; see ADR 0004.
 
 ## Definition of Done
 

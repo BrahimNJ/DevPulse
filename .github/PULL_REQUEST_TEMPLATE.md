@@ -33,11 +33,10 @@ docs/ARCHITECTURE.md.
 <!--
 How was this change verified? Be specific and honest.
 
-- [ ] Tests added or updated, and they pass
-- [ ] Lint and formatting checks pass
-- [ ] Project builds
+- [ ] `npm run check` passes (format, lint, Markdown, types)
+- [ ] Tests added or updated, and they pass (once a test runner exists)
+- [ ] Project builds (once a build step exists)
 - [ ] Manually tested (describe below)
-- [ ] Not applicable yet: no test framework or CI is defined in this repository
 
 Details:
 -->
