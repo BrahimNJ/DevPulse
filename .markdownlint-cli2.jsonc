@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/main/schema/markdownlint-cli2-config-schema.json",
+  "config": {
+    "default": true,
+    // Line length is owned by Prettier with prose wrapping preserved.
+    "MD013": false,
+    // Repeated headings are expected across decision records and templates.
+    "MD024": { "siblings_only": true },
+    // The pull request template starts with a section heading, not a title.
+    "MD041": false,
+  },
+  "globs": ["**/*.md"],
+  "ignores": ["node_modules/**", "CHANGELOG.md"],
+}
