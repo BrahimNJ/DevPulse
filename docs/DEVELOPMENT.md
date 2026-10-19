@@ -48,7 +48,7 @@ record that it does not exist rather than claiming the change is verified.
 
 A change is complete when all of the following hold.
 
-**Before pushing**
+### Before pushing
 
 - The change is limited to one concern and the branch follows the naming convention.
 - Commits follow Conventional Commits and explain why.
@@ -57,14 +57,14 @@ A change is complete when all of the following hold.
 - Documentation matches the behaviour.
 - No secrets, `.env` files, build output, or editor artefacts are staged.
 
-**In CI, on every pull request**
+### In CI, on every pull request
 
 - Tests pass.
 - Lint and format checks pass.
 - The project builds.
 - No secret is present in the diff.
 
-**At merge**
+### At merge
 
 - At least one approving review.
 - All review comments resolved.

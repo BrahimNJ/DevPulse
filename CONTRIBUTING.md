@@ -20,7 +20,7 @@ also read [AGENTS.md](AGENTS.md).
 All work branches are created from an up-to-date `main`. Branch names are lowercase,
 use a slash prefix matching the change type, and a short kebab-case description.
 
-```
+```text
 <type>/<short-description>
 ```
 
@@ -48,7 +48,7 @@ Rules:
 
 Examples:
 
-```
+```text
 feat/user-authentication
 fix/session-timeout-handling
 docs/update-contribution-guidelines
@@ -61,7 +61,7 @@ chore/initialise-toolchain
 
 Every commit message follows [Conventional Commits](https://www.conventionalcommits.org/).
 
-```
+```text
 <type>(<optional scope>): <short description>
 
 <optional body>
@@ -98,7 +98,7 @@ Every commit message follows [Conventional Commits](https://www.conventionalcomm
 
 Mark breaking changes with an exclamation mark and a footer:
 
-```
+```text
 feat(api)!: change authentication response shape
 
 Clients previously received a token wrapper. The token is now returned directly,
@@ -109,7 +109,7 @@ BREAKING CHANGE: the `data.access_token` field is removed.
 
 ### Examples
 
-```
+```text
 docs: define branch naming conventions
 chore: add editor configuration
 feat: add initial project scaffolding

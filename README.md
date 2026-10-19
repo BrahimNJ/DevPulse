@@ -19,7 +19,7 @@ through Architecture Decision Records before any application code is written.
 
 ## Repository Layout
 
-```
+```text
 DevPulse/
 ├── README.md            Project overview and entry point
 ├── CONTRIBUTING.md      Contributor workflow and standards

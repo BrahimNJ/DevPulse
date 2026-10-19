@@ -58,7 +58,7 @@ These constraints hold regardless of the stack that is chosen.
 Technical decisions are recorded here, not in issue comments. Each decision is a new
 file under `docs/decisions/`, numbered sequentially:
 
-```
+```text
 docs/decisions/0001-record-architecture-decisions.md
 ```
 
