@@ -27,11 +27,11 @@ DevPulse/
 ├── docs/
 │   ├── ARCHITECTURE.md  Architectural constraints and decision process
 │   └── DEVELOPMENT.md   Local setup, quality gates, CI/CD role
-├── backend/             Backend source (not started)
-├── frontend/            Frontend source (not started)
-├── infrastructure/      Infrastructure definitions (not started)
-└── .github/             Issue forms, PR template, CI/CD workflows
+└── .github/             Issue forms and pull request template
 ```
+
+Source directories are created when the first component that needs them is accepted,
+not in advance.
 
 ## Documentation
 

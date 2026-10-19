@@ -10,6 +10,3 @@
 *.pdf binary
 *.zip binary
 *.gz binary
-
-# Lockfiles may be large and are best stored without text normalisation where the
-# tooling expects them verbatim.

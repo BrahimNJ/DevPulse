@@ -6,8 +6,8 @@ features, because none have been defined.
 
 ## Current State
 
-DevPulse has no application code. The repository contains standards, documentation, and
-directory placeholders only. The following are all undecided:
+DevPulse has no application code. The repository contains standards and documentation
+only. The following are all undecided:
 
 - Language and runtime for the backend.
 - Framework and build tooling for the frontend.
@@ -20,17 +20,15 @@ default from similar projects.
 
 ## Repository Layout
 
-| Path | Responsibility | State |
-| --- | --- | --- |
-| `backend/` | Server-side application code and its tests | Empty |
-| `frontend/` | Client-side application code and its tests | Empty |
-| `infrastructure/` | Infrastructure as code and operational configuration | Empty |
-| `docs/` | Architecture decisions and development documentation | Active |
-| `.github/` | Issue forms, pull request template, CI/CD workflows | Partially active |
+| Path | Responsibility |
+| --- | --- |
+| `docs/` | Architecture decisions and development documentation |
+| `.github/` | Issue forms and pull request template |
 
-Constraint: each area is self-contained. Code is placed in the area that owns the
-responsibility, and a change touching multiple areas is split into separate pull
-requests unless the coupling is explicitly accepted in a decision record.
+Constraint: a top-level source directory is created only by the decision record that
+introduces the component it holds. Each area is self-contained: code is placed in the
+area that owns the responsibility, and a change touching multiple areas is split into
+separate pull requests unless the coupling is explicitly accepted in a decision record.
 
 ## Architectural Constraints
 

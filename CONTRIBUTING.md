@@ -194,29 +194,9 @@ Principles:
 - Documentation is updated in the same change as the behaviour it describes.
 - Technical decisions are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## 7. CI/CD Role
+## 7. Quality Gates and CI/CD
 
-CI/CD exists to make the standards in this document objective and automatic. It is a
-verification system, not a deployment mechanism yet. No pipeline is defined at this
-stage; the expectations below are the contract that future pipelines must satisfy.
-
-Continuous integration must verify, on every pull request and push to `main`:
-
-- All tests pass.
-- Linting and formatting checks pass.
-- The project builds successfully.
-- No committed secret is detected in the change.
-
-Continuous integration must additionally:
-
-- Run automatically on pull requests and pushes to protected branches.
-- Report a clear pass/fail status on the pull request itself, and block merge on failure.
-- Be reproducible: the same commit must produce the same result.
-- Pin action versions and document any required CI secrets.
-
-Continuous deployment and release automation are out of scope until a deployable
-application exists. When they are introduced, they will run only from `main` after CI
-succeeds, require version tagging, and be documented in
+The quality gates, the CI/CD contract, and the Definition of Done are defined once, in
 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## 8. Reporting Issues
@@ -225,8 +205,8 @@ Use the issue templates in [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE). Rep
 with reproduction steps, expected behaviour, and actual behaviour. Search existing
 issues first.
 
-Security issues must not be opened as public issues. Follow the reporting process
-described in [AGENTS.md](AGENTS.md).
+Security issues must not be opened as public issues. Report them privately through
+the repository's security advisory form, linked from the issue chooser.
 
 ## 9. Code of Conduct
 

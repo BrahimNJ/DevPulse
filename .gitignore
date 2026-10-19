@@ -13,6 +13,12 @@ Desktop.ini
 !.vscode/settings.json
 
 # ---------------------------------------------------------------------------
+# Claude Code personal files (shared configuration in .claude/ is committed)
+# ---------------------------------------------------------------------------
+.claude/settings.local.json
+CLAUDE.local.md
+
+# ---------------------------------------------------------------------------
 # Environment files and secrets
 # ---------------------------------------------------------------------------
 .env
@@ -25,83 +31,23 @@ secrets.*
 credentials.*
 
 # ---------------------------------------------------------------------------
-# Logs and runtime output
+# Logs
 # ---------------------------------------------------------------------------
 logs/
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-pip-log.txt
 
 # ---------------------------------------------------------------------------
-# Dependency directories
+# Dependencies, build and test output
 # ---------------------------------------------------------------------------
 node_modules/
-vendor/
-.venv/
-venv/
-__pycache__/
-*.egg-info/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# ---------------------------------------------------------------------------
-# Build output
-# ---------------------------------------------------------------------------
 dist/
 build/
-out/
-target/
-.next/
-.nuxt/
-*.egg
-*.tsbuildinfo
-
-# ---------------------------------------------------------------------------
-# Test and coverage output
-# ---------------------------------------------------------------------------
 coverage/
-coverage.xml
-htmlcov/
-.tox/
-junit.xml
-
-# ---------------------------------------------------------------------------
-# Infrastructure (provisional; stack not yet decided)
-# ---------------------------------------------------------------------------
-*.tfstate
-*.tfstate.*
-.terraform/
-.terraform.lock.hcl
-.terraform.tfvars
-*.auto.tfvars
-terraform.tfvars
-*.tfvars.json
-override.tf
-override.tf.json
-*_override.tf
-*_override.tf.json
-.terraformrc
-terraform.rc
-crash.log
-crash.*.log
-*.tfvars
+*.tsbuildinfo
 
 # ---------------------------------------------------------------------------
 # Caches
 # ---------------------------------------------------------------------------
 .cache/
-.parcel-cache/
-.turbo/
 .eslintcache
-*.local
-
-# ---------------------------------------------------------------------------
-# Local databases and container artefacts
-# ---------------------------------------------------------------------------
-*.db
-*.sqlite
-*.sqlite3
