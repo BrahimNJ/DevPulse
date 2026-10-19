@@ -13,7 +13,7 @@ body:
     attributes:
       label: Description
       description: What is happening, and what should happen instead?
-      placeholder: The export job fails instead of producing a file.
+      placeholder: Running the documented command exits with an error instead of succeeding.
     validations:
       required: true
   - type: textarea
@@ -22,9 +22,9 @@ body:
       label: Steps to reproduce
       description: The smallest set of steps that triggers the problem.
       placeholder: |
-        1. Open the settings page
-        2. Click "Export"
-        3. Observe the console error
+        1. Check out commit <sha>
+        2. Run <command>
+        3. Observe <result>
     validations:
       required: true
   - type: textarea
@@ -38,12 +38,10 @@ body:
     attributes:
       label: Environment
       description: |
-        Operating system, runtime and tool versions, deployment target. The
-        technology stack for this repository is still being decided, so state what
-        you are using.
+        Operating system, runtime and tool versions, and the commit you are on.
       placeholder: |
-        OS: Linux 6.x
-        Runtime: (not yet decided)
+        OS: Windows 11
+        Commit: <sha>
     validations:
       required: true
   - type: textarea
