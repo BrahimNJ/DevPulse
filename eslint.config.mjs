@@ -32,6 +32,11 @@ export default defineConfig(
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
     },
   },
+  {
+    // JavaScript files declare return types in JSDoc, which this rule cannot see.
+    files: ['**/*.js', '**/*.mjs'],
+    rules: { '@typescript-eslint/explicit-function-return-type': 'off' },
+  },
   // Turns off stylistic rules that would conflict with Prettier.
   prettier,
   // eslint-config-prettier disables curly, but the 'all' option never conflicts with it.
