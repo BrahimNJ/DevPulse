@@ -1,13 +1,14 @@
 # Architecture
 
 This document records the architectural constraints that apply to DevPulse and the
-process by which technical decisions are made. It does not describe application
-features, because none have been defined.
+process by which technical decisions are made. Features are specified in issues; this
+document only records the structure they fit into.
 
 ## Current State
 
-DevPulse has no application code. The repository contains standards, documentation,
-quality tooling, CI/CD, and agent configuration.
+DevPulse is a command-line tool that analyses public GitHub repositories. Its first
+feature reports branch statistics (#12). The repository also contains standards,
+documentation, quality tooling, CI/CD, and agent configuration.
 
 Decided, see [decision records](decisions/):
 
@@ -15,13 +16,14 @@ Decided, see [decision records](decisions/):
 - Linting, formatting, and commit validation tools (ADR 0002).
 - Shared Claude Code configuration (ADR 0003).
 - Release automation with release-please (ADR 0004).
+- Command-line interface, `src/` layout, native TypeScript execution, `node:test`,
+  GitHub GraphQL and REST through `fetch` (ADR 0005).
 
 Undecided:
 
 - Application framework, for any server or client component.
 - Data stores, messaging, and external services.
 - Hosting model beyond local deployment, which is proposed in ADR 0004.
-- Test runner.
 
 These decisions are made through the process in this document, not by assuming a
 default from similar projects.
@@ -30,6 +32,7 @@ default from similar projects.
 
 | Path       | Responsibility                                            |
 | ---------- | --------------------------------------------------------- |
+| `src/`     | Application code, layered as described in ADR 0005        |
 | `docs/`    | Architecture decisions and development documentation      |
 | `.github/` | Workflows, Dependabot, issue forms, pull request template |
 | `.claude/` | Shared Claude Code settings, hooks, subagents, skills     |
@@ -105,12 +108,11 @@ alternatives were considered, and that the consequences are stated honestly.
 
 ## Open Questions
 
-| Question                             | Notes                                                                                  |
-| ------------------------------------ | -------------------------------------------------------------------------------------- |
-| What is the problem DevPulse solves? | No product definition exists yet                                                       |
-| Which application framework?         | Blocked on the product definition                                                      |
-| Hosting beyond local deployment?     | Blocked on the product definition; local deployment proposed (ADR 0004)                |
-| Which test runner?                   | Expectations in [CONTRIBUTING.md](../CONTRIBUTING.md); tool chosen with the first code |
+| Question                             | Notes                                                                   |
+| ------------------------------------ | ----------------------------------------------------------------------- |
+| What is the problem DevPulse solves? | No product definition exists yet                                        |
+| Which application framework?         | Blocked on the product definition                                       |
+| Hosting beyond local deployment?     | Blocked on the product definition; local deployment proposed (ADR 0004) |
 
 These questions are open by design. They are listed here so that no decision is made
 silently.

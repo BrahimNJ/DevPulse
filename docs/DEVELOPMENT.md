@@ -6,9 +6,9 @@ workflow end to end is in [GIT_WORKFLOW.md](GIT_WORKFLOW.md).
 
 ## Current State
 
-Repository tooling, CI and release automation are in place. There is **no application
-code, no build step, and no test runner** yet; gates that depend on them start applying
-when they are introduced.
+Repository tooling, CI, release automation and the first feature, the `branches`
+command, are in place. Node.js runs the TypeScript sources directly, so there is **no
+build step** ([ADR 0005](decisions/0005-command-line-application-and-tests.md)).
 
 ## Prerequisites
 
@@ -19,8 +19,15 @@ when they are introduced.
 | npm     | 11 or later           | Bundled with Node.js 24                      |
 | Docker  | Not required yet      | Required once local deployment is accepted   |
 
-No secrets are needed for local development. When they are, they come from an
-untracked `.env` file; a committed `.env.example` carries placeholder values only.
+Tests need no secret. Running the CLI needs a GitHub token in `GITHUB_TOKEN`, because
+the GraphQL API rejects anonymous requests. With the GitHub CLI installed:
+
+```sh
+GITHUB_TOKEN=$(gh auth token) npm run devpulse -- branches nodejs/node
+```
+
+Never commit a token. If a `.env` file is introduced, it stays untracked and a committed
+`.env.example` carries placeholder values only.
 
 ## Setup
 
@@ -33,16 +40,18 @@ npm run check     # every gate should pass on a fresh clone
 
 ## Commands
 
-| Command                | What it does                                                 |
-| ---------------------- | ------------------------------------------------------------ |
-| `npm run check`        | Runs `format:check`, `lint`, `lint:md` and `typecheck`       |
-| `npm run format`       | Formats all files with Prettier                              |
-| `npm run format:check` | Fails if any file is not formatted                           |
-| `npm run lint`         | ESLint, type-aware, zero warnings allowed                    |
-| `npm run lint:fix`     | ESLint with automatic fixes                                  |
-| `npm run lint:md`      | markdownlint on every Markdown file                          |
-| `npm run typecheck`    | TypeScript in strict mode, JavaScript included via `checkJs` |
-| `npm run lint:commits` | commitlint on every commit between `origin/main` and `HEAD`  |
+| Command                | What it does                                                   |
+| ---------------------- | -------------------------------------------------------------- |
+| `npm run check`        | Runs `format:check`, `lint`, `lint:md`, `typecheck` and `test` |
+| `npm run format`       | Formats all files with Prettier                                |
+| `npm run format:check` | Fails if any file is not formatted                             |
+| `npm run lint`         | ESLint, type-aware, zero warnings allowed                      |
+| `npm run lint:fix`     | ESLint with automatic fixes                                    |
+| `npm run lint:md`      | markdownlint on every Markdown file                            |
+| `npm run typecheck`    | TypeScript in strict mode, JavaScript included via `checkJs`   |
+| `npm test`             | Unit tests with `node:test`, matching `src/**/*.test.ts`       |
+| `npm run devpulse`     | Runs the CLI, for example `npm run devpulse -- --help`         |
+| `npm run lint:commits` | commitlint on every commit between `origin/main` and `HEAD`    |
 
 ## Tooling
 
@@ -55,7 +64,7 @@ npm run check     # every gate should pass on a fresh clone
 | Documentation   | markdownlint                                      | `.markdownlint-cli2.jsonc`          |
 | Commit messages | commitlint, Conventional Commits                  | `commitlint.config.mjs`             |
 | Git hooks       | husky and lint-staged                             | `.husky/`, `lint-staged.config.mjs` |
-| Test runner     | Not selected                                      |                                     |
+| Tests           | `node:test` and `node:assert`, built into Node.js | `test` script in `package.json`     |
 
 ### Git hooks
 
@@ -81,19 +90,17 @@ A change is complete when all of the following hold.
 - The change is limited to one concern and the branch follows the naming convention.
 - Commits follow Conventional Commits and explain why.
 - `npm run check` passes.
-- Once a test runner exists: tests pass, and a bug fix includes a test that failed
-  before the fix.
+- Tests pass, and a bug fix includes a test that failed before the fix.
 - Documentation matches the behaviour.
 - No secrets, `.env` files, build output, or editor artefacts are staged.
 
 ### In CI, on every pull request
 
-- Format, lint, Markdown and type checks pass.
+- Format, lint, Markdown and type checks and unit tests pass.
 - Every commit message and the pull request title are valid Conventional Commits.
 - No secret is present in the history (gitleaks).
 - No runtime dependency with a known advisory is introduced; npm signatures verify.
 - Workflows pass actionlint.
-- Once they exist: tests pass and the project builds.
 
 ### At merge
 
@@ -106,12 +113,12 @@ A change is complete when all of the following hold.
 CI makes the quality gates objective, so that [CONTRIBUTING.md](../CONTRIBUTING.md) is
 enforced without relying on reviewer memory.
 
-| Workflow           | Trigger                    | Jobs                                                                              |
-| ------------------ | -------------------------- | --------------------------------------------------------------------------------- |
-| `ci.yml`           | Pull request, push to main | format, lint, Markdown, types, commits, audit, actionlint, gitleaks, `ci-success` |
-| `pull-request.yml` | Pull request               | `pr-title`, `dependency-review`                                                   |
-| `release.yml`      | Push to main               | `release-please`                                                                  |
-| Dependabot         | Weekly, Monday             | Grouped updates for npm and GitHub Actions                                        |
+| Workflow           | Trigger                    | Jobs                                                                                     |
+| ------------------ | -------------------------- | ---------------------------------------------------------------------------------------- |
+| `ci.yml`           | Pull request, push to main | format, lint, Markdown, types, tests, commits, audit, actionlint, gitleaks, `ci-success` |
+| `pull-request.yml` | Pull request               | `pr-title`, `dependency-review`                                                          |
+| `release.yml`      | Push to main               | `release-please`                                                                         |
+| Dependabot         | Weekly, Monday             | Grouped updates for npm and GitHub Actions                                               |
 
 Pipeline rules:
 

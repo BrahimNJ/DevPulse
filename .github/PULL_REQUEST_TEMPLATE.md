@@ -33,8 +33,8 @@ docs/ARCHITECTURE.md.
 <!--
 How was this change verified? Be specific and honest.
 
-- [ ] `npm run check` passes (format, lint, Markdown, types)
-- [ ] Tests added or updated, and they pass (once a test runner exists)
+- [ ] `npm run check` passes (format, lint, Markdown, types, tests)
+- [ ] Tests added or updated, and they pass
 - [ ] Project builds (once a build step exists)
 - [ ] Manually tested (describe below)
 

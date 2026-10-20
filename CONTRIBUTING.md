@@ -156,8 +156,10 @@ Use [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md).
 
 ## 5. Testing Expectations
 
-No test framework is selected yet. The requirements below are tool-independent and
-become enforceable once the stack is chosen.
+Tests use the built-in `node:test` runner
+([ADR 0005](docs/decisions/0005-command-line-application-and-tests.md)), sit next to the
+code as `*.test.ts`, and run with `npm test`. The requirements below are
+tool-independent.
 
 Principles:
 

@@ -16,6 +16,8 @@
     "useUnknownInCatchVariables": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
     "allowJs": true,
     "checkJs": true,
     "skipLibCheck": true,

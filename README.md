@@ -2,8 +2,8 @@
 
 # DevPulse
 
-**A standards-first, AI-assisted engineering foundation.**
-Every quality gate, pipeline, and agent workflow is in place and enforced before the first feature is written.
+**Analytics for public GitHub repositories.**
+Built on a standards-first, AI-assisted engineering foundation: every quality gate, pipeline, and agent workflow was in place before the first feature.
 
 [![CI](https://github.com/BrahimNJ/DevPulse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/BrahimNJ/DevPulse/actions/workflows/ci.yml)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org)
@@ -35,15 +35,15 @@ subagents, rather than as an unconstrained autocomplete.
 
 ## Highlights
 
-| Area                        | What is in place                                                                                                                    |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **Quality gates**           | Strict TypeScript, type-aware ESLint with complexity limits, Prettier, markdownlint; one command, `npm run check`, runs them all    |
-| **Shift-left enforcement**  | Git hooks lint and format staged files, validate commit messages, and type-check before every push                                  |
-| **CI pipeline**             | 8 parallel jobs aggregated into a single required `ci-success` check, plus PR title validation and dependency review                |
-| **Supply-chain security**   | Actions pinned to commit SHAs, images to digests, read-only default token, gitleaks, npm audit and signature checks, licence policy |
-| **Automated releases**      | Semantic versioning, changelog, tags, and GitHub releases generated from Conventional Commits by release-please                     |
-| **AI agent engineering**    | Claude Code with shared permissions, guard-rail hooks, 5 scoped subagents, and 6 workflow skills, tuned for token efficiency        |
-| **Architecture governance** | Every technical choice recorded as an Architecture Decision Record, with alternatives and consequences                              |
+| Area                        | What is in place                                                                                                                             |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Quality gates**           | Strict TypeScript, type-aware ESLint with complexity limits, Prettier, markdownlint, unit tests; one command, `npm run check`, runs them all |
+| **Shift-left enforcement**  | Git hooks lint and format staged files, validate commit messages, and type-check before every push                                           |
+| **CI pipeline**             | 9 parallel jobs aggregated into a single required `ci-success` check, plus PR title validation and dependency review                         |
+| **Supply-chain security**   | Actions pinned to commit SHAs, images to digests, read-only default token, gitleaks, npm audit and signature checks, licence policy          |
+| **Automated releases**      | Semantic versioning, changelog, tags, and GitHub releases generated from Conventional Commits by release-please                              |
+| **AI agent engineering**    | Claude Code with shared permissions, guard-rail hooks, 5 scoped subagents, and 6 workflow skills, tuned for token efficiency                 |
+| **Architecture governance** | Every technical choice recorded as an Architecture Decision Record, with alternatives and consequences                                       |
 
 ## Tech stack
 
@@ -84,6 +84,7 @@ flowchart LR
 | Linting (ESLint, type-aware)  | pre-commit | ✅  |
 | Documentation (markdownlint)  | pre-commit | ✅  |
 | Type checking (TypeScript)    | pre-push   | ✅  |
+| Unit tests (node:test)        |            | ✅  |
 | Commit messages (commitlint)  | commit-msg | ✅  |
 | Pull request title            |            | ✅  |
 | Secret scanning (gitleaks)    |            | ✅  |
@@ -120,8 +121,18 @@ round trips. Details in the [Claude Code guide](docs/ai/CLAUDE_CODE.md).
 git clone https://github.com/BrahimNJ/DevPulse.git
 cd DevPulse
 npm ci          # installs pinned dependencies and activates the Git hooks
-npm run check   # format, lint, Markdown, and type checks
+npm run check   # format, lint, Markdown, type checks and tests
 ```
+
+Show branch statistics for any public repository (requires a GitHub token):
+
+```sh
+GITHUB_TOKEN=$(gh auth token) npm run devpulse -- branches nodejs/node
+GITHUB_TOKEN=$(gh auth token) npm run devpulse -- branches nodejs/node --stale-days 180 --json
+```
+
+The report lists every branch with its last commit, author and age, and flags the
+default, protected and stale branches.
 
 | Command             | Description                                  |
 | ------------------- | -------------------------------------------- |
@@ -129,6 +140,8 @@ npm run check   # format, lint, Markdown, and type checks
 | `npm run lint:fix`  | Fix ESLint findings automatically            |
 | `npm run format`    | Format the repository with Prettier          |
 | `npm run typecheck` | Strict TypeScript check, JavaScript included |
+| `npm test`          | Run the unit tests                           |
+| `npm run devpulse`  | Run the command-line tool                    |
 
 The full command reference is in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
@@ -139,6 +152,7 @@ DevPulse/
 ├── .claude/              Claude Code settings, hooks, subagents, skills
 ├── .github/              CI/CD workflows, Dependabot, issue forms, PR template, CODEOWNERS
 ├── .husky/               Git hooks
+├── src/                  Application code: cli/, github/, branches/ (ADR 0005)
 ├── docs/
 │   ├── ai/               Claude Code usage and token-efficiency guide
 │   ├── decisions/        Architecture Decision Records
@@ -153,11 +167,12 @@ DevPulse/
 
 ## Status and roadmap
 
-| Phase                     | Scope                                                                    | Status  |
-| ------------------------- | ------------------------------------------------------------------------ | ------- |
-| 1. Engineering foundation | Standards, toolchain, CI/CD, release automation, AI agent configuration  | ✅ Done |
-| 2. Product definition     | Problem statement and first component, recorded as ADRs                  | Planned |
-| 3. First component        | Application framework, test runner, local deployment with Docker Compose | Planned |
+| Phase                     | Scope                                                                      | Status  |
+| ------------------------- | -------------------------------------------------------------------------- | ------- |
+| 1. Engineering foundation | Standards, toolchain, CI/CD, release automation, AI agent configuration    | ✅ Done |
+| 2. First feature          | Branch statistics CLI, native TypeScript execution, test runner (ADR 0005) | ✅ Done |
+| 3. Repository analytics   | Further analyses, each specified in an issue before it is built            | Planned |
+| 4. Local deployment       | Docker Compose, proposed in ADR 0004                                       | Planned |
 
 Planned items are decided through the [ADR process](docs/ARCHITECTURE.md#decision-records)
 before any code is written.

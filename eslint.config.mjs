@@ -30,6 +30,15 @@ export default defineConfig(
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
+      // node:test reports failures of describe and it itself; awaiting them is optional.
+      '@typescript-eslint/no-floating-promises': [
+        'error',
+        {
+          allowForKnownSafeCalls: [
+            { from: 'package', package: 'node:test', name: ['describe', 'it', 'suite', 'test'] },
+          ],
+        },
+      ],
     },
   },
   {
