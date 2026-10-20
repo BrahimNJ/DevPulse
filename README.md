@@ -18,7 +18,7 @@ Type a repository, see the health of every branch: activity, authors, protection
 
 [Features](#features) · [Architecture](#architecture) · [Engineering practices](#engineering-practices) · [Run it locally](#run-it-locally) · [Roadmap](#roadmap)
 
-<img src="docs/assets/dashboard.png" alt="DevPulse dashboard showing branch statistics for nodejs/node: 56 branches, 44 protected, 37 stale, and a filterable branch table" width="900" />
+<img src="docs/assets/landing.png" alt="DevPulse landing page: headline, repository search, a preview of the branch dashboard, and the feature catalogue" width="900" />
 
 </div>
 
@@ -45,6 +45,10 @@ on **production-grade engineering practices** rather than on volume of code:
 
 ## Features
 
+### Available today: branch health
+
+<img src="docs/assets/dashboard.png" alt="DevPulse app showing branch statistics for nodejs/node: 56 branches, 44 protected, 37 stale, and a filterable branch table" width="900" />
+
 | Feature                 | Details                                                                                      |
 | ----------------------- | -------------------------------------------------------------------------------------------- |
 | **Branch overview**     | Every branch with its last commit date, author and age, most recently updated first          |
@@ -56,12 +60,24 @@ on **production-grade engineering practices** rather than on volume of code:
 | **Command line**        | The same report in a terminal, as an aligned table or as JSON for scripting                  |
 | **Clear failures**      | Missing repository, invalid token, rate limits and network errors each get a precise message |
 
+### Planned
+
+These analyses are proposals shown on the landing page as **Planned**. Each one is
+specified in an issue before it is built, and the list may change.
+
+| Area                         | Planned analyses                                                           |
+| ---------------------------- | -------------------------------------------------------------------------- |
+| **Activity**                 | Commit heatmap, activity trends, branch divergence from the default branch |
+| **Contributors**             | Top contributors, bus factor, new versus returning contributors            |
+| **Pull requests and issues** | Time to merge, review latency, ageing pull requests, issue response time   |
+| **Insights**                 | Health score, repository comparison, CSV and Markdown export               |
+
 ## Architecture
 
 ```mermaid
 flowchart LR
     subgraph Interfaces
-        W[React dashboard<br/>src/web]
+        W[React landing page + app<br/>src/web]
         S[HTTP API<br/>src/server]
         C[CLI<br/>src/cli]
     end
@@ -187,7 +203,8 @@ npm ci                                      # pinned dependencies and Git hooks
 GITHUB_TOKEN=$(gh auth token) npm run web   # http://127.0.0.1:5173
 ```
 
-Open <http://127.0.0.1:5173/?repo=nodejs/node> to see the dashboard above.
+Open <http://127.0.0.1:5173> for the landing page, or
+<http://127.0.0.1:5173/app?repo=nodejs/node> to go straight to a report.
 
 The same report in a terminal:
 
@@ -215,7 +232,7 @@ DevPulse/
 │   ├── github/           Infrastructure: GitHub GraphQL and REST client
 │   ├── cli/              Interface: command-line tool
 │   ├── server/           Interface: local HTTP API, shared response contract
-│   └── web/              Interface: React dashboard
+│   └── web/              Interface: React landing page (/) and app (/app)
 ├── docs/
 │   ├── decisions/        Architecture Decision Records
 │   ├── ai/               Claude Code usage guide
@@ -230,13 +247,14 @@ DevPulse/
 
 ## Roadmap
 
-| Phase                     | Scope                                                                   | Status  |
-| ------------------------- | ----------------------------------------------------------------------- | ------- |
-| 1. Engineering foundation | Standards, toolchain, CI/CD, release automation, AI agent configuration | ✅ Done |
-| 2. Branch statistics      | GitHub client, branch report, CLI, test runner (ADR 0005)               | ✅ Done |
-| 3. Web dashboard          | React interface and local API (ADR 0006)                                | ✅ Done |
-| 4. Performance            | Faster reports for repositories with thousands of branches              | Planned |
-| 5. Repository analytics   | Further analyses, each specified in an issue before it is built         | Planned |
+| Phase                      | Scope                                                                   | Status  |
+| -------------------------- | ----------------------------------------------------------------------- | ------- |
+| 1. Engineering foundation  | Standards, toolchain, CI/CD, release automation, AI agent configuration | ✅ Done |
+| 2. Branch statistics       | GitHub client, branch report, CLI, test runner (ADR 0005)               | ✅ Done |
+| 3. Web dashboard           | Landing page, React app and local API (ADR 0006)                        | ✅ Done |
+| 4. Activity, contributors  | Commit heatmap, trends, divergence, contributor insights                | Planned |
+| 5. Pull requests, insights | Review flow, issue response, health score, comparison, export           | Planned |
+| 6. Performance             | Faster reports for repositories with thousands of branches              | Planned |
 
 ## Documentation
 
