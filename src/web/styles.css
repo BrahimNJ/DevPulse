@@ -415,6 +415,16 @@ tbody tr:hover {
   font-size: 13px;
 }
 
+.branch-name {
+  max-width: 360px;
+}
+
+.branch-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .branch-name .icon {
   color: var(--ink-muted);
 }

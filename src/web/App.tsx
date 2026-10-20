@@ -46,7 +46,10 @@ export function App(): JSX.Element {
 
     fetchBranchReport(trimmed, days, controller.signal).then(
       (report) => {
-        setState({ kind: 'ready', report });
+        // A newer request may have started while this one was resolving.
+        if (!controller.signal.aborted) {
+          setState({ kind: 'ready', report });
+        }
       },
       (error: unknown) => {
         if (!controller.signal.aborted) {

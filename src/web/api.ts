@@ -11,13 +11,24 @@ export async function fetchBranchReport(
 ): Promise<BranchReportResponse> {
   const query = new URLSearchParams({ repo: repository, staleDays: String(staleDays) });
   const response = await fetch(`/api/branches?${query.toString()}`, { signal });
-  const body = (await response.json()) as BranchReportResponse | ApiErrorResponse;
+  const body = await readJson(response);
 
-  if ('error' in body) {
+  if (body !== null && 'error' in body) {
     throw new Error(body.error);
   }
-  if (!response.ok) {
+  if (!response.ok || body === null) {
     throw new Error(`Request failed with status ${String(response.status)}.`);
   }
   return body;
+}
+
+/** Null when the body is not JSON, such as an HTML error page from a proxy. */
+async function readJson(
+  response: Response,
+): Promise<BranchReportResponse | ApiErrorResponse | null> {
+  try {
+    return (await response.json()) as BranchReportResponse | ApiErrorResponse;
+  } catch {
+    return null;
+  }
 }

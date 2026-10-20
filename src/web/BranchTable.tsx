@@ -72,9 +72,9 @@ export function BranchTable({ report }: { readonly report: BranchReportResponse 
             {rows.map((branch) => (
               <tr key={branch.name}>
                 <td>
-                  <span className="branch-name">
+                  <span className="branch-name" title={branch.name}>
                     <BranchIcon />
-                    {branch.name}
+                    <span className="branch-label">{branch.name}</span>
                   </span>
                 </td>
                 <td className="numeric-text">{formatDate(branch.lastCommit.date)}</td>
