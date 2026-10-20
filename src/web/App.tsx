@@ -80,12 +80,12 @@ export function App(): JSX.Element {
   return (
     <div className="page">
       <header className="masthead">
-        <div className="brand">
+        <a className="brand" href="/">
           <span className="brand-mark">
             <PulseIcon />
           </span>
           <span className="brand-name">DevPulse</span>
-        </div>
+        </a>
         <a className="masthead-link" href="https://github.com/BrahimNJ/DevPulse">
           Source code
         </a>

@@ -19,8 +19,14 @@ not be exposed to a browser.
   GitHub client and report, and is the only component that holds `GITHUB_TOKEN`.
 - **One process:** `npm run web` starts the server, which mounts Vite in middleware
   mode for every path except the API. Vite serves the interface with hot reload.
-- **Local only:** the server listens on `127.0.0.1`. Hosting, a production build and
-  authentication are out of scope.
+- **Two pages, no router:** `/` is a landing page that presents the product,
+  including planned features clearly labelled as planned; `/app` is the analyser.
+  `main.tsx` picks the page from the path, which avoids a routing dependency for two
+  pages. The feature catalogue lives in `src/web/features.ts`, and a test checks that
+  only implemented features are marked available.
+- **Local only:** the server listens on `127.0.0.1` and rejects requests whose `Host`
+  is not `127.0.0.1` or `localhost`, which defends against DNS rebinding. Hosting, a
+  production build and authentication are out of scope.
 - **Shared contract:** `src/server/contract.ts` derives the response type from the
   domain report type, with dates as ISO strings. The interface imports it as a type
   only, so the API and the interface cannot drift.

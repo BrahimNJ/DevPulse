@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
+
+import { countByStatus, FEATURE_GROUPS } from './features.ts';
+
+describe('feature catalogue', () => {
+  it('lists only the branch report as available, matching the implemented code', () => {
+    const available = FEATURE_GROUPS.flatMap((group) =>
+      group.features.filter((feature) => feature.status === 'available').map(() => group.id),
+    );
+    assert.deepEqual(new Set(available), new Set(['branches']));
+    assert.equal(countByStatus('available'), 4);
+  });
+
+  it('gives every group and feature a unique name', () => {
+    const groups = FEATURE_GROUPS.map((group) => group.id);
+    const titles = FEATURE_GROUPS.flatMap((group) => group.features.map((f) => f.title));
+    assert.equal(new Set(groups).size, groups.length);
+    assert.equal(new Set(titles).size, titles.length);
+  });
+});
