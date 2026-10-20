@@ -1,5 +1,9 @@
 import { parseArgs } from 'node:util';
 
+import { DEFAULT_STALE_DAYS, parseRepository, parseStaleDays } from '../branches/input.ts';
+
+export { DEFAULT_STALE_DAYS };
+
 export const USAGE = `Usage: devpulse branches <owner>/<repo> [options]
 
 Show branch statistics for a public GitHub repository.
@@ -13,8 +17,6 @@ Environment:
   GITHUB_TOKEN      GitHub token, required by the GraphQL API
                     (for example: GITHUB_TOKEN=$(gh auth token))
 `;
-
-export const DEFAULT_STALE_DAYS = 90;
 
 export type Command =
   | { readonly kind: 'help' }
@@ -34,9 +36,6 @@ export class UsageError extends Error {
   }
 }
 
-// GitHub owner and repository name character sets; `.` and `..` would alter the URL path.
-const REPOSITORY_PATTERN = /^([A-Za-z0-9-]+)\/((?!\.{1,2}$)[A-Za-z0-9._-]+)$/;
-
 export function parseCommand(argv: readonly string[]): Command {
   const { values, positionals } = parseOrThrow(argv);
   if (values.help === true) {
@@ -53,17 +52,16 @@ export function parseCommand(argv: readonly string[]): Command {
     throw new UsageError(`Unexpected argument: ${extra.join(' ')}`);
   }
 
-  const match = REPOSITORY_PATTERN.exec(repository ?? '');
-  const [, owner, name] = match ?? [];
-  if (owner === undefined || name === undefined) {
+  const ref = parseRepository(repository ?? '');
+  if (ref === null) {
     throw new UsageError('Expected a repository as <owner>/<repo>.');
   }
 
   return {
     kind: 'branches',
-    owner,
-    name,
-    staleDays: parseStaleDays(values['stale-days']),
+    owner: ref.owner,
+    name: ref.name,
+    staleDays: staleDaysOption(values['stale-days']),
     json: values.json === true,
   };
 }
@@ -94,12 +92,13 @@ function parseOrThrow(argv: readonly string[]): ParsedArgs {
   }
 }
 
-function parseStaleDays(value: string | undefined): number {
+function staleDaysOption(value: string | undefined): number {
   if (value === undefined) {
     return DEFAULT_STALE_DAYS;
   }
-  if (!/^\d+$/.test(value) || Number(value) < 1) {
+  const days = parseStaleDays(value);
+  if (days === null) {
     throw new UsageError('--stale-days must be a positive whole number.');
   }
-  return Number(value);
+  return days;
 }
