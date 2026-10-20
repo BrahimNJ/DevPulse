@@ -8,7 +8,8 @@ re-derive the rules from memory.
 
 ## Current State
 
-No application functionality is defined. Verify the repository state with `ls` and
+The only defined functionality is the `branches` command (ADR 0005). Verify the
+repository state with `ls` and
 `git status` before assuming that a language, tool, or command exists.
 
 ## Scope Discipline
