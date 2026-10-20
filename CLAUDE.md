@@ -4,21 +4,23 @@
 
 ## Project
 
-DevPulse analyses public GitHub repositories. The only feature so far is the `branches`
-command-line report. Stack: TypeScript (strict) run natively by Node.js 24 LTS, npm,
-`node:test`. See `docs/decisions/`; ADR 0005 defines the source layout.
+DevPulse analyses public GitHub repositories. The only feature so far is the branch
+report, available as a CLI and as a local React dashboard. Stack: TypeScript (strict)
+run natively by Node.js 24 LTS, npm, `node:test`, React and Vite for `src/web`. See
+`docs/decisions/`; ADRs 0005 and 0006 define the source layout.
 
 ## Commands
 
-| Command             | Purpose                                          |
-| ------------------- | ------------------------------------------------ |
-| `npm ci`            | Install pinned dependencies and Git hooks        |
-| `npm run check`     | All gates: format, lint, Markdown, types, tests  |
-| `npm run lint:fix`  | Auto-fix ESLint findings                         |
-| `npm run format`    | Format every file with Prettier                  |
-| `npm run typecheck` | TypeScript, including JavaScript via `checkJs`   |
-| `npm test`          | Unit tests with `node:test` (`src/**/*.test.ts`) |
-| `npm run devpulse`  | Run the CLI; needs `GITHUB_TOKEN`                |
+| Command             | Purpose                                             |
+| ------------------- | --------------------------------------------------- |
+| `npm ci`            | Install pinned dependencies and Git hooks           |
+| `npm run check`     | All gates: format, lint, Markdown, types, tests     |
+| `npm run lint:fix`  | Auto-fix ESLint findings                            |
+| `npm run format`    | Format every file with Prettier                     |
+| `npm run typecheck` | TypeScript, including JavaScript via `checkJs`      |
+| `npm test`          | Unit tests with `node:test` (`src/**/*.test.ts`)    |
+| `npm run devpulse`  | Run the CLI; needs `GITHUB_TOKEN`                   |
+| `npm run web`       | Dashboard on `127.0.0.1:5173`; needs `GITHUB_TOKEN` |
 
 Tests never reach the network: inject `fetch` and the clock, as the existing tests do.
 

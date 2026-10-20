@@ -8,7 +8,8 @@ re-derive the rules from memory.
 
 ## Current State
 
-The only defined functionality is the `branches` command (ADR 0005). Verify the
+The only defined functionality is the branch report, as the `branches` command and the
+local dashboard (ADRs 0005 and 0006). Verify the
 repository state with `ls` and
 `git status` before assuming that a language, tool, or command exists.
 
