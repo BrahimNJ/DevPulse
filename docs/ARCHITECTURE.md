@@ -18,10 +18,11 @@ Decided, see [decision records](decisions/):
 - Release automation with release-please (ADR 0004).
 - Command-line interface, `src/` layout, native TypeScript execution, `node:test`,
   GitHub GraphQL and REST through `fetch` (ADR 0005).
+- Local web dashboard: React and Vite, served with a `node:http` API (ADR 0006).
 
 Undecided:
 
-- Application framework, for any server or client component.
+- Hosting, production build and authentication for the dashboard.
 - Data stores, messaging, and external services.
 - Hosting model beyond local deployment, which is proposed in ADR 0004.
 
@@ -32,7 +33,7 @@ default from similar projects.
 
 | Path       | Responsibility                                            |
 | ---------- | --------------------------------------------------------- |
-| `src/`     | Application code, layered as described in ADR 0005        |
+| `src/`     | Application code, layered as described in ADRs 0005, 0006 |
 | `docs/`    | Architecture decisions and development documentation      |
 | `.github/` | Workflows, Dependabot, issue forms, pull request template |
 | `.claude/` | Shared Claude Code settings, hooks, subagents, skills     |
