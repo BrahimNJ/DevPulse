@@ -73,7 +73,7 @@ async function fetchRefs(
     const data: BranchesQueryData = await client.graphql<BranchesQueryData>(
       BRANCHES_QUERY,
       { owner, name, cursor },
-      `Repository ${owner}/${name} was not found, or it is not public.`,
+      `Repository ${owner}/${name} was not found, or the token cannot access it.`,
     );
     const { refs } = data.repository;
     defaultBranch = data.repository.defaultBranchRef?.name ?? null;

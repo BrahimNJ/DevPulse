@@ -24,6 +24,10 @@ describe('parseCommand', () => {
     });
   });
 
+  it('accepts repository names that start with a dot', () => {
+    assert.equal(parseCommand(['branches', 'acme/.github']).kind, 'branches');
+  });
+
   it('returns help for -h, even with other arguments', () => {
     assert.deepEqual(parseCommand(['-h']), { kind: 'help' });
     assert.deepEqual(parseCommand(['branches', '--help']), { kind: 'help' });
@@ -35,6 +39,7 @@ describe('parseCommand', () => {
     ['a missing repository', ['branches']],
     ['a repository without an owner', ['branches', 'app']],
     ['a URL instead of owner/repo', ['branches', 'https://github.com/acme/app']],
+    ['a dot-segment repository name', ['branches', 'acme/..']],
     ['an extra argument', ['branches', 'acme/app', 'more']],
     ['an unknown option', ['branches', 'acme/app', '--verbose']],
     ['a zero stale threshold', ['branches', 'acme/app', '--stale-days', '0']],

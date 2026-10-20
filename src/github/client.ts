@@ -44,7 +44,7 @@ export class GitHubClient {
       method: 'POST',
       body: JSON.stringify({ query, variables }),
     });
-    const body = (await response.json()) as GraphQLResponse<T>;
+    const body = await readJson<GraphQLResponse<T>>(response);
 
     if (body.errors !== undefined && body.errors.length > 0) {
       if (body.errors.some((error) => error.type === 'NOT_FOUND')) {
@@ -67,25 +67,42 @@ export class GitHubClient {
 
     while (url !== null) {
       const response = await this.#request(url, { method: 'GET' });
-      items.push(...((await response.json()) as T[]));
-      url = nextPageUrl(response.headers.get('link'));
-      // The token is sent with every request, so never follow a link to another host.
-      if (url !== null && new URL(url).origin !== new URL(this.#baseUrl).origin) {
-        throw new GitHubError(`Refusing to follow a pagination link to ${new URL(url).origin}.`);
-      }
+      items.push(...(await readJson<T[]>(response)));
+      const next = nextPageUrl(response.headers.get('link'));
+      url = next === null ? null : this.#sameOrigin(next, url);
     }
     return items;
   }
 
+  /** The token is sent with every request, so never follow a link to another host. */
+  #sameOrigin(link: string, current: string): string {
+    let resolved: URL;
+    try {
+      resolved = new URL(link, current);
+    } catch {
+      throw new GitHubError(`GitHub returned an invalid pagination link: ${link}`);
+    }
+    if (resolved.origin !== new URL(this.#baseUrl).origin) {
+      throw new GitHubError(`Refusing to follow a pagination link to ${resolved.origin}.`);
+    }
+    return resolved.href;
+  }
+
   async #request(url: string, init: RequestInit): Promise<Response> {
-    const response = await this.#fetch(url, {
-      ...init,
-      headers: {
-        accept: 'application/vnd.github+json',
-        authorization: `Bearer ${this.#token}`,
-        'x-github-api-version': '2022-11-28',
-      },
-    });
+    let response: Response;
+    try {
+      response = await this.#fetch(url, {
+        ...init,
+        headers: {
+          accept: 'application/vnd.github+json',
+          authorization: `Bearer ${this.#token}`,
+          'x-github-api-version': '2022-11-28',
+        },
+      });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      throw new GitHubError(`Could not reach GitHub: ${reason}`);
+    }
     if (!response.ok) {
       throw httpError(response);
     }
@@ -103,7 +120,22 @@ function httpError(response: Response): GitHubError {
     const when = Number.isFinite(reset) ? ` until ${new Date(reset * 1000).toISOString()}` : '';
     return new GitHubError(`GitHub API rate limit exceeded${when}.`, status);
   }
+  const retryAfter = response.headers.get('retry-after');
+  if ((status === 403 || status === 429) && retryAfter !== null) {
+    return new GitHubError(
+      `GitHub secondary rate limit hit; retry after ${retryAfter} seconds.`,
+      status,
+    );
+  }
   return new GitHubError(`GitHub request failed with status ${String(status)}.`, status);
+}
+
+async function readJson<T>(response: Response): Promise<T> {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new GitHubError('GitHub returned a response that is not valid JSON.', response.status);
+  }
 }
 
 /** Extracts the `rel="next"` URL from a GitHub `Link` header. */

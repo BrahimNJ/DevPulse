@@ -102,7 +102,7 @@ describe('fetchRepositoryBranches', () => {
 
     await assert.rejects(fetchRepositoryBranches(client(fetch), 'acme', 'missing'), {
       name: 'GitHubError',
-      message: 'Repository acme/missing was not found, or it is not public.',
+      message: 'Repository acme/missing was not found, or the token cannot access it.',
     });
   });
 
@@ -125,6 +125,44 @@ describe('fetchRepositoryBranches', () => {
     await assert.rejects(fetchRepositoryBranches(client(fetch), 'acme', 'app'), {
       message: 'GitHub API rate limit exceeded until 1970-01-01T00:00:00.000Z.',
     });
+  });
+
+  it('reports a secondary rate limit with its retry delay', async () => {
+    const { fetch } = fakeFetch([json({}, { status: 403, headers: { 'retry-after': '60' } })]);
+
+    await assert.rejects(fetchRepositoryBranches(client(fetch), 'acme', 'app'), {
+      message: 'GitHub secondary rate limit hit; retry after 60 seconds.',
+    });
+  });
+
+  it('reports a network failure without a stack trace', async () => {
+    const failing: typeof globalThis.fetch = () => Promise.reject(new TypeError('fetch failed'));
+
+    await assert.rejects(fetchRepositoryBranches(client(failing), 'acme', 'app'), {
+      name: 'GitHubError',
+      message: 'Could not reach GitHub: fetch failed',
+    });
+  });
+
+  it('reports a response that is not JSON', async () => {
+    const { fetch } = fakeFetch([new Response('<html>Bad gateway</html>')]);
+
+    await assert.rejects(fetchRepositoryBranches(client(fetch), 'acme', 'app'), {
+      name: 'GitHubError',
+      message: 'GitHub returned a response that is not valid JSON.',
+    });
+  });
+
+  it('resolves a relative pagination link against the current page', async () => {
+    const { fetch, calls } = fakeFetch([
+      refsPage([], null),
+      json([], { headers: { link: '</repos/acme/app/branches?page=2>; rel="next"' } }),
+      json([]),
+    ]);
+
+    await fetchRepositoryBranches(client(fetch), 'acme', 'app');
+
+    assert.equal(calls[2]?.url, 'https://api.github.com/repos/acme/app/branches?page=2');
   });
 
   it('refuses to send the token to a pagination link on another host', async () => {

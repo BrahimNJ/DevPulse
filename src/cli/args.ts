@@ -34,8 +34,8 @@ export class UsageError extends Error {
   }
 }
 
-// GitHub owner and repository name character sets.
-const REPOSITORY_PATTERN = /^([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)$/;
+// GitHub owner and repository name character sets; `.` and `..` would alter the URL path.
+const REPOSITORY_PATTERN = /^([A-Za-z0-9-]+)\/((?!\.{1,2}$)[A-Za-z0-9._-]+)$/;
 
 export function parseCommand(argv: readonly string[]): Command {
   const { values, positionals } = parseOrThrow(argv);
