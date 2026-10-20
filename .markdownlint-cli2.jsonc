@@ -8,8 +8,8 @@
     "MD024": { "siblings_only": true },
     // The pull request template starts with a section heading, not a title.
     "MD041": false,
-    // Only the README header uses HTML, to centre the title and badges.
-    "MD033": { "allowed_elements": ["div"] },
+    // Only the README header uses HTML, to centre the title, badges and screenshot.
+    "MD033": { "allowed_elements": ["div", "img"] },
   },
   "globs": ["**/*.md"],
   "ignores": ["node_modules/**", "CHANGELOG.md"],

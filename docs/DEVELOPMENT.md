@@ -7,8 +7,10 @@ workflow end to end is in [GIT_WORKFLOW.md](GIT_WORKFLOW.md).
 ## Current State
 
 Repository tooling, CI, release automation and the first feature, the `branches`
-command, are in place. Node.js runs the TypeScript sources directly, so there is **no
-build step** ([ADR 0005](decisions/0005-command-line-application-and-tests.md)).
+command and the local dashboard, are in place. Node.js runs the TypeScript sources
+directly, so there is **no build step** for the back end
+([ADR 0005](decisions/0005-command-line-application-and-tests.md)); Vite serves the
+React dashboard in development mode ([ADR 0006](decisions/0006-local-web-dashboard.md)).
 
 ## Prerequisites
 
@@ -24,6 +26,7 @@ the GraphQL API rejects anonymous requests. With the GitHub CLI installed:
 
 ```sh
 GITHUB_TOKEN=$(gh auth token) npm run devpulse -- branches nodejs/node
+GITHUB_TOKEN=$(gh auth token) npm run web   # http://127.0.0.1:5173
 ```
 
 Never commit a token. If a `.env` file is introduced, it stays untracked and a committed
@@ -51,20 +54,22 @@ npm run check     # every gate should pass on a fresh clone
 | `npm run typecheck`    | TypeScript in strict mode, JavaScript included via `checkJs`   |
 | `npm test`             | Unit tests with `node:test`, matching `src/**/*.test.ts`       |
 | `npm run devpulse`     | Runs the CLI, for example `npm run devpulse -- --help`         |
+| `npm run web`          | Starts the dashboard and its API on `127.0.0.1:5173` (`PORT`)  |
 | `npm run lint:commits` | commitlint on every commit between `origin/main` and `HEAD`    |
 
 ## Tooling
 
-| Concern         | Tool                                              | Configuration                       |
-| --------------- | ------------------------------------------------- | ----------------------------------- |
-| Editor baseline | EditorConfig (LF, UTF-8, 2 spaces, final newline) | `.editorconfig`, `.gitattributes`   |
-| Formatting      | Prettier                                          | `.prettierrc.json`                  |
-| Linting         | ESLint with `typescript-eslint` strict rules      | `eslint.config.mjs`                 |
-| Types           | TypeScript, strict                                | `tsconfig.json`                     |
-| Documentation   | markdownlint                                      | `.markdownlint-cli2.jsonc`          |
-| Commit messages | commitlint, Conventional Commits                  | `commitlint.config.mjs`             |
-| Git hooks       | husky and lint-staged                             | `.husky/`, `lint-staged.config.mjs` |
-| Tests           | `node:test` and `node:assert`, built into Node.js | `test` script in `package.json`     |
+| Concern         | Tool                                              | Configuration                          |
+| --------------- | ------------------------------------------------- | -------------------------------------- |
+| Editor baseline | EditorConfig (LF, UTF-8, 2 spaces, final newline) | `.editorconfig`, `.gitattributes`      |
+| Formatting      | Prettier                                          | `.prettierrc.json`                     |
+| Linting         | ESLint with `typescript-eslint` strict rules      | `eslint.config.mjs`                    |
+| Types           | TypeScript, strict                                | `tsconfig.json`                        |
+| Documentation   | markdownlint                                      | `.markdownlint-cli2.jsonc`             |
+| Commit messages | commitlint, Conventional Commits                  | `commitlint.config.mjs`                |
+| Git hooks       | husky and lint-staged                             | `.husky/`, `lint-staged.config.mjs`    |
+| Tests           | `node:test` and `node:assert`, built into Node.js | `test` script in `package.json`        |
+| Web interface   | React, served by Vite in middleware mode          | `vite.config.ts`, `src/server/main.ts` |
 
 ### Git hooks
 
