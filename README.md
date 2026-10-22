@@ -53,6 +53,7 @@ on **production-grade engineering practices** rather than on volume of code:
 | ----------------------- | -------------------------------------------------------------------------------------------- |
 | **Branch overview**     | Every branch with its last commit date, author and age, most recently updated first          |
 | **Health indicators**   | Totals for branches, protected branches and stale branches, plus the median branch age       |
+| **Branch divergence**   | Commits each branch is ahead of and behind the default branch                                |
 | **Stale detection**     | Configurable threshold (30 to 365 days); the default branch is never flagged as abandoned    |
 | **Accurate protection** | Classic protection rules _and_ rulesets, visible without admin rights                        |
 | **Filters**             | All, active, stale or protected branches, and search by name                                 |
@@ -65,12 +66,12 @@ on **production-grade engineering practices** rather than on volume of code:
 These analyses are proposals shown on the landing page as **Planned**. Each one is
 specified in an issue before it is built, and the list may change.
 
-| Area                         | Planned analyses                                                           |
-| ---------------------------- | -------------------------------------------------------------------------- |
-| **Activity**                 | Commit heatmap, activity trends, branch divergence from the default branch |
-| **Contributors**             | Top contributors, bus factor, new versus returning contributors            |
-| **Pull requests and issues** | Time to merge, review latency, ageing pull requests, issue response time   |
-| **Insights**                 | Health score, repository comparison, CSV and Markdown export               |
+| Area                         | Planned analyses                                                         |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| **Activity**                 | Commit heatmap, activity trends                                          |
+| **Contributors**             | Top contributors, bus factor, new versus returning contributors          |
+| **Pull requests and issues** | Time to merge, review latency, ageing pull requests, issue response time |
+| **Insights**                 | Health score, repository comparison, CSV and Markdown export             |
 
 ## Architecture
 
@@ -252,7 +253,7 @@ DevPulse/
 | 1. Engineering foundation  | Standards, toolchain, CI/CD, release automation, AI agent configuration | ✅ Done |
 | 2. Branch statistics       | GitHub client, branch report, CLI, test runner (ADR 0005)               | ✅ Done |
 | 3. Web dashboard           | Landing page, React app and local API (ADR 0006)                        | ✅ Done |
-| 4. Activity, contributors  | Commit heatmap, trends, divergence, contributor insights                | Planned |
+| 4. Activity, contributors  | Commit heatmap, trends, contributor insights                            | Planned |
 | 5. Pull requests, insights | Review flow, issue response, health score, comparison, export           | Planned |
 | 6. Performance             | Faster reports for repositories with thousands of branches              | Planned |
 
