@@ -5,6 +5,13 @@ locals {
     production = { name = "devpulse", max_instances = 3 }
   }
 
+  # The deterministic host of each service, known before the service exists (ADR 0007).
+  # It is the only name the server answers to; the older *.a.run.app URL gets 403.
+  hosts = {
+    for key, service in local.services :
+    key => "${service.name}-${data.google_project.this.number}.${var.region}.run.app"
+  }
+
   # Cloud Run needs an image to create a service; the delivery pipeline replaces it.
   placeholder_image = "us-docker.pkg.dev/cloudrun/container/hello"
 }
@@ -55,9 +62,8 @@ resource "google_cloud_run_v2_service" "app" {
       }
 
       env {
-        # The deterministic URL is known before the service exists (ADR 0007).
         name  = "ALLOWED_HOSTS"
-        value = "${each.value.name}-${data.google_project.this.number}.${var.region}.run.app"
+        value = local.hosts[each.key]
       }
       env {
         # Clients reach Cloud Run directly, whose front end appends their address.

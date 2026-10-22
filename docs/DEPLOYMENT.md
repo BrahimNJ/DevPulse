@@ -101,7 +101,10 @@ terraform output
 
 The first apply takes several minutes, mostly for the kill switch function. Then open
 the `staging` URL from `terraform output service_urls`: until the pipeline deploys
-DevPulse, it shows the Cloud Run placeholder page.
+DevPulse, it shows the Cloud Run placeholder page. Share only these
+`<service>-<project number>.europe-west1.run.app` URLs: they are the names in
+`ALLOWED_HOSTS`, so the older `*.a.run.app` URL of the same service answers 403 once
+DevPulse runs.
 
 On a new project, an API or a service account can take a minute to become usable after
 Terraform creates it, so the first apply may fail with a `403`, `SERVICE_DISABLED` or
