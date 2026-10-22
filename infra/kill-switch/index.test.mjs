@@ -82,9 +82,12 @@ const UNLINK = {
 };
 
 describe('budget kill switch', () => {
+  /** Counts the errors the function logs. */
+  let errors = { mock: { callCount: () => 0 } };
+
   beforeEach(() => {
     process.env['PROJECT_ID'] = 'devpulse-test';
-    mock.method(console, 'error', () => undefined);
+    errors = mock.method(console, 'error', () => undefined);
     mock.method(console, 'warn', () => undefined);
     mock.method(process.stdout, 'write', () => true);
   });
@@ -125,12 +128,23 @@ describe('budget kill switch', () => {
     assert.equal(calls.length, 0);
   });
 
-  it('acknowledges a malformed message so that it is not retried', async () => {
-    await stopBilling({ data: 'not base64 JSON' }, { eventId: '1' });
+  it('acknowledges a message that was delivered but cannot be read', async () => {
     const { response, statuses } = recorder();
-    await stopBilling({ body: { not: 'a message' } }, response);
+
+    await stopBilling({ data: 'not base64 JSON' }, { eventId: '1' });
+    await stopBilling(SHAPES.httpRequest({ hello: 'world' }), response);
 
     assert.deepEqual(statuses, [204]);
+    assert.equal(errors.mock.callCount(), 2);
+  });
+
+  it('fails closed on a call shape it does not recognise, so that Pub/Sub retries', async () => {
+    const { response, statuses } = recorder();
+
+    await assert.rejects(stopBilling({ unknown: 'shape' }, { eventId: '1' }), /not recognised/);
+    await stopBilling({ body: { not: 'a message' } }, response);
+
+    assert.deepEqual(statuses, [500]);
   });
 
   it('detaches billing once the budget is reached, as observed in production', async () => {

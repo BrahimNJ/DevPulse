@@ -103,12 +103,17 @@ export async function stopBilling(event, ...rest) {
  * @returns {Promise<void>}
  */
 async function handle(encoded) {
+  // An unknown call shape fails closed: the throw makes Pub/Sub retry and the error is
+  // visible, instead of a kill switch that silently never fires.
+  if (encoded === undefined) {
+    throw new Error('No Pub/Sub message found in the call; its shape is not recognised.');
+  }
   /** @type {BudgetNotification} */
   let notification;
   try {
     notification = readNotification(encoded);
   } catch (error) {
-    // Retrying cannot fix a malformed message, so it is acknowledged.
+    // A message was delivered but cannot be read; retrying cannot fix it.
     console.error(`Ignored message: ${describe(error)}`);
     return;
   }
