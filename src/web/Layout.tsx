@@ -1,4 +1,4 @@
-import type { JSX, ReactNode } from 'react';
+import { useEffect, type JSX, type ReactNode } from 'react';
 
 import { GitHubIcon, Logo } from './icons.tsx';
 import { describeQuota } from './quota.ts';
@@ -28,6 +28,15 @@ export function Layout({
   readonly children: ReactNode;
 }): JSX.Element {
   const allowance = describeQuota(quota);
+
+  // Pages render in the browser, after it has tried to scroll to a #section link.
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (id !== '') {
+      document.getElementById(id)?.scrollIntoView();
+    }
+  }, []);
+
   return (
     <div className="site">
       <a className="skip-link" href="#content">
@@ -57,7 +66,11 @@ export function Layout({
             {allowance !== null && (
               <span
                 className={`quota-pill${quota?.remaining === 0 ? ' quota-empty' : ''}`}
-                title="Each visitor may analyse three repositories a day"
+                title={
+                  quota?.limit === null || quota?.limit === undefined
+                    ? undefined
+                    : `Each visitor may analyse ${String(quota.limit)} repositories a day`
+                }
               >
                 <span className="quota-dot" aria-hidden="true" />
                 {allowance}

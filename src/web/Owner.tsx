@@ -85,7 +85,10 @@ export function Owner(): JSX.Element {
             </form>
           )}
           {message !== null && (
-            <p className={`notice notice-${message.tone === 'ok' ? 'ok' : 'error'}`} role="status">
+            <p
+              className={`notice notice-${message.tone === 'ok' ? 'ok' : 'error'}`}
+              role={message.tone === 'ok' ? 'status' : 'alert'}
+            >
               {message.text}
             </p>
           )}

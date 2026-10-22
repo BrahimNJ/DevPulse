@@ -166,7 +166,8 @@ const SECTIONS: readonly DocSection[] = [
           </li>
           <li>
             <strong>Privacy.</strong> Client addresses are never logged or stored; the daily
-            allowance keeps only a salted hash, deleted after 24 hours.
+            allowance keeps only a salted hash and the repositories analysed, which expire after 24
+            hours and are deleted shortly after.
           </li>
         </ul>
       </>
@@ -263,7 +264,8 @@ const SECTIONS: readonly DocSection[] = [
           <li>Logs are structured, so they can be searched by status, latency and cache use.</li>
           <li>
             A monthly budget emails at 10%, 50% and 100%, and a small function detaches billing from
-            the project when the budget is reached: a hard spending stop, tested in production.
+            the project when the budget is reached: a hard spending stop, verified end to end in
+            production without being triggered.
           </li>
         </ul>
       </>
@@ -303,8 +305,8 @@ const SECTIONS: readonly DocSection[] = [
           ]}
         />
         <p>
-          Every pull request is reviewed by a review subagent before it is opened; several real
-          defects were caught that way, then fixed and recorded in the pull requests.
+          Every pull request is reviewed by a review subagent before it is opened; its findings and
+          the fixes they led to are recorded in each pull request.
         </p>
       </>
     ),
