@@ -5,7 +5,7 @@ export function formatJson(report: BranchReport): string {
   return `${JSON.stringify(report, null, 2)}\n`;
 }
 
-const COLUMNS = ['BRANCH', 'LAST COMMIT', 'AGE', 'AUTHOR', 'FLAGS'] as const;
+const COLUMNS = ['BRANCH', 'LAST COMMIT', 'AGE', 'AHEAD/BEHIND', 'AUTHOR', 'FLAGS'] as const;
 
 /** The report as a human-readable summary followed by an aligned table. */
 export function formatTable(report: BranchReport): string {
@@ -43,6 +43,9 @@ function toRow(branch: BranchSummary): string[] {
     branch.name,
     branch.lastCommit.date.toISOString().slice(0, 10),
     `${String(branch.ageDays)}d`,
+    branch.divergence === null
+      ? '-'
+      : `+${String(branch.divergence.ahead)}/-${String(branch.divergence.behind)}`,
     branch.lastCommit.author ?? '-',
     flags.join(', '),
   ];

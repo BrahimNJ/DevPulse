@@ -1,7 +1,7 @@
 import { useState, type JSX } from 'react';
 
 import type { BranchReportResponse, BranchRow } from './api.ts';
-import { formatAge, formatDate } from './format.ts';
+import { formatAge, formatDate, formatDivergence } from './format.ts';
 import { BranchIcon, ClockIcon, LockIcon, StarIcon } from './icons.tsx';
 
 type Filter = 'all' | 'active' | 'stale' | 'protected';
@@ -64,6 +64,13 @@ export function BranchTable({ report }: { readonly report: BranchReportResponse 
               <th scope="col" className="numeric">
                 Age
               </th>
+              <th
+                scope="col"
+                className="numeric"
+                title={`Commits ahead of and behind ${report.defaultBranch ?? 'the default branch'}`}
+              >
+                Ahead / behind
+              </th>
               <th scope="col">Author</th>
               <th scope="col">Status</th>
             </tr>
@@ -79,6 +86,7 @@ export function BranchTable({ report }: { readonly report: BranchReportResponse 
                 </td>
                 <td className="numeric-text">{formatDate(branch.lastCommit.date)}</td>
                 <td className="numeric">{formatAge(branch.ageDays)}</td>
+                <td className="numeric">{formatDivergence(branch.divergence)}</td>
                 <td className="muted">{branch.lastCommit.author ?? '–'}</td>
                 <td>
                   <Badges branch={branch} />

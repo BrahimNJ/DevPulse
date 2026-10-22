@@ -9,7 +9,7 @@ describe('feature catalogue', () => {
       group.features.filter((feature) => feature.status === 'available').map(() => group.id),
     );
     assert.deepEqual(new Set(available), new Set(['branches']));
-    assert.equal(countByStatus('available'), 4);
+    assert.equal(countByStatus('available'), 5);
   });
 
   it('gives every group and feature a unique name', () => {

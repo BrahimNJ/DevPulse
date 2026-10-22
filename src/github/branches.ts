@@ -1,11 +1,22 @@
-import type { Branch, RepositoryBranches } from '../branches/report.ts';
+import type { Branch, Divergence, RepositoryBranches } from '../branches/report.ts';
 import type { GitHubClient } from './client.ts';
 
-/** GraphQL returns the last commit of 100 branches per request; REST would need one each. */
-const BRANCHES_QUERY = `
-  query ($owner: String!, $name: String!, $cursor: String) {
+const DEFAULT_BRANCH_QUERY = `
+  query ($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {
       defaultBranchRef { name }
+    }
+  }
+`;
+
+/**
+ * GraphQL returns the last commit and the comparison with the default branch of 100
+ * branches per request; REST would need one request each. `compare` is skipped when
+ * the repository has no default branch to compare with.
+ */
+const BRANCHES_QUERY = `
+  query ($owner: String!, $name: String!, $cursor: String, $base: String!, $compare: Boolean!) {
+    repository(owner: $owner, name: $name) {
       refs(refPrefix: "refs/heads/", first: 100, after: $cursor) {
         pageInfo { hasNextPage endCursor }
         nodes {
@@ -13,6 +24,7 @@ const BRANCHES_QUERY = `
           target {
             ... on Commit { oid committedDate author { name user { login } } }
           }
+          compare(headRef: $base) @include(if: $compare) { aheadBy behindBy }
         }
       }
     }
@@ -30,11 +42,19 @@ interface RefNode {
       readonly user: { readonly login: string } | null;
     } | null;
   } | null;
+  /**
+   * The ref as base and the default branch as head: `aheadBy` counts the commits of
+   * the default branch missing from this branch, so the meanings are swapped here.
+   */
+  readonly compare?: { readonly aheadBy: number; readonly behindBy: number } | null;
+}
+
+interface DefaultBranchQueryData {
+  readonly repository: { readonly defaultBranchRef: { readonly name: string } | null };
 }
 
 interface BranchesQueryData {
   readonly repository: {
-    readonly defaultBranchRef: { readonly name: string } | null;
     readonly refs: {
       readonly pageInfo: { readonly hasNextPage: boolean; readonly endCursor: string | null };
       readonly nodes: readonly RefNode[];
@@ -42,7 +62,10 @@ interface BranchesQueryData {
   };
 }
 
-/** Reads every branch of a repository with its last commit and protection status. */
+/**
+ * Reads every branch of a repository with its last commit, protection status and
+ * divergence from the default branch.
+ */
 export async function fetchRepositoryBranches(
   client: GitHubClient,
   owner: string,
@@ -50,38 +73,57 @@ export async function fetchRepositoryBranches(
 ): Promise<RepositoryBranches> {
   // Sequential on purpose: GraphQL reports a missing repository with a clear message,
   // whereas a parallel REST call could fail first with a bare 404.
-  const { defaultBranch, nodes } = await fetchRefs(client, owner, name);
+  const defaultBranch = await fetchDefaultBranch(client, owner, name);
+  const nodes = await fetchRefs(client, owner, name, defaultBranch);
   const protectedNames = await fetchProtectedBranchNames(client, owner, name);
 
   const branches = nodes.flatMap((node) => {
-    const branch = toBranch(node, protectedNames);
+    const branch = toBranch(node, protectedNames, defaultBranch);
     return branch === null ? [] : [branch];
   });
   return { owner, name, defaultBranch, branches };
+}
+
+/** The comparison needs the default branch name before the first page of refs. */
+async function fetchDefaultBranch(
+  client: GitHubClient,
+  owner: string,
+  name: string,
+): Promise<string | null> {
+  const data = await client.graphql<DefaultBranchQueryData>(
+    DEFAULT_BRANCH_QUERY,
+    { owner, name },
+    notFoundMessage(owner, name),
+  );
+  return data.repository.defaultBranchRef?.name ?? null;
 }
 
 async function fetchRefs(
   client: GitHubClient,
   owner: string,
   name: string,
-): Promise<{ defaultBranch: string | null; nodes: RefNode[] }> {
+  defaultBranch: string | null,
+): Promise<RefNode[]> {
   const nodes: RefNode[] = [];
-  let defaultBranch: string | null;
+  const comparison = { base: defaultBranch ?? '', compare: defaultBranch !== null };
   let cursor: string | null = null;
 
   do {
     const data: BranchesQueryData = await client.graphql<BranchesQueryData>(
       BRANCHES_QUERY,
-      { owner, name, cursor },
-      `Repository ${owner}/${name} was not found, or the token cannot access it.`,
+      { owner, name, cursor, ...comparison },
+      notFoundMessage(owner, name),
     );
     const { refs } = data.repository;
-    defaultBranch = data.repository.defaultBranchRef?.name ?? null;
     nodes.push(...refs.nodes);
     cursor = refs.pageInfo.hasNextPage ? refs.pageInfo.endCursor : null;
   } while (cursor !== null);
 
-  return { defaultBranch, nodes };
+  return nodes;
+}
+
+function notFoundMessage(owner: string, name: string): string {
+  return `Repository ${owner}/${name} was not found, or the token cannot access it.`;
 }
 
 /**
@@ -98,7 +140,11 @@ async function fetchProtectedBranchNames(
   return new Set(branches.map((branch) => branch.name));
 }
 
-function toBranch(node: RefNode, protectedNames: ReadonlySet<string>): Branch | null {
+function toBranch(
+  node: RefNode,
+  protectedNames: ReadonlySet<string>,
+  defaultBranch: string | null,
+): Branch | null {
   const { target } = node;
   if (target?.oid === undefined || target.committedDate === undefined) {
     return null;
@@ -111,5 +157,12 @@ function toBranch(node: RefNode, protectedNames: ReadonlySet<string>): Branch | 
       date: new Date(target.committedDate),
       author: target.author?.user?.login ?? target.author?.name ?? null,
     },
+    divergence: node.name === defaultBranch ? null : toDivergence(node.compare),
   };
+}
+
+function toDivergence(compare: RefNode['compare']): Divergence | null {
+  return compare === undefined || compare === null
+    ? null
+    : { ahead: compare.behindBy, behind: compare.aheadBy };
 }

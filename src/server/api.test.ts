@@ -17,10 +17,11 @@ function dependencies(responses: readonly Response[]): ApiDependencies {
   return { client: new GitHubClient({ token: 'test-token', fetch }), now: () => NOW };
 }
 
+const DEFAULT_BRANCH = { data: { repository: { defaultBranchRef: { name: 'main' } } } };
+
 const ONE_BRANCH = {
   data: {
     repository: {
-      defaultBranchRef: { name: 'main' },
       refs: {
         pageInfo: { hasNextPage: false, endCursor: null },
         nodes: [
@@ -42,7 +43,11 @@ describe('handleBranchesRequest', () => {
   it('returns the branch report for a valid repository', async () => {
     const response = await handleBranchesRequest(
       new URLSearchParams({ repo: 'acme/app', staleDays: '30' }),
-      dependencies([new Response(JSON.stringify(ONE_BRANCH)), new Response('[]')]),
+      dependencies([
+        new Response(JSON.stringify(DEFAULT_BRANCH)),
+        new Response(JSON.stringify(ONE_BRANCH)),
+        new Response('[]'),
+      ]),
     );
 
     assert.equal(response.status, 200);

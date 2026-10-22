@@ -30,11 +30,20 @@ function json(body: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(body), { status: 200, ...init });
 }
 
-function refsPage(names: readonly string[], endCursor: string | null): Response {
+function defaultBranch(name: string | null): Response {
+  return json({ data: { repository: { defaultBranchRef: name === null ? null : { name } } } });
+}
+
+type Compare = { aheadBy: number; behindBy: number } | null;
+
+function refsPage(
+  names: readonly string[],
+  endCursor: string | null,
+  compare: (name: string) => Compare = () => ({ aheadBy: 0, behindBy: 0 }),
+): Response {
   return json({
     data: {
       repository: {
-        defaultBranchRef: { name: 'main' },
         refs: {
           pageInfo: { hasNextPage: endCursor !== null, endCursor },
           nodes: names.map((name) => ({
@@ -44,11 +53,16 @@ function refsPage(names: readonly string[], endCursor: string | null): Response 
               committedDate: '2026-10-01T00:00:00Z',
               author: { name: 'Git Name', user: name === 'main' ? { login: 'octocat' } : null },
             },
+            compare: compare(name),
           })),
         },
       },
     },
   });
+}
+
+function variables(call: Call | undefined): unknown {
+  return (JSON.parse(call?.init?.body as string) as { variables: unknown }).variables;
 }
 
 function client(fetch: typeof globalThis.fetch): GitHubClient {
@@ -58,6 +72,7 @@ function client(fetch: typeof globalThis.fetch): GitHubClient {
 describe('fetchRepositoryBranches', () => {
   it('follows GraphQL and REST pagination and merges protection status', async () => {
     const { fetch, calls } = fakeFetch([
+      defaultBranch('main'),
       refsPage(['main', 'dev'], 'cursor-1'),
       refsPage(['feature'], null),
       json([{ name: 'main' }], {
@@ -77,17 +92,59 @@ describe('fetchRepositoryBranches', () => {
         ['feature', false, 'Git Name'],
       ],
     );
-    assert.equal(calls.length, 4);
-    const secondQuery = JSON.parse(calls[1]?.init?.body as string) as { variables: unknown };
-    assert.deepEqual(secondQuery.variables, { owner: 'acme', name: 'app', cursor: 'cursor-1' });
+    assert.equal(calls.length, 5);
+    assert.deepEqual(variables(calls[2]), {
+      owner: 'acme',
+      name: 'app',
+      cursor: 'cursor-1',
+      base: 'main',
+      compare: true,
+    });
     assert.equal(
-      calls[2]?.url,
+      calls[3]?.url,
       'https://api.github.com/repos/acme/app/branches?protected=true&per_page=100',
     );
   });
 
+  it('reports how far each branch is ahead of and behind the default branch', async () => {
+    const { fetch } = fakeFetch([
+      defaultBranch('main'),
+      // GitHub compares with the branch as base, so `aheadBy` is the default branch's lead.
+      refsPage(['main', 'feature', 'orphan'], null, (name) =>
+        name === 'orphan' ? null : { aheadBy: 48, behindBy: 12 },
+      ),
+      json([]),
+    ]);
+
+    const result = await fetchRepositoryBranches(client(fetch), 'acme', 'app');
+
+    assert.deepEqual(
+      result.branches.map((b) => [b.name, b.divergence]),
+      [
+        ['main', null],
+        ['feature', { ahead: 12, behind: 48 }],
+        ['orphan', null],
+      ],
+    );
+  });
+
+  it('skips the comparison when the repository has no default branch', async () => {
+    const { fetch, calls } = fakeFetch([defaultBranch(null), refsPage([], null), json([])]);
+
+    const result = await fetchRepositoryBranches(client(fetch), 'acme', 'empty');
+
+    assert.equal(result.defaultBranch, null);
+    assert.deepEqual(variables(calls[1]), {
+      owner: 'acme',
+      name: 'empty',
+      cursor: null,
+      base: '',
+      compare: false,
+    });
+  });
+
   it('sends the token as a bearer authorization header', async () => {
-    const { fetch, calls } = fakeFetch([refsPage([], null), json([])]);
+    const { fetch, calls } = fakeFetch([defaultBranch('main'), refsPage([], null), json([])]);
 
     await fetchRepositoryBranches(client(fetch), 'acme', 'app');
 
@@ -155,6 +212,7 @@ describe('fetchRepositoryBranches', () => {
 
   it('resolves a relative pagination link against the current page', async () => {
     const { fetch, calls } = fakeFetch([
+      defaultBranch('main'),
       refsPage([], null),
       json([], { headers: { link: '</repos/acme/app/branches?page=2>; rel="next"' } }),
       json([]),
@@ -162,11 +220,12 @@ describe('fetchRepositoryBranches', () => {
 
     await fetchRepositoryBranches(client(fetch), 'acme', 'app');
 
-    assert.equal(calls[2]?.url, 'https://api.github.com/repos/acme/app/branches?page=2');
+    assert.equal(calls[3]?.url, 'https://api.github.com/repos/acme/app/branches?page=2');
   });
 
   it('refuses to send the token to a pagination link on another host', async () => {
     const { fetch } = fakeFetch([
+      defaultBranch('main'),
       refsPage([], null),
       json([], { headers: { link: '<https://evil.example/branches?page=2>; rel="next"' } }),
     ]);

@@ -6,11 +6,19 @@ export interface LastCommit {
   readonly author: string | null;
 }
 
+/** How many commits a branch has that the default branch lacks, and the reverse. */
+export interface Divergence {
+  readonly ahead: number;
+  readonly behind: number;
+}
+
 /** A branch as read from the repository, before any analysis. */
 export interface Branch {
   readonly name: string;
   readonly isProtected: boolean;
   readonly lastCommit: LastCommit;
+  /** Null for the default branch itself, or when GitHub cannot compare the two. */
+  readonly divergence: Divergence | null;
 }
 
 export interface RepositoryBranches {

@@ -10,6 +10,7 @@ function branch(name: string, date: string, isProtected = false): Branch {
     name,
     isProtected,
     lastCommit: { sha: `sha-${name}`, date: new Date(date), author: 'dev' },
+    divergence: null,
   };
 }
 
@@ -78,6 +79,29 @@ describe('buildBranchReport', () => {
       ['main', 'a-feature', 'b-feature', 'old'],
     );
     assert.deepEqual(report.totals, { branches: 4, protected: 2, stale: 1 });
+  });
+
+  it('keeps the divergence from the default branch of each branch', () => {
+    const report = buildBranchReport(
+      {
+        owner: 'acme',
+        name: 'app',
+        defaultBranch: 'main',
+        branches: [
+          branch('main', '2026-10-20T00:00:00Z'),
+          { ...branch('feature', '2026-10-19T00:00:00Z'), divergence: { ahead: 12, behind: 48 } },
+        ],
+      },
+      { now: NOW, staleDays: 90 },
+    );
+
+    assert.deepEqual(
+      report.branches.map((b) => [b.name, b.divergence]),
+      [
+        ['main', null],
+        ['feature', { ahead: 12, behind: 48 }],
+      ],
+    );
   });
 
   it('treats a commit dated in the future as zero days old', () => {

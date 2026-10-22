@@ -63,6 +63,12 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
         status: 'available',
       },
       {
+        title: 'Branch divergence',
+        description: 'How far each branch is ahead of or behind the default branch.',
+        icon: 'diverge',
+        status: 'available',
+      },
+      {
         title: 'CLI and JSON',
         description: 'The same report in a terminal, or as JSON for scripts and CI.',
         icon: 'terminal',
@@ -85,12 +91,6 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
         title: 'Activity trends',
         description: 'Weekly commits and active branches, with the change over time.',
         icon: 'activity',
-        status: 'planned',
-      },
-      {
-        title: 'Branch divergence',
-        description: 'How far each branch is ahead of or behind the default branch.',
-        icon: 'diverge',
         status: 'planned',
       },
     ],
