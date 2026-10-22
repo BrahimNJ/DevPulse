@@ -16,9 +16,9 @@ Type a repository, see the health of every branch: activity, authors, protection
 [![Node.js](https://img.shields.io/badge/Node.js-24%20LTS-5FA04E?logo=nodedotjs&logoColor=white)](.nvmrc)
 [![Claude Code](https://img.shields.io/badge/AI%20agents-Claude%20Code-D97757?logo=claude&logoColor=white)](docs/ai/CLAUDE_CODE.md)
 
-[Features](#features) · [Architecture](#architecture) · [Engineering practices](#engineering-practices) · [Run it locally](#run-it-locally) · [Roadmap](#roadmap)
+**[Live demo](https://devpulse-865877702597.europe-west1.run.app)** · [Engineering docs](https://devpulse-865877702597.europe-west1.run.app/docs) · [Features](#features) · [Architecture](#architecture) · [Engineering practices](#engineering-practices) · [Run it locally](#run-it-locally) · [Roadmap](#roadmap)
 
-<img src="docs/assets/landing.png" alt="DevPulse landing page: headline, repository search, a preview of the branch dashboard, and the feature catalogue" width="900" />
+<img src="docs/assets/landing.png" alt="DevPulse home page: headline, repository search and a preview of a branch health report" width="900" />
 
 </div>
 
@@ -47,12 +47,13 @@ on **production-grade engineering practices** rather than on volume of code:
 
 ### Available today: branch health
 
-<img src="docs/assets/dashboard.png" alt="DevPulse app showing branch statistics for nodejs/node: 56 branches, 44 protected, 37 stale, and a filterable branch table" width="900" />
+<img src="docs/assets/dashboard.png" alt="DevPulse report for nodejs/node: 55 branches, 44 protected, 37 stale, plain-language insights and a filterable branch table" width="900" />
 
 | Feature                 | Details                                                                                      |
 | ----------------------- | -------------------------------------------------------------------------------------------- |
 | **Branch overview**     | Every branch with its last commit date, author and age, most recently updated first          |
 | **Health indicators**   | Totals for branches, protected branches and stale branches, plus the median branch age       |
+| **Insights**            | The report in plain sentences: abandoned work, protection, the branch furthest behind        |
 | **Branch divergence**   | Commits each branch is ahead of and behind the default branch                                |
 | **Stale detection**     | Configurable threshold (30 to 365 days); the default branch is never flagged as abandoned    |
 | **Accurate protection** | Classic protection rules _and_ rulesets, visible without admin rights                        |
@@ -60,6 +61,8 @@ on **production-grade engineering practices** rather than on volume of code:
 | **Shareable views**     | The URL holds the query, so `?repo=nodejs/node` reopens the same report                      |
 | **Command line**        | The same report in a terminal, as an aligned table or as JSON for scripting                  |
 | **Clear failures**      | Missing repository, invalid token, rate limits and network errors each get a precise message |
+| **Fair use**            | Three analyses per visitor a day, counted server-side; re-opening a repository is free       |
+| **Public docs**         | A Docs page explains every technical choice, the security model and the delivery pipeline    |
 
 ### Planned
 

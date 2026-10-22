@@ -167,6 +167,49 @@ console:
 gcloud run services update-traffic devpulse --region=europe-west1 --to-revisions=<revision>=100
 ```
 
+## The daily allowance and owner access (ADR 0008)
+
+Each visitor may analyse three distinct repositories per 24 hours; you, signed in
+with the owner key, have no limit. Two more secrets support this. Create them once,
+**before** the `terraform apply` that adds them, from the repository root:
+
+```powershell
+function New-Secret([string]$name, [string]$value) {
+  $file = New-TemporaryFile
+  try {
+    [IO.File]::WriteAllText($file, $value)
+    gcloud secrets create $name --replication-policy=automatic
+    gcloud secrets versions add $name --data-file=$file
+  } finally {
+    Remove-Item $file -ErrorAction SilentlyContinue
+  }
+}
+function New-RandomText {
+  $bytes = New-Object byte[] 32
+  [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+  [Convert]::ToBase64String($bytes)
+}
+New-Secret visitor-salt (New-RandomText)
+$ownerKey = New-RandomText
+New-Secret owner-key $ownerKey
+Write-Host "Owner key, store it in your password manager: $ownerKey"
+Remove-Variable ownerKey
+```
+
+Then plan and apply as in step 4: the plan imports the two secrets, creates the
+Firestore database, makes staging private and updates both services. Once the next
+release is deployed, open `/owner` on the production site and paste the key once.
+
+Staging is no longer public. Check it with your own identity:
+
+```powershell
+$token = gcloud auth print-identity-token
+curl.exe -H "Authorization: Bearer $token" https://devpulse-staging-865877702597.europe-west1.run.app/health
+```
+
+To rotate the owner key, add a new version of `owner-key` as above and redeploy; every
+owner cookie signed with the old key stops working.
+
 ## Rotating the GitHub token
 
 Repeat the token commands of step 3 from `$secure = ...` onwards, then disable the old

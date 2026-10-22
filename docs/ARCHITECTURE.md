@@ -19,17 +19,19 @@ Decided, see [decision records](decisions/):
 - Command-line interface, `src/` layout, native TypeScript execution, `node:test`,
   GitHub GraphQL and REST through `fetch` (ADR 0005).
 - Local web dashboard: React and Vite, served with a `node:http` API (ADR 0006).
-
-Proposed:
-
 - Public deployment on Google Cloud Run: production build, container, Terraform in
   `infra/`, keyless delivery from GitHub Actions, quota protection and observability
   (ADR 0007).
 
+Proposed:
+
+- A daily allowance of three analyses per visitor in Firestore, maintainer access
+  through a signed cookie, and a private staging service (ADR 0008).
+
 Undecided:
 
 - Authentication for the dashboard.
-- Data stores, messaging, and external services.
+- Messaging and other external services.
 
 These decisions are made through the process in this document, not by assuming a
 default from similar projects.

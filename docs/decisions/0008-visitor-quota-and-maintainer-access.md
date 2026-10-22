@@ -51,7 +51,8 @@ token. That doubled the surface through which the shared quota could be drained.
 - **Private staging:** the staging service requires a Google identity
   (`roles/run.invoker`) instead of being public. The smoke test of the delivery
   pipeline sends an identity token of the deployer service account. The maintainer
-  browses staging with `gcloud run services proxy`.
+  checks staging with `curl` and `gcloud auth print-identity-token`; staging is not
+  meant to be browsed.
 - **Secrets:** `owner-key` and `visitor-salt` are created out of band like
   `github-token` (ADR 0007), adopted by Terraform with import blocks, and readable only
   by the runtime service account.
