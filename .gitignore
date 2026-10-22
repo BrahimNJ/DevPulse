@@ -51,3 +51,14 @@ coverage/
 # ---------------------------------------------------------------------------
 .cache/
 .eslintcache
+
+# ---------------------------------------------------------------------------
+# Terraform (infra/): providers, local state and personal variables
+# ---------------------------------------------------------------------------
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+infra/.build/
+infra/tfplan
