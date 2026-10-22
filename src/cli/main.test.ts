@@ -81,9 +81,9 @@ describe('run', () => {
         'acme/app: 2 branches, default main',
         'Protected: 1. Stale (no commit for 90+ days): 1.',
         '',
-        'BRANCH          LAST COMMIT  AGE   AUTHOR   FLAGS',
-        'main            2026-10-19   1d    octocat  default, protected',
-        'old-experiment  2025-01-01   657d  Someone  stale',
+        'BRANCH          LAST COMMIT  AGE   AHEAD/BEHIND  AUTHOR   FLAGS',
+        'main            2026-10-19   1d    -             octocat  default, protected',
+        'old-experiment  2025-01-01   657d  +12/-48       Someone  stale',
         '',
       ].join('\n'),
     );
@@ -95,10 +95,11 @@ describe('run', () => {
     assert.equal(await run(env), 0);
     const report = JSON.parse(output.stdout) as {
       totals: unknown;
-      branches: { name: string; lastCommit: { date: string } }[];
+      branches: { name: string; lastCommit: { date: string }; divergence: unknown }[];
     };
     assert.deepEqual(report.totals, { branches: 2, protected: 1, stale: 1 });
     assert.equal(report.branches[0]?.lastCommit.date, '2026-10-19T00:00:00.000Z');
+    assert.deepEqual(report.branches[1]?.divergence, { ahead: 12, behind: 48 });
   });
 
   it('fails without a token and explains how to provide one', async () => {
