@@ -15,6 +15,13 @@ const METADATA_TOKEN_URL =
  */
 
 /**
+ * The parts of the Functions Framework (Express) request and response that are used.
+ *
+ * @typedef {{ body?: unknown }} Request
+ * @typedef {{ status(code: number): { end(): void } }} Response
+ */
+
+/**
  * @param {BudgetNotification} notification
  * @returns {boolean}
  */
@@ -23,15 +30,17 @@ export function shouldStopBilling(notification) {
 }
 
 /**
- * Decodes the budget notification carried by a Pub/Sub CloudEvent.
+ * Decodes the budget notification from a Pub/Sub push envelope,
+ * `{ message: { data: <base64 JSON> }, subscription }`.
  *
- * @param {{ data?: { message?: { data?: string } } }} cloudEvent
+ * @param {unknown} envelope
  * @returns {BudgetNotification}
  */
-export function readNotification(cloudEvent) {
-  const encoded = cloudEvent.data?.message?.data;
-  if (encoded === undefined) {
-    throw new Error('The event carries no Pub/Sub message.');
+export function readNotification(envelope) {
+  const encoded = /** @type {{ message?: { data?: unknown } } | null | undefined} */ (envelope)
+    ?.message?.data;
+  if (typeof encoded !== 'string') {
+    throw new Error('The request carries no Pub/Sub message.');
   }
   /** @type {unknown} */
   const message = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'));
@@ -43,33 +52,53 @@ export function readNotification(cloudEvent) {
 }
 
 /**
- * Entry point, triggered by the budget topic through Eventarc.
+ * Entry point. Eventarc delivers each Pub/Sub message as an HTTP request, and the
+ * function runs with the HTTP signature. A 2xx answer acknowledges the message; any
+ * other status makes Pub/Sub deliver it again, which only a transient failure deserves.
  *
- * @param {{ data?: { message?: { data?: string } } }} cloudEvent
+ * @param {Request} request
+ * @param {Response} response
  * @returns {Promise<void>}
  */
-export async function stopBilling(cloudEvent) {
+export async function stopBilling(request, response) {
   /** @type {BudgetNotification} */
   let notification;
   try {
-    notification = readNotification(cloudEvent);
+    notification = readNotification(request.body);
   } catch (error) {
-    // Pub/Sub would redeliver a malformed message for days; retrying cannot fix it.
-    console.error(`Ignored message: ${error instanceof Error ? error.message : String(error)}`);
+    // Retrying cannot fix a malformed message, so it is acknowledged.
+    console.error(`Ignored message: ${describe(error)}`);
+    response.status(204).end();
     return;
   }
+
   const status = `cost ${String(notification.costAmount)} of ${String(notification.budgetAmount)}`;
   if (!shouldStopBilling(notification)) {
     process.stdout.write(`Budget ${status}: no action.\n`);
+    response.status(204).end();
     return;
   }
+  try {
+    const project = await detachBilling();
+    console.warn(`Budget ${status}: billing disabled for ${project}.`);
+    response.status(204).end();
+  } catch (error) {
+    console.error(`Budget ${status}: could not disable billing, will retry: ${describe(error)}`);
+    response.status(500).end();
+  }
+}
+
+/**
+ * Unlinking is idempotent, so there is no read first: reading billing information
+ * would need a permission the account does not have.
+ *
+ * @returns {Promise<string>} The project whose billing was detached.
+ */
+async function detachBilling() {
   const project = process.env['PROJECT_ID'];
   if (project === undefined || project === '') {
     throw new Error('PROJECT_ID is not set.');
   }
-  // Unlinking is idempotent, so there is no read first: reading billing information
-  // would need a permission the account does not have. A failure here throws, so that
-  // Pub/Sub retries.
   await call(`https://cloudbilling.googleapis.com/v1/projects/${project}/billingInfo`, {
     method: 'PUT',
     headers: {
@@ -78,7 +107,7 @@ export async function stopBilling(cloudEvent) {
     },
     body: JSON.stringify({ billingAccountName: '' }),
   });
-  console.warn(`Budget ${status}: billing disabled for ${project}.`);
+  return project;
 }
 
 /** @returns {Promise<string>} */
@@ -100,4 +129,12 @@ async function call(url, init) {
     throw new Error(`${init.method ?? 'GET'} ${url} failed with ${String(response.status)}.`);
   }
   return response.json();
+}
+
+/**
+ * @param {unknown} error
+ * @returns {string}
+ */
+function describe(error) {
+  return error instanceof Error ? error.message : String(error);
 }
