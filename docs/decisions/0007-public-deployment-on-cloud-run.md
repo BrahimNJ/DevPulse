@@ -78,8 +78,9 @@ popular repositories.
   never deleted, the Cloud Run services, service accounts and IAM, the
   Secret Manager secret (its value is set out of band and never enters Terraform
   state), Workload Identity Federation, an uptime check, alerting, and the cost
-  protection below. `terraform plan` runs on pull requests that touch `infra/`; apply
-  is a manually triggered workflow behind an approval.
+  protection below. CI checks that Terraform is formatted and valid; plan and apply
+  run on the maintainer's machine, because a plan in CI would need a read identity
+  for pull request branches, which the federation deliberately refuses.
 - **Cost protection:** a monthly budget of 1 EUR that excludes credits, so free-trial
   credit cannot hide real usage, emails at 10%, 50% and 100%, and publishes to
   Pub/Sub. A budget alert never stops spending on its own, so a kill switch, a small
@@ -101,8 +102,12 @@ popular repositories.
     service (scale to zero) and run a smoke test.
   - When release-please publishes a `vX.Y.Z` release: promote the same image digest,
     without rebuilding, to the `production` service through a GitHub Environment that
-    requires the maintainer's approval. Run a smoke test, and on failure shift traffic
-    back to the previous revision. Releases map one-to-one to production versions.
+    requires the maintainer's approval. The new revision is deployed without traffic
+    and health-checked through a revision tag, then receives all traffic; the public
+    URL is smoke tested, and on failure traffic shifts back to the previous revision.
+    Releases map one-to-one to production versions. release-please and the deployment
+    jobs share one workflow, so that the image of a release commit is built and
+    tested in staging before production can use it.
 - **Load testing:** k6 scenarios run against staging from a manually triggered
   workflow. Thresholds: 50 requests per second for 2 minutes on cached repositories,
   p95 below 300 ms, no server errors; excess requests from one client get 429. k6 is a

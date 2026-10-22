@@ -83,8 +83,9 @@ resource "google_cloud_run_v2_service" "app" {
   }
 
   lifecycle {
-    # Images are deployed by the pipeline, not by Terraform.
-    ignore_changes = [template[0].containers[0].image, client, client_version]
+    # Images and the traffic split are managed by the delivery pipeline, not by
+    # Terraform: an apply must never undo a promotion or a rollback.
+    ignore_changes = [template[0].containers[0].image, client, client_version, traffic]
   }
 
   depends_on = [
