@@ -76,7 +76,7 @@ describe('createApp', () => {
       const rebound = await send('/api/branches?repo=acme/app', {
         headers: { host: 'attacker.example' },
       });
-      const health = await send('/healthz', { headers: { host: '10.0.0.7:8080' } });
+      const health = await send('/health', { headers: { host: '10.0.0.7:8080' } });
 
       assert.equal(rebound.status, 403);
       assert.equal(health.status, 200);

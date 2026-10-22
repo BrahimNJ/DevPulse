@@ -15,7 +15,7 @@ resource "google_monitoring_uptime_check_config" "production" {
   period       = "900s"
 
   http_check {
-    path         = "/healthz"
+    path         = "/health"
     port         = 443
     use_ssl      = true
     validate_ssl = true
