@@ -44,6 +44,7 @@ describe('loadConfig', () => {
       [{ PORT: 'abc' }, /^PORT/],
       [{ TRUST_PROXY: 'yes' }, /^TRUST_PROXY/],
       [{ RATE_LIMIT_PER_MINUTE: '0' }, /^RATE_LIMIT_PER_MINUTE/],
+      [{ HOST: '0.0.0.0' }, /^ALLOWED_HOSTS/],
     ] as const;
     for (const [env, message] of cases) {
       const config = loadConfig(env);

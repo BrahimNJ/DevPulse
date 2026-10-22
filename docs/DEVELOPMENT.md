@@ -35,7 +35,9 @@ Never commit a token. If a `.env` file is introduced, it stays untracked and a c
 ### Server configuration
 
 Both `npm run web` and `npm start` read these variables. Every default keeps the server
-local; a deployment sets the first four (ADR 0007).
+local; a deployment sets the first four (ADR 0007). A public `Host` header has no
+port, so a deployed `ALLOWED_HOSTS` lists bare names such as `devpulse-123.europe-west1.run.app`;
+the server refuses to start on a non-loopback `HOST` without it.
 
 | Variable                | Default                             | Purpose                                                 |
 | ----------------------- | ----------------------------------- | ------------------------------------------------------- |

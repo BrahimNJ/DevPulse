@@ -66,6 +66,9 @@ export const PRODUCTION_HEADERS: Readonly<Record<string, string>> = {
   'strict-transport-security': 'max-age=31536000',
 };
 
+/** The conventional status for a request that the client abandoned before the answer. */
+const CLIENT_CLOSED = 499;
+
 interface Context {
   route: Route;
   cacheHit?: boolean;
@@ -76,8 +79,10 @@ export function createApp(options: AppOptions): RequestHandler {
   return (request, response) => {
     const started = options.clock();
     const context: Context = { route: 'rejected' };
-    response.on('finish', () => {
-      options.log(requestLog(request, response.statusCode, options.clock() - started, context));
+    // `close` also fires when the client gives up first, so slow requests are logged too.
+    response.on('close', () => {
+      const status = response.writableFinished ? response.statusCode : CLIENT_CLOSED;
+      options.log(requestLog(request, status, options.clock() - started, context));
     });
     for (const [name, value] of Object.entries(options.headers)) {
       response.setHeader(name, value);

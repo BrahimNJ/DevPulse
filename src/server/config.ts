@@ -15,6 +15,7 @@ export type Environment = Readonly<Record<string, string | undefined>>;
 
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_RATE_LIMIT_PER_MINUTE = 30;
+const LOOPBACK: ReadonlySet<string> = new Set(['127.0.0.1', 'localhost', '::1']);
 
 /**
  * Reads the configuration from the environment. Every default keeps the local
@@ -34,13 +35,17 @@ export function loadConfig(env: Environment): ServerConfig | string {
   if (rateLimitPerMinute === null) {
     return 'RATE_LIMIT_PER_MINUTE must be a positive whole number.';
   }
-  const allowedHosts = parseHosts(env['ALLOWED_HOSTS']) ?? [
-    `127.0.0.1:${String(port)}`,
-    `localhost:${String(port)}`,
-  ];
+  const host = nonEmpty(env['HOST']) ?? DEFAULT_HOST;
+  const explicitHosts = parseHosts(env['ALLOWED_HOSTS']);
+  // The defaults name the port, which a public Host header such as Cloud Run's lacks:
+  // a reachable server without its own names would answer 403 to every visitor.
+  if (explicitHosts === undefined && !LOOPBACK.has(host)) {
+    return 'ALLOWED_HOSTS must list the public host names when HOST is not a loopback address.';
+  }
+  const allowedHosts = explicitHosts ?? [`127.0.0.1:${String(port)}`, `localhost:${String(port)}`];
 
   return {
-    host: nonEmpty(env['HOST']) ?? DEFAULT_HOST,
+    host,
     port,
     allowedHosts: new Set(allowedHosts),
     trustProxy,

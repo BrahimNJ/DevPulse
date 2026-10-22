@@ -73,7 +73,9 @@ export async function serve(options: ServeOptions): Promise<void> {
         : error.message,
     );
   });
-  // Cloud Run sends SIGTERM before stopping an instance: finish requests in flight.
+  // Cloud Run sends SIGTERM before stopping an instance: finish requests in flight. A
+  // request still running after its grace period is cut by the platform, which is
+  // acceptable for a read-only report.
   process.once('SIGTERM', () => {
     server.close(() => process.exit(0));
   });

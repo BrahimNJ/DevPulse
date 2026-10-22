@@ -71,6 +71,8 @@ describe('createStaticHandler', () => {
       const head = await send('/favicon.svg', { method: 'HEAD' });
 
       assert.equal((await send('/missing.js')).status, 404);
+      // An asset of a previous release must not fall back to index.html.
+      assert.equal((await send('/assets/index-old.js')).status, 404);
       assert.equal(head.status, 200);
       assert.equal(head.body, '');
       assert.equal(head.headers['content-length'], '6');
