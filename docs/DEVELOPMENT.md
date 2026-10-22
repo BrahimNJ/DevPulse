@@ -11,6 +11,8 @@ command and the local dashboard, are in place. Node.js runs the TypeScript sourc
 directly, so there is **no build step** for the back end
 ([ADR 0005](decisions/0005-command-line-application-and-tests.md)); Vite serves the
 React dashboard in development mode ([ADR 0006](decisions/0006-local-web-dashboard.md)).
+The production server and its container image are in place; deploying them to Cloud
+Run is in progress ([ADR 0007](decisions/0007-public-deployment-on-cloud-run.md)).
 
 ## Prerequisites
 
@@ -19,7 +21,7 @@ React dashboard in development mode ([ADR 0006](decisions/0006-local-web-dashboa
 | Git     | 2.40 or later         |                                              |
 | Node.js | 24 LTS (see `.nvmrc`) | `engine-strict` rejects other major versions |
 | npm     | 11 or later           | Bundled with Node.js 24                      |
-| Docker  | Not required yet      | Required once local deployment is accepted   |
+| Docker  | 27 or later, optional | Only to build and run the container image    |
 
 Tests need no secret. Running the CLI needs a GitHub token in `GITHUB_TOKEN`, because
 the GraphQL API rejects anonymous requests. With the GitHub CLI installed:
@@ -176,11 +178,25 @@ keeps a release pull request open on `main`. Merging it bumps the version, updat
 `CHANGELOG.md`, and creates the `vX.Y.Z` tag and GitHub release. Neither file is
 edited by hand.
 
-### Local deployment (proposed)
+### Container image
 
-When the first runnable component is accepted, `docker compose up --build` will start
-it locally from the repository root, with configuration from `.env`. Nothing is
-deployed yet; see ADR 0004.
+The `Dockerfile` builds the production image described in ADR 0007: a Node.js stage
+builds the interface, and a distroless Node.js runtime runs the server as a non-root
+user, without a shell, a package manager or `node_modules`. Base images are pinned by
+digest and kept current by Dependabot. `.dockerignore` is an allowlist, so `.env`
+files and Git data never enter the build context.
+
+`compose.yaml` runs that image locally with a read-only file system, no Linux
+capabilities and a health check:
+
+```sh
+GITHUB_TOKEN=$(gh auth token) docker compose up --build   # http://127.0.0.1:8080
+docker compose down
+```
+
+The image sets `HOST=0.0.0.0` and `PORT=8080`; the platform provides `GITHUB_TOKEN`
+and `ALLOWED_HOSTS`, and the server refuses to start without them. Nothing is deployed
+yet.
 
 ## Definition of Done
 
