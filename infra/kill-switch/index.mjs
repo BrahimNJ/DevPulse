@@ -14,12 +14,7 @@ const METADATA_TOKEN_URL =
  * @property {number} budgetAmount
  */
 
-/**
- * The parts of the Functions Framework (Express) request and response that are used.
- *
- * @typedef {{ body?: unknown }} Request
- * @typedef {{ status(code: number): { end(): void } }} Response
- */
+/** @typedef {{ status(code: number): { end(): void } }} HttpResponse */
 
 /**
  * @param {BudgetNotification} notification
@@ -30,17 +25,39 @@ export function shouldStopBilling(notification) {
 }
 
 /**
- * Decodes the budget notification from a Pub/Sub push envelope,
- * `{ message: { data: <base64 JSON> }, subscription }`.
+ * The base64 payload of the Pub/Sub message, whatever signature the platform used to
+ * call the function. Which one it uses depends on deployment metadata outside this
+ * code, and the deployed function received a shape that was not the expected one, so
+ * all three documented shapes are accepted:
+ * - legacy event `(message, context)`: `message.data`;
+ * - CloudEvent `(event)`: `event.data.message.data`;
+ * - HTTP `(request, response)`: `request.body.message.data`.
  *
- * @param {unknown} envelope
+ * @param {unknown} argument The first argument the function received.
+ * @returns {string | undefined}
+ */
+export function encodedMessage(argument) {
+  const value = /** @type {{ data?: unknown, body?: unknown } | null | undefined} */ (argument);
+  const candidates = [value?.data, messageData(value?.data), messageData(value?.body)];
+  return candidates.find((candidate) => typeof candidate === 'string');
+}
+
+/**
+ * @param {unknown} envelope A Pub/Sub push envelope, `{ message: { data } }`.
+ * @returns {unknown}
+ */
+function messageData(envelope) {
+  return /** @type {{ message?: { data?: unknown } } | null | undefined} */ (envelope)?.message
+    ?.data;
+}
+
+/**
+ * @param {string | undefined} encoded
  * @returns {BudgetNotification}
  */
-export function readNotification(envelope) {
-  const encoded = /** @type {{ message?: { data?: unknown } } | null | undefined} */ (envelope)
-    ?.message?.data;
-  if (typeof encoded !== 'string') {
-    throw new Error('The request carries no Pub/Sub message.');
+export function readNotification(encoded) {
+  if (encoded === undefined) {
+    throw new Error('The call carries no Pub/Sub message.');
   }
   /** @type {unknown} */
   const message = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'));
@@ -52,40 +69,66 @@ export function readNotification(envelope) {
 }
 
 /**
- * Entry point. Eventarc delivers each Pub/Sub message as an HTTP request, and the
- * function runs with the HTTP signature. A 2xx answer acknowledges the message; any
- * other status makes Pub/Sub deliver it again, which only a transient failure deserves.
+ * Entry point. Returning acknowledges the message; for the event signatures a throw,
+ * and for HTTP a 500, makes Pub/Sub deliver it again, which only a failed unlink
+ * deserves.
  *
- * @param {Request} request
- * @param {Response} response
+ * The function declares a single parameter on purpose: the Functions Framework treats
+ * a CloudEvent function with two declared parameters as callback-style and waits for a
+ * callback that never comes. The second argument is read from `rest` instead.
+ *
+ * @param {unknown} event The message, the CloudEvent or the HTTP request.
+ * @param {...unknown} rest The HTTP response or the event context, if any.
  * @returns {Promise<void>}
  */
-export async function stopBilling(request, response) {
+export async function stopBilling(event, ...rest) {
+  const [responseOrContext] = rest;
+  const response = isHttpResponse(responseOrContext) ? responseOrContext : undefined;
+  try {
+    await handle(encodedMessage(event));
+    response?.status(204).end();
+  } catch (error) {
+    console.error(`Could not disable billing, will retry: ${describe(error)}`);
+    if (response === undefined) {
+      throw error;
+    }
+    response.status(500).end();
+  }
+}
+
+/**
+ * Throws only when billing should be detached and could not be.
+ *
+ * @param {string | undefined} encoded
+ * @returns {Promise<void>}
+ */
+async function handle(encoded) {
   /** @type {BudgetNotification} */
   let notification;
   try {
-    notification = readNotification(request.body);
+    notification = readNotification(encoded);
   } catch (error) {
     // Retrying cannot fix a malformed message, so it is acknowledged.
     console.error(`Ignored message: ${describe(error)}`);
-    response.status(204).end();
     return;
   }
-
   const status = `cost ${String(notification.costAmount)} of ${String(notification.budgetAmount)}`;
   if (!shouldStopBilling(notification)) {
     process.stdout.write(`Budget ${status}: no action.\n`);
-    response.status(204).end();
     return;
   }
-  try {
-    const project = await detachBilling();
-    console.warn(`Budget ${status}: billing disabled for ${project}.`);
-    response.status(204).end();
-  } catch (error) {
-    console.error(`Budget ${status}: could not disable billing, will retry: ${describe(error)}`);
-    response.status(500).end();
-  }
+  const project = await detachBilling();
+  console.warn(`Budget ${status}: billing disabled for ${project}.`);
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is HttpResponse}
+ */
+function isHttpResponse(value) {
+  return (
+    typeof (/** @type {{ status?: unknown } | null | undefined} */ (value)?.status) === 'function'
+  );
 }
 
 /**

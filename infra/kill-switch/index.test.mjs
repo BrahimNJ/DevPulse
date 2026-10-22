@@ -1,20 +1,28 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 
-import { readNotification, shouldStopBilling, stopBilling } from './index.mjs';
+import { encodedMessage, readNotification, shouldStopBilling, stopBilling } from './index.mjs';
 
 /**
- * A Pub/Sub push envelope, as Eventarc sends it in the HTTP request body.
- *
- * @param {unknown} message
- * @returns {{ message: { data: string }, subscription: string }}
+ * @param {unknown} notification
+ * @returns {string}
  */
-function envelope(message) {
-  return {
-    message: { data: Buffer.from(JSON.stringify(message)).toString('base64') },
-    subscription: 'projects/p/subscriptions/eventarc',
-  };
+function encode(notification) {
+  return Buffer.from(JSON.stringify(notification)).toString('base64');
 }
+
+/**
+ * The three ways the platform can pass a Pub/Sub message to the function. The legacy
+ * event shape is the one observed on the deployed function.
+ */
+const SHAPES = {
+  /** @param {unknown} notification */
+  legacyEvent: (notification) => ({ data: encode(notification), attributes: {} }),
+  /** @param {unknown} notification */
+  cloudEvent: (notification) => ({ data: { message: { data: encode(notification) } } }),
+  /** @param {unknown} notification */
+  httpRequest: (notification) => ({ body: { message: { data: encode(notification) } } }),
+};
 
 /** @returns {{ response: { status(code: number): { end(): void } }, statuses: number[] }} */
 function recorder() {
@@ -67,6 +75,12 @@ function token() {
   return new Response(JSON.stringify({ access_token: 'token' }));
 }
 
+const UNLINK = {
+  url: 'https://cloudbilling.googleapis.com/v1/projects/devpulse-test/billingInfo',
+  method: 'PUT',
+  body: '{"billingAccountName":""}',
+};
+
 describe('budget kill switch', () => {
   beforeEach(() => {
     process.env['PROJECT_ID'] = 'devpulse-test';
@@ -86,61 +100,72 @@ describe('budget kill switch', () => {
     assert.equal(shouldStopBilling({ costAmount: 3.5, budgetAmount: 1 }), true);
   });
 
-  it('reads the amounts from a Pub/Sub push envelope', () => {
-    const notification = readNotification(
-      envelope({ budgetDisplayName: 'devpulse', costAmount: 0.42, budgetAmount: 1 }),
-    );
+  it('declares one parameter, so the framework never waits for a callback', () => {
+    assert.equal(stopBilling.length, 1);
+  });
 
-    assert.deepEqual(notification, { costAmount: 0.42, budgetAmount: 1 });
-    assert.throws(() => readNotification(undefined), /no Pub\/Sub message/);
-    assert.throws(() => readNotification(envelope({ hello: 'world' })), /not a budget/);
+  it('finds the message in every call shape', () => {
+    const notification = { costAmount: 0.42, budgetAmount: 1 };
+    for (const [name, shape] of Object.entries(SHAPES)) {
+      assert.deepEqual(readNotification(encodedMessage(shape(notification))), notification, name);
+    }
+    assert.equal(encodedMessage(undefined), undefined);
+    assert.equal(encodedMessage({ body: { not: 'a message' } }), undefined);
+    assert.throws(() => readNotification(encodedMessage({})), /no Pub\/Sub message/);
+    assert.throws(() => readNotification(encode({ hello: 'world' })), /not a budget/);
   });
 
   it('acknowledges a notification below the budget without calling any API', async () => {
     const calls = fakeFetch([]);
-    const { response, statuses } = recorder();
 
-    await stopBilling({ body: envelope({ costAmount: 0.01, budgetAmount: 1 }) }, response);
+    for (const shape of Object.values(SHAPES)) {
+      await stopBilling(shape({ costAmount: 0.01, budgetAmount: 1 }), { eventId: '1' });
+    }
 
-    assert.deepEqual(statuses, [204]);
     assert.equal(calls.length, 0);
   });
 
-  it('acknowledges a malformed request so that it is not retried', async () => {
+  it('acknowledges a malformed message so that it is not retried', async () => {
+    await stopBilling({ data: 'not base64 JSON' }, { eventId: '1' });
     const { response, statuses } = recorder();
-
     await stopBilling({ body: { not: 'a message' } }, response);
 
     assert.deepEqual(statuses, [204]);
   });
 
-  it('detaches billing once the budget is reached', async () => {
+  it('detaches billing once the budget is reached, as observed in production', async () => {
     const calls = fakeFetch([token(), new Response('{}')]);
-    const { response, statuses } = recorder();
 
-    await stopBilling({ body: envelope({ costAmount: 1.2, budgetAmount: 1 }) }, response);
+    await stopBilling(SHAPES.legacyEvent({ costAmount: 1.2, budgetAmount: 1 }), {
+      eventId: '1',
+    });
 
     const [metadata, unlink] = calls;
-    assert.deepEqual(statuses, [204]);
     assert.match(metadata?.url ?? '', /^http:\/\/metadata\.google\.internal\//);
-    assert.deepEqual(unlink, {
-      url: 'https://cloudbilling.googleapis.com/v1/projects/devpulse-test/billingInfo',
-      method: 'PUT',
-      body: '{"billingAccountName":""}',
-    });
+    assert.deepEqual(unlink, UNLINK);
   });
 
-  it('answers 500 when billing cannot be detached, so that Pub/Sub retries', async () => {
+  it('throws for the event signatures when billing cannot be detached', async () => {
     const calls = fakeFetch([token(), new Response('{}', { status: 403 })]);
-    const { response, statuses } = recorder();
 
-    await stopBilling({ body: envelope({ costAmount: 1, budgetAmount: 1 }) }, response);
-
-    assert.deepEqual(statuses, [500]);
+    await assert.rejects(
+      stopBilling(SHAPES.cloudEvent({ costAmount: 1, budgetAmount: 1 })),
+      /failed with 403/,
+    );
     // The failure comes from the unlink itself, not from an earlier step.
     assert.deepEqual(
       calls.map((call) => call.method),
       ['GET', 'PUT'],
     );
+  });
+
+  it('answers 204 or 500 for the HTTP signature', async () => {
+    fakeFetch([token(), new Response('{}'), token(), new Response('{}', { status: 403 })]);
+    const { response, statuses } = recorder();
+
+    await stopBilling(SHAPES.httpRequest({ costAmount: 1, budgetAmount: 1 }), response);
+    await stopBilling(SHAPES.httpRequest({ costAmount: 1, budgetAmount: 1 }), response);
+
+    assert.deepEqual(statuses, [204, 500]);
   });
 });
