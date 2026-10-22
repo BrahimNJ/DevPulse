@@ -26,3 +26,42 @@ resource "google_secret_manager_secret_iam_member" "runtime_reads_token" {
   role      = "roles/secretmanager.secretAccessor"
   member    = google_service_account.runtime.member
 }
+
+# The maintainer's key and the salt of visitor identifiers (ADR 0008), created with
+# their values by the bootstrap step and adopted here in the same way.
+locals {
+  visitor_secrets = {
+    owner_key    = "owner-key"
+    visitor_salt = "visitor-salt"
+  }
+}
+
+import {
+  for_each = local.visitor_secrets
+  to       = google_secret_manager_secret.visitor[each.key]
+  id       = "projects/${var.project_id}/secrets/${each.value}"
+}
+
+resource "google_secret_manager_secret" "visitor" {
+  for_each = local.visitor_secrets
+
+  secret_id = each.value
+
+  replication {
+    auto {}
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  depends_on = [google_project_service.apis]
+}
+
+resource "google_secret_manager_secret_iam_member" "runtime_reads_visitor_secrets" {
+  for_each = google_secret_manager_secret.visitor
+
+  secret_id = each.value.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = google_service_account.runtime.member
+}

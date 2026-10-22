@@ -37,3 +37,14 @@ variable "budget_amount_eur" {
     error_message = "The budget must be a whole number of euros, at least 1."
   }
 }
+
+variable "visitor_quota_per_day" {
+  description = "Distinct repositories each visitor may analyse per 24 hours (ADR 0008)."
+  type        = number
+  default     = 3
+
+  validation {
+    condition     = var.visitor_quota_per_day >= 1 && floor(var.visitor_quota_per_day) == var.visitor_quota_per_day
+    error_message = "The allowance must be a whole number, at least 1."
+  }
+}

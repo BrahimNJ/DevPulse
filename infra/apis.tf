@@ -7,6 +7,7 @@ locals {
     "cloudfunctions.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "eventarc.googleapis.com",
+    "firestore.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
     "logging.googleapis.com",
