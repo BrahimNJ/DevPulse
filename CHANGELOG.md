@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.4.0](https://github.com/BrahimNJ/DevPulse/compare/v0.3.0...v0.4.0) (2026-10-22)
+
+
+### Features
+
+* **branches:** read each branch's divergence from the default branch ([febd8b5](https://github.com/BrahimNJ/DevPulse/commit/febd8b5f60134bfd260a9f32247ce7b498fc0076)), closes [#19](https://github.com/BrahimNJ/DevPulse/issues/19)
+* **branches:** show how far each branch has diverged from the default branch ([d4410cc](https://github.com/BrahimNJ/DevPulse/commit/d4410cc5cd19209e95bfbb2e105a069041afc815))
+* **cli:** show divergence in the branch table ([152520b](https://github.com/BrahimNJ/DevPulse/commit/152520bc3d92b86f65b185aa2733a387ffd4c80d)), closes [#19](https://github.com/BrahimNJ/DevPulse/issues/19)
+* **web:** show divergence in the dashboard ([9da444c](https://github.com/BrahimNJ/DevPulse/commit/9da444cb1250a9485ee129e13ed2c4adc7422aba)), closes [#19](https://github.com/BrahimNJ/DevPulse/issues/19)
+
 ## [0.3.0](https://github.com/BrahimNJ/DevPulse/compare/v0.2.0...v0.3.0) (2026-10-20)
 
 
