@@ -20,11 +20,16 @@ Decided, see [decision records](decisions/):
   GitHub GraphQL and REST through `fetch` (ADR 0005).
 - Local web dashboard: React and Vite, served with a `node:http` API (ADR 0006).
 
+Proposed:
+
+- Public deployment on Google Cloud Run: production build, container, Terraform in
+  `infra/`, keyless delivery from GitHub Actions, quota protection and observability
+  (ADR 0007).
+
 Undecided:
 
-- Hosting, production build and authentication for the dashboard.
+- Authentication for the dashboard.
 - Data stores, messaging, and external services.
-- Hosting model beyond local deployment, which is proposed in ADR 0004.
 
 These decisions are made through the process in this document, not by assuming a
 default from similar projects.
@@ -109,11 +114,11 @@ alternatives were considered, and that the consequences are stated honestly.
 
 ## Open Questions
 
-| Question                             | Notes                                                                   |
-| ------------------------------------ | ----------------------------------------------------------------------- |
-| What is the problem DevPulse solves? | No product definition exists yet                                        |
-| Which application framework?         | Blocked on the product definition                                       |
-| Hosting beyond local deployment?     | Blocked on the product definition; local deployment proposed (ADR 0004) |
+| Question                             | Notes                             |
+| ------------------------------------ | --------------------------------- |
+| What is the problem DevPulse solves? | No product definition exists yet  |
+| Which application framework?         | Blocked on the product definition |
+| Hosting beyond local deployment?     | Cloud Run proposed (ADR 0007)     |
 
 These questions are open by design. They are listed here so that no decision is made
 silently.

@@ -1,6 +1,7 @@
 # 0004. Automate releases and deploy locally with Docker Compose
 
-- Status: release automation **accepted**; local deployment **proposed**
+- Status: release automation **accepted**; local deployment **proposed**, to be
+  superseded by [0007](0007-public-deployment-on-cloud-run.md) once it is accepted
 - Date: 2026-10-19
 
 ## Context
