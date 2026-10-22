@@ -36,13 +36,17 @@ popular repositories.
 - **Configuration:** the listen address, the port and the allowed `Host` values come
   from environment variables. The local defaults stay `127.0.0.1` and the current
   `Host` check. The deployed service listens on `0.0.0.0` with the allowed hosts set to
-  its public URLs, so the DNS rebinding defence is generalised, not removed.
+  its public URLs, so the DNS rebinding defence is generalised, not removed. Terraform
+  computes those URLs from the deterministic form
+  `<service>-<project-number>.<region>.run.app`, so no second apply is needed.
 - **Quota protection, in the application:**
   1. An in-memory cache of repository data per repository, with a 10 minute TTL and a
      bounded number of entries (LRU).
   2. Per-client-IP rate limiting on the API. The client IP is the entry appended by
      Google's front end in `X-Forwarded-For`, not the first, client-controlled entry.
-     Excess requests get 429 with `Retry-After`.
+     This holds only while clients reach Cloud Run directly; a load balancer, CDN or
+     WAF in front would make the last entry its own address, so adding one requires
+     revisiting this rule. Excess requests get 429 with `Retry-After`.
   3. A quota guard that stops calling GitHub and answers 503 when the token's
      remaining quota falls below a reserve.
   4. A request timeout, so very large repositories cannot hold instances.
@@ -68,7 +72,9 @@ popular repositories.
   this record introduces. Provider versions are pinned. Remote state lives in a
   versioned Google Cloud Storage bucket created once by a documented bootstrap step.
   Terraform manages the Artifact Registry repository with a cleanup policy (to stay
-  under the 0.5 GB free storage), the Cloud Run services, service accounts and IAM, the
+  under the 0.5 GB free storage, SBOMs and attestations included) that always keeps
+  release images and the last few commit images, so the revision used for rollback is
+  never deleted, the Cloud Run services, service accounts and IAM, the
   Secret Manager secret (its value is set out of band and never enters Terraform
   state), Workload Identity Federation, an uptime check, alerting, and a billing budget
   alert at 1 EUR. `terraform plan` runs on pull requests that touch `infra/`; apply is
@@ -93,7 +99,8 @@ popular repositories.
   CI tool, not an npm dependency.
 - **Observability:** structured JSON logs on stdout, which Cloud Logging parses, with
   one line per request giving status, duration and cache hit, and never a token. An
-  uptime check on `/healthz` with email alerting. An availability objective of 99% per
+  uptime check on the production `/healthz` every 15 minutes with email alerting; each
+  check may wake an instance, which is accepted, and staging has no check. An availability objective of 99% per
   month, documented as an SLO.
 - **Out of scope:** a custom domain, a CDN or WAF (for example Cloudflare) in front of
   the service, user authentication or per-user tokens, and the CLI, which is not
@@ -104,7 +111,7 @@ popular repositories.
 - **Do nothing.** The project stays local and cannot be shown.
 - **Render free tier.** No card is needed, but cold starts after sleep take about 50 s,
   and there is less control: no IaC-first workflow and no keyless federation.
-- **Fly.io.** It no longer has a free tier for new accounts.
+- **Fly.io.** As of October 2026, it has no free tier for new accounts.
 - **Vercel, Netlify or Cloudflare Workers.** The `node:http` server would have to be
   rewritten into each platform's function model, coupling the code to the vendor.
 - **Compute Engine e2-micro always-free VM.** Free, but the operating system, patching,
@@ -145,5 +152,6 @@ popular repositories.
   mode and its `Host` check are unchanged by default.
 - Implementation is split into separate pull requests: production server (build,
   configuration, cache, limits, health, logs), container, infrastructure, delivery
-  pipeline, and load test with observability. The record becomes accepted when the
+  pipeline, and load test with observability. Like ADR 0004, the record is merged as
+  proposed so that those pull requests can refer to it, and becomes accepted when the
   service is deployed by the pipeline.
