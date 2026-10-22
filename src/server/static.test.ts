@@ -8,6 +8,8 @@ import type { RequestHandler } from './app.ts';
 import { withServer } from './http-test.ts';
 import { createStaticHandler } from './static.ts';
 
+const LARGE_SCRIPT = 'export const value = "devpulse";\n'.repeat(200);
+
 describe('createStaticHandler', () => {
   let root = '';
   let handler: RequestHandler = () => undefined;
@@ -19,6 +21,7 @@ describe('createStaticHandler', () => {
     await writeFile(path.join(root, 'index.html'), '<p>index</p>');
     await writeFile(path.join(root, 'assets', 'index-abc123.js'), 'console.log(1);');
     await writeFile(path.join(root, 'favicon.svg'), '<svg/>');
+    await writeFile(path.join(root, 'assets', 'large-def456.js'), LARGE_SCRIPT);
     await writeFile(path.join(parent, 'secret.txt'), 'secret');
     const serveUi = await createStaticHandler(root);
     handler = (request, response): void => {
@@ -77,6 +80,25 @@ describe('createStaticHandler', () => {
       assert.equal(head.body, '');
       assert.equal(head.headers['content-length'], '6');
       assert.equal((await send('/', { method: 'POST' })).status, 405);
+    });
+  });
+
+  it('compresses text files for clients that accept it, but not images', async () => {
+    await withServer(handler, async (send) => {
+      const brotli = await send('/assets/large-def456.js', {
+        headers: { 'accept-encoding': 'gzip, br' },
+      });
+      const again = await send('/assets/large-def456.js', {
+        headers: { 'accept-encoding': 'gzip, br' },
+      });
+      const plain = await send('/assets/large-def456.js');
+
+      assert.equal(brotli.headers['content-encoding'], 'br');
+      assert.equal(brotli.headers['vary'], 'accept-encoding');
+      assert.ok(Number(brotli.headers['content-length']) < LARGE_SCRIPT.length / 10);
+      assert.equal(again.headers['content-length'], brotli.headers['content-length']);
+      assert.equal(plain.headers['content-encoding'], undefined);
+      assert.equal(plain.body, LARGE_SCRIPT);
     });
   });
 

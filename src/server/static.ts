@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
 
 import type { UiHandler } from './app.ts';
+import { chooseEncoding, compress, MIN_COMPRESSIBLE_BYTES, type Encoding } from './compress.ts';
 
 const CONTENT_TYPES: Readonly<Record<string, string>> = {
   '.html': 'text/html; charset=utf-8',
@@ -22,6 +23,23 @@ const IMMUTABLE = 'public, max-age=31536000, immutable';
 /** Everything else, `index.html` above all, is revalidated so a release shows at once. */
 const REVALIDATE = 'no-cache';
 
+/** Text compresses well; images such as PNG are already compressed. */
+const COMPRESSIBLE: ReadonlySet<string> = new Set([
+  '.html',
+  '.js',
+  '.css',
+  '.json',
+  '.svg',
+  '.txt',
+]);
+
+/** The build directory, and compressed copies made once per file and encoding. */
+interface Site {
+  readonly base: string;
+  readonly index: Buffer;
+  readonly compressed: Map<string, Buffer>;
+}
+
 /**
  * Serves the production build of the interface from `root`. A path without an
  * extension that matches no file, such as `/app`, is a page of the single-page
@@ -29,10 +47,14 @@ const REVALIDATE = 'no-cache';
  */
 export async function createStaticHandler(root: string): Promise<UiHandler> {
   const base = path.resolve(root);
-  const index = await readFile(path.join(base, 'index.html'));
+  const site: Site = {
+    base,
+    index: await readFile(path.join(base, 'index.html')),
+    compressed: new Map(),
+  };
 
   return (request, response, next) => {
-    serveFile(request, response, base, index)
+    serveFile(request, response, site)
       .then((served) => {
         if (!served) {
           next();
@@ -45,9 +67,10 @@ export async function createStaticHandler(root: string): Promise<UiHandler> {
 async function serveFile(
   request: IncomingMessage,
   response: ServerResponse,
-  base: string,
-  index: Buffer,
+  site: Site,
 ): Promise<boolean> {
+  const { base, index } = site;
+  const exchange = { request, response, site };
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     response.writeHead(405, { allow: 'GET, HEAD' });
     response.end();
@@ -59,7 +82,7 @@ async function serveFile(
   }
   const file = path.resolve(base, `.${pathname}`);
   if (file === base) {
-    return send(request, response, 'index.html', index);
+    return send(exchange, 'index.html', index);
   }
   // A path such as /../secret must never leave the build directory.
   if (!file.startsWith(base + path.sep)) {
@@ -67,9 +90,9 @@ async function serveFile(
   }
   const body = await readRegularFile(file);
   if (body !== null) {
-    return send(request, response, path.relative(base, file), body);
+    return send(exchange, path.relative(base, file), body);
   }
-  return path.extname(pathname) === '' && send(request, response, 'index.html', index);
+  return path.extname(pathname) === '' && send(exchange, 'index.html', index);
 }
 
 function decodePathname(url: string | undefined): string | null {
@@ -89,17 +112,41 @@ async function readRegularFile(file: string): Promise<Buffer | null> {
 }
 
 function send(
-  request: IncomingMessage,
-  response: ServerResponse,
+  { request, response, site }: { request: IncomingMessage; response: ServerResponse; site: Site },
   relativePath: string,
   body: Buffer,
 ): true {
+  const extension = path.extname(relativePath);
   const isAsset = relativePath.split(path.sep)[0] === 'assets';
+  const encoding =
+    COMPRESSIBLE.has(extension) && body.length >= MIN_COMPRESSIBLE_BYTES
+      ? chooseEncoding(request.headers['accept-encoding'])
+      : null;
+  const payload = encoding === null ? body : compressedCopy(site, relativePath, body, encoding);
   response.writeHead(200, {
-    'content-type': CONTENT_TYPES[path.extname(relativePath)] ?? 'application/octet-stream',
-    'content-length': body.length,
+    'content-type': CONTENT_TYPES[extension] ?? 'application/octet-stream',
+    'content-length': payload.length,
     'cache-control': isAsset ? IMMUTABLE : REVALIDATE,
+    vary: 'accept-encoding',
+    ...(encoding === null ? {} : { 'content-encoding': encoding }),
   });
-  response.end(request.method === 'HEAD' ? undefined : body);
+  response.end(request.method === 'HEAD' ? undefined : payload);
   return true;
+}
+
+/** Build files never change while the server runs, so each is compressed once. */
+function compressedCopy(
+  site: Site,
+  relativePath: string,
+  body: Buffer,
+  encoding: Encoding,
+): Buffer {
+  const key = `${encoding}:${relativePath}`;
+  const cached = site.compressed.get(key);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const result = compress(body, encoding);
+  site.compressed.set(key, result);
+  return result;
 }
