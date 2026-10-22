@@ -25,9 +25,10 @@
     "lint:commits": "commitlint --from origin/main --to HEAD --verbose",
     "test": "node --test \"src/**/*.test.ts\"",
     "devpulse": "node src/cli/bin.ts",
-    "web": "node src/server/main.ts",
+    "web": "node src/server/dev.ts",
     "check": "npm run format:check && npm run lint && npm run lint:md && npm run typecheck && npm test",
-    "build": "vite build"
+    "build": "vite build",
+    "start": "node src/server/main.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
