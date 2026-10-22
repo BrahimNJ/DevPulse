@@ -39,10 +39,12 @@ describe('VisitorQuota', () => {
   it('never charges a repository twice, whatever its case', async () => {
     const { quota: allowance } = quota();
 
-    await allowance.reserve('visitor', 'Acme/App');
+    const first = await allowance.reserve('visitor', 'Acme/App');
     const again = await allowance.reserve('visitor', 'acme/app');
 
+    assert.equal(first.charged, true);
     assert.equal(again.allowed, true);
+    assert.equal(again.charged, false);
     assert.equal(again.status.remaining, 2);
   });
 

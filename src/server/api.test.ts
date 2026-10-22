@@ -201,6 +201,20 @@ describe('daily allowance', () => {
     assert.equal(await remainingAfter(failing(new ServiceError(504, 'Slow.'))), 1);
   });
 
+  it('keeps counting a repository analysed earlier when a later request fails', async () => {
+    let fail = false;
+    const deps = withQuota(() =>
+      fail ? Promise.reject(new GitHubError('Bad gateway.', 502)) : found(),
+    );
+    const query = new URLSearchParams({ repo: 'a/one' });
+
+    await ask(query, deps);
+    fail = true;
+    await ask(query, deps);
+
+    assert.equal((await handleQuotaRequest(deps, VISITOR)).remaining, 1);
+  });
+
   it('lets the owner analyse without limit', async () => {
     const deps = withQuota(found);
     const owner: Visitor = { id: 'visitor', owner: true };

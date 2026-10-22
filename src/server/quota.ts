@@ -40,6 +40,8 @@ export interface QuotaStatus {
 
 export interface Reservation {
   readonly allowed: boolean;
+  /** True only when this call used a new slot, so only then may it be given back. */
+  readonly charged: boolean;
   readonly status: QuotaStatus;
 }
 
@@ -78,12 +80,16 @@ export class VisitorQuota {
     const key = repository.toLowerCase();
     return this.#update(visitor, (record) => {
       if (record.repositories.includes(key)) {
-        return { allowed: true, next: null };
+        return { allowed: true, charged: false, next: null };
       }
       if (record.repositories.length >= this.#options.limit) {
-        return { allowed: false, next: null };
+        return { allowed: false, charged: false, next: null };
       }
-      return { allowed: true, next: { ...record, repositories: [...record.repositories, key] } };
+      return {
+        allowed: true,
+        charged: true,
+        next: { ...record, repositories: [...record.repositories, key] },
+      };
     });
   }
 
@@ -92,6 +98,7 @@ export class VisitorQuota {
     const key = repository.toLowerCase();
     await this.#update(visitor, (record) => ({
       allowed: true,
+      charged: false,
       next: record.repositories.includes(key)
         ? { ...record, repositories: record.repositories.filter((name) => name !== key) }
         : null,
@@ -100,18 +107,22 @@ export class VisitorQuota {
 
   async #update(
     visitor: string,
-    decide: (record: QuotaRecord) => { allowed: boolean; next: QuotaRecord | null },
+    decide: (record: QuotaRecord) => {
+      allowed: boolean;
+      charged: boolean;
+      next: QuotaRecord | null;
+    },
   ): Promise<Reservation> {
     const { store } = this.#options;
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
       const current = this.#current(await store.get(visitor));
-      const { allowed, next } = decide(current.record);
+      const { allowed, charged, next } = decide(current.record);
       if (next === null) {
-        return { allowed, status: this.#statusOf(current.record) };
+        return { allowed, charged, status: this.#statusOf(current.record) };
       }
       const expireAt = new Date(next.windowStart.getTime() + this.#options.windowMs);
       if (await store.put(visitor, next, current.version, expireAt)) {
-        return { allowed, status: this.#statusOf(next) };
+        return { allowed, charged, status: this.#statusOf(next) };
       }
     }
     throw new QuotaConflictError();

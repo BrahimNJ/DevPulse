@@ -21,6 +21,7 @@ export function metadataAccessToken(
     }
     const response = await fetchImpl(METADATA_TOKEN_URL, {
       headers: { 'metadata-flavor': 'Google' },
+      signal: AbortSignal.timeout(3000),
     });
     if (!response.ok) {
       throw new Error(`The metadata server answered ${String(response.status)}.`);

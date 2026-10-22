@@ -90,6 +90,13 @@ describe('FirestoreQuotaStore', () => {
     assert.equal(third?.url, `${DOCUMENTS}/abc?currentDocument.exists=false`);
   });
 
+  it('treats a record deleted after it was read as a lost race', async () => {
+    const { fetch } = fake([Response.json({ error: { status: 'NOT_FOUND' } }, { status: 404 })]);
+    const record = { repositories: [], windowStart: new Date('2026-10-22T10:00:00Z') };
+
+    assert.equal(await store(fetch).put('abc', record, 't1', new Date()), false);
+  });
+
   it('fails loudly on any other Firestore error', async () => {
     const { fetch } = fake([
       Response.json({ error: { status: 'PERMISSION_DENIED' } }, { status: 403 }),

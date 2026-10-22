@@ -85,6 +85,10 @@ async function owner(call: ApiCall): Promise<void> {
     tooManyRequests(call, decision.retryAfterSeconds);
     return;
   }
+  if (Number(request.headers['content-length'] ?? 0) > MAX_BODY_BYTES) {
+    sendJson(call, 413, { error: 'The request body is too large.' }, NO_STORE);
+    return;
+  }
   const key = await readKey(request);
   if (key === null || !access.verifyKey(key)) {
     sendJson({ request, response }, 401, { error: 'This key is not valid.' }, NO_STORE);

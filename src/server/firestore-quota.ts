@@ -22,6 +22,7 @@ interface Value {
 }
 
 const COLLECTION = 'visitors';
+const CALL_TIMEOUT_MS = 3000;
 
 /**
  * Visitor records in Cloud Firestore through its REST API (ADR 0008). The document's
@@ -81,6 +82,10 @@ export class FirestoreQuotaStore implements QuotaStore {
         },
       }),
     });
+    // The record expired and was deleted after it was read: retry from scratch.
+    if (response.status === 404 && expectedVersion !== null) {
+      return false;
+    }
     // A failed precondition means another instance wrote first.
     if (response.status === 400 || response.status === 409) {
       const status = await errorStatus(response);
@@ -101,6 +106,8 @@ export class FirestoreQuotaStore implements QuotaStore {
     const token = await this.#options.accessToken();
     return this.#options.fetch(url, {
       ...init,
+      // A stuck call must not hold the visitor's request.
+      signal: AbortSignal.timeout(CALL_TIMEOUT_MS),
       headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
     });
   }

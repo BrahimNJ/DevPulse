@@ -56,7 +56,10 @@ export async function handleBranchesRequest(
     const headers = reservation === undefined ? {} : quotaHeadersOf(reservation.status);
     return await report(repository, staleDays, dependencies, headers);
   } catch (error) {
-    await releaseIfNothingDelivered(error, quota, visitor.id, name);
+    // A repository already counted earlier today stays counted.
+    if (reservation?.charged === true) {
+      await releaseIfNothingDelivered(error, quota, visitor.id, name);
+    }
     return loadFailure(error);
   }
 }
