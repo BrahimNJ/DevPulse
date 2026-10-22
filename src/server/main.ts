@@ -4,16 +4,17 @@ import { createServer as createViteServer } from 'vite';
 
 import { GitHubClient } from '../github/client.ts';
 import { handleBranchesRequest, type ApiDependencies } from './api.ts';
-import { isAllowedHost, parsePort } from './host.ts';
+import { loadConfig } from './config.ts';
+import { isAllowedHost } from './host.ts';
 
-// Local only: the server holds a GitHub token, so it must not be reachable from the network.
-const HOST = '127.0.0.1';
-const port = parsePort(process.env['PORT']);
+// Local only by default: the server holds a GitHub token (see config.ts).
+const config = loadConfig(process.env);
 const token = process.env['GITHUB_TOKEN'];
 
-if (port === null) {
-  fail('PORT must be a whole number between 1 and 65535.');
+if (typeof config === 'string') {
+  fail(config);
 }
+const { host, port } = config;
 if (token === undefined || token === '') {
   fail(
     'GITHUB_TOKEN is not set. The GitHub GraphQL API requires a token,\n' +
@@ -30,11 +31,11 @@ const dependencies: ApiDependencies = {
 const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
 
 const server = createServer((request, response) => {
-  if (!isAllowedHost(request.headers.host, port)) {
-    sendJson(response, 403, { error: 'Requests must be addressed to 127.0.0.1 or localhost.' });
+  if (!isAllowedHost(request.headers.host, config.allowedHosts)) {
+    sendJson(response, 403, { error: 'Requests must be addressed to this server by name.' });
     return;
   }
-  const url = new URL(request.url ?? '/', `http://${HOST}`);
+  const url = new URL(request.url ?? '/', `http://${host}`);
   if (url.pathname !== '/api/branches') {
     vite.middlewares(request, response, () => {
       sendJson(response, 404, { error: 'Not found.' });
@@ -82,6 +83,6 @@ server.on('error', (error: NodeJS.ErrnoException) => {
   );
 });
 
-server.listen(port, HOST, () => {
-  process.stdout.write(`DevPulse is running at http://${HOST}:${String(port)}\n`);
+server.listen(port, host, () => {
+  process.stdout.write(`DevPulse is running at http://${host}:${String(port)}\n`);
 });

@@ -1,13 +1,17 @@
 export const DEFAULT_PORT = 5173;
 
 /**
- * Accepts only requests addressed to this machine by name. Binding to 127.0.0.1 is not
- * enough on its own: a malicious page can rebind its domain to 127.0.0.1 (DNS
- * rebinding) and then call the API, and the GitHub token, from the browser. Such
- * requests carry the attacker's domain in `Host`, so they are rejected here.
+ * Accepts only requests addressed to this server by one of its own names. Binding to
+ * 127.0.0.1 is not enough on its own: a malicious page can rebind its domain to
+ * 127.0.0.1 (DNS rebinding) and then call the API, and the GitHub token, from the
+ * browser. Such requests carry the attacker's domain in `Host`, so they are rejected
+ * here. A deployed server lists its public names instead (ADR 0007).
  */
-export function isAllowedHost(host: string | undefined, port: number): boolean {
-  return host === `127.0.0.1:${String(port)}` || host === `localhost:${String(port)}`;
+export function isAllowedHost(
+  host: string | undefined,
+  allowedHosts: ReadonlySet<string>,
+): boolean {
+  return host !== undefined && allowedHosts.has(host.toLowerCase());
 }
 
 /** Parses the `PORT` environment variable, or returns null when it is not a valid port. */
