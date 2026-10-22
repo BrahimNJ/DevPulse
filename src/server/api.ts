@@ -56,19 +56,26 @@ export async function handleBranchesRequest(
     const headers = reservation === undefined ? {} : quotaHeadersOf(reservation.status);
     return await report(repository, staleDays, dependencies, headers);
   } catch (error) {
-    await releaseIfMissing(error, quota, visitor.id, name);
+    await releaseIfNothingDelivered(error, quota, visitor.id, name);
     return loadFailure(error);
   }
 }
 
-/** A repository that does not exist must not cost the visitor an analysis. */
-async function releaseIfMissing(
+/**
+ * A visitor is charged only for a report that exists or is on its way: a repository
+ * that does not exist, a GitHub failure or a refusal to protect the quota give the
+ * slot back. A timeout keeps it, because the load goes on and fills the cache, so
+ * trying the same repository again is free and succeeds.
+ */
+async function releaseIfNothingDelivered(
   error: unknown,
   quota: VisitorQuota | undefined,
   visitor: string,
   repository: string,
 ): Promise<void> {
-  if (quota !== undefined && error instanceof GitHubError && error.status === 404) {
+  const nothingDelivered =
+    error instanceof GitHubError || (error instanceof ServiceError && error.status === 503);
+  if (quota !== undefined && nothingDelivered) {
     await quota.release(visitor, repository);
   }
 }

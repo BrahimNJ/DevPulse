@@ -189,6 +189,18 @@ describe('daily allowance', () => {
     });
   });
 
+  it('gives the slot back when GitHub fails or the quota is protected, not on a timeout', async () => {
+    const failing = (error: Error): ApiDependencies => withQuota(() => Promise.reject(error));
+    const remainingAfter = async (deps: ApiDependencies): Promise<number | null> => {
+      await ask(new URLSearchParams({ repo: 'a/one' }), deps);
+      return (await handleQuotaRequest(deps, VISITOR)).remaining;
+    };
+
+    assert.equal(await remainingAfter(failing(new GitHubError('Bad gateway.', 502))), 2);
+    assert.equal(await remainingAfter(failing(new ServiceError(503, 'Reserve.', 60))), 2);
+    assert.equal(await remainingAfter(failing(new ServiceError(504, 'Slow.'))), 1);
+  });
+
   it('lets the owner analyse without limit', async () => {
     const deps = withQuota(found);
     const owner: Visitor = { id: 'visitor', owner: true };
