@@ -26,7 +26,8 @@
     "test": "node --test \"src/**/*.test.ts\"",
     "devpulse": "node src/cli/bin.ts",
     "web": "node src/server/main.ts",
-    "check": "npm run format:check && npm run lint && npm run lint:md && npm run typecheck && npm test"
+    "check": "npm run format:check && npm run lint && npm run lint:md && npm run typecheck && npm test",
+    "build": "vite build"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
