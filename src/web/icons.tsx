@@ -67,3 +67,60 @@ export function FeatureIconView({ name }: { readonly name: FeatureIcon }): JSX.E
 
 export const ArrowIcon = (): JSX.Element => <Icon path="M5 12h14m-6-6 6 6-6 6" />;
 export const CheckIcon = (): JSX.Element => <Icon path="m5 12 5 5L20 7" />;
+export const BookIcon = (): JSX.Element => (
+  <Icon path="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5" />
+);
+export const KeyIcon = (): JSX.Element => (
+  <Icon path="M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm-3 3v11m0-4h3m-3 3h2" />
+);
+export const CloudIcon = (): JSX.Element => (
+  <Icon path="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 0 0 4.3 13 3.5 3.5 0 0 0 6.5 19z" />
+);
+export const ShieldIcon = (): JSX.Element => (
+  <Icon path="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zm-3-10 2 2 4-4" />
+);
+export const RocketIcon = (): JSX.Element => (
+  <Icon path="M5 15c-1.5 1.3-2 5-2 5s3.7-.5 5-2m1-3 6-6a8.5 8.5 0 0 0 5-6 8.5 8.5 0 0 0-6 5l-6 6m3 3-3-3m9-2v5l-3 2v-4M9 6H4l-2 3h4" />
+);
+export const CodeIcon = (): JSX.Element => <Icon path="m16 18 6-6-6-6M8 6l-6 6 6 6" />;
+export const GitHubIcon = (): JSX.Element => (
+  <Icon path="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21" />
+);
+export const UserIcon = (): JSX.Element => (
+  <Icon path="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+);
+
+/**
+ * The DevPulse mark: a Git branch whose line turns into a heartbeat. Two colours of the
+ * brand gradient, drawn inline so that it needs no extra request.
+ */
+export function Logo({ size = 32 }: { readonly size?: number }): JSX.Element {
+  return (
+    <svg
+      className="logo"
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        <linearGradient id="devpulse-logo" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#6366f1" />
+          <stop offset="1" stopColor="#10b981" />
+        </linearGradient>
+      </defs>
+      <rect width="32" height="32" rx="9" fill="url(#devpulse-logo)" />
+      <path
+        d="M8 23V9m0 7h5l2.5-5 3.5 10 2.5-5H25"
+        fill="none"
+        stroke="#fff"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="8" cy="9" r="2.2" fill="#fff" />
+      <circle cx="8" cy="23" r="2.2" fill="#fff" />
+    </svg>
+  );
+}
