@@ -39,6 +39,7 @@ default from similar projects.
 | Path       | Responsibility                                            |
 | ---------- | --------------------------------------------------------- |
 | `src/`     | Application code, layered as described in ADRs 0005, 0006 |
+| `infra/`   | Terraform for the Cloud Run deployment (ADR 0007)         |
 | `docs/`    | Architecture decisions and development documentation      |
 | `.github/` | Workflows, Dependabot, issue forms, pull request template |
 | `.claude/` | Shared Claude Code settings, hooks, subagents, skills     |
