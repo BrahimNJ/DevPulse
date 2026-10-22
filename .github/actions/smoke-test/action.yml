@@ -26,7 +26,9 @@ runs:
         }
         get /healthz | jq -e '.status == "ok"'
         if [ "$REPORT" = "true" ]; then
-          get / | grep -q '<div id="root">'
+          # Read the page fully first: `grep -q` stops early and would break the pipe.
+          page=$(get /)
+          grep -q '<div id="root">' <<<"$page"
           get '/api/branches?repo=BrahimNJ/DevPulse' \
             | jq -e '.repository == "BrahimNJ/DevPulse" and (.branches | length) > 0'
         fi
