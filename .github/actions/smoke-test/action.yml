@@ -1,0 +1,33 @@
+name: Smoke test
+description: Checks that a deployed DevPulse answers its health check and, optionally, a real report.
+
+inputs:
+  url:
+    description: Base URL of the deployment, without a trailing slash.
+    required: true
+  report:
+    description: Also load the interface and a branch report. Needs a URL in ALLOWED_HOSTS.
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Check the deployment
+      shell: bash
+      env:
+        URL: ${{ inputs.url }}
+        REPORT: ${{ inputs.report }}
+      run: |
+        set -euo pipefail
+        # A new revision may start cold: retry for about a minute.
+        get() {
+          curl --fail --silent --show-error --retry 10 --retry-all-errors --retry-delay 6 \
+            --max-time 40 "$URL$1"
+        }
+        get /healthz | jq -e '.status == "ok"'
+        if [ "$REPORT" = "true" ]; then
+          get / | grep -q '<div id="root">'
+          get '/api/branches?repo=BrahimNJ/DevPulse' \
+            | jq -e '.repository == "BrahimNJ/DevPulse" and (.branches | length) > 0'
+        fi
+        echo "Smoke test passed for $URL"
