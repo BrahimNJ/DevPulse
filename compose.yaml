@@ -1,0 +1,32 @@
+# Runs the production image locally (ADR 0004, ADR 0007):
+#   GITHUB_TOKEN=$(gh auth token) docker compose up --build
+# then open http://127.0.0.1:8080.
+services:
+  devpulse:
+    build: .
+    image: devpulse:local
+    # Published on the loopback interface only: the container holds a GitHub token.
+    # 8080 is the image's PORT; the mapping, ALLOWED_HOSTS and the health check follow it.
+    ports:
+      - '127.0.0.1:8080:8080'
+    environment:
+      # Passed through from the shell; the server stops with a clear message without it.
+      - GITHUB_TOKEN
+      - ALLOWED_HOSTS=127.0.0.1:8080,localhost:8080
+    # The same restrictions as a hardened deployment: nothing to write, no privileges.
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      # The runtime image has no shell or curl, so Node.js performs the check.
+      test:
+        - CMD
+        - /nodejs/bin/node
+        - -e
+        - "fetch('http://127.0.0.1:8080/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      start_period: 5s
+      interval: 30s
+      timeout: 3s
+      retries: 3

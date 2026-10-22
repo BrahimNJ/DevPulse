@@ -1,0 +1,13 @@
+# Allowlist: the build context holds only what the image needs, so secrets (.env,
+# tokens), Git data and local build output can never be copied by mistake.
+*
+!package.json
+!package-lock.json
+!tsconfig.json
+!vite.config.ts
+!src/
+
+# Tests and the development entry point never run in the image.
+src/**/*.test.ts
+src/server/http-test.ts
+src/server/dev.ts

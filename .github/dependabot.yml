@@ -31,6 +31,20 @@ updates:
       - dependency-name: '@types/node'
         update-types: [version-update:semver-major]
 
+  # Base images are pinned by digest; this keeps the digests patched.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: build
+      include: scope
+    ignore:
+      # A new Node.js major version is an ADR-level decision.
+      - dependency-name: node
+        update-types: [version-update:semver-major]
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
