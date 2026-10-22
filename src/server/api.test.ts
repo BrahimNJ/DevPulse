@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import type { RepositoryBranches } from '../branches/report.ts';
 import { GitHubClient } from '../github/client.ts';
 import { handleBranchesRequest, type ApiDependencies } from './api.ts';
+import { TtlCache } from './cache.ts';
+import { createBranchLoader, ServiceError } from './source.ts';
 
 const NOW = new Date('2026-10-20T00:00:00Z');
 
@@ -14,7 +17,14 @@ function dependencies(responses: readonly Response[]): ApiDependencies {
       ? Promise.reject(new Error('Unexpected request'))
       : Promise.resolve(next);
   };
-  return { client: new GitHubClient({ token: 'test-token', fetch }), now: () => NOW };
+  const loadBranches = createBranchLoader({
+    client: new GitHubClient({ token: 'test-token', fetch }),
+    cache: new TtlCache<RepositoryBranches>({ ttlMs: 1000, maxEntries: 10, now: (): number => 0 }),
+    now: () => NOW,
+    quotaReserve: 0,
+    timeoutMs: 1000,
+  });
+  return { loadBranches, now: () => NOW };
 }
 
 const DEFAULT_BRANCH = { data: { repository: { defaultBranchRef: { name: 'main' } } } };
@@ -91,5 +101,30 @@ describe('handleBranchesRequest', () => {
 
     assert.equal(notFound.status, 404);
     assert.equal(unavailable.status, 502);
+  });
+
+  it('reports whether the repository data came from the cache', async () => {
+    const deps = dependencies([
+      new Response(JSON.stringify(DEFAULT_BRANCH)),
+      new Response(JSON.stringify(ONE_BRANCH)),
+      new Response('[]'),
+    ]);
+    const query = new URLSearchParams({ repo: 'acme/app' });
+
+    assert.equal((await handleBranchesRequest(query, deps)).cacheHit, false);
+    assert.equal((await handleBranchesRequest(query, deps)).cacheHit, true);
+  });
+
+  it('passes a protective refusal on with its retry delay', async () => {
+    const response = await handleBranchesRequest(new URLSearchParams({ repo: 'acme/app' }), {
+      loadBranches: () => Promise.reject(new ServiceError(503, 'Budget used.', 120)),
+      now: () => NOW,
+    });
+
+    assert.deepEqual(response, {
+      status: 503,
+      body: { error: 'Budget used.' },
+      headers: { 'retry-after': '120' },
+    });
   });
 });

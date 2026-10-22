@@ -237,6 +237,44 @@ describe('fetchRepositoryBranches', () => {
   });
 });
 
+describe('GitHubClient.lowestQuota', () => {
+  function quotaHeaders(resource: string, remaining: number, reset: number): HeadersInit {
+    return {
+      'x-ratelimit-resource': resource,
+      'x-ratelimit-remaining': String(remaining),
+      'x-ratelimit-reset': String(reset),
+    };
+  }
+
+  it('reports the scarcest window that has not reset yet', async () => {
+    const { fetch } = fakeFetch([
+      json({ data: {} }, { headers: quotaHeaders('graphql', 4000, 2_000) }),
+      json([], { headers: quotaHeaders('core', 300, 1_000) }),
+    ]);
+    const github = client(fetch);
+    assert.equal(github.lowestQuota(new Date(0)), null);
+
+    await github.graphql('{}', {}, 'not found');
+    await github.restPaginated('/x');
+
+    assert.deepEqual(github.lowestQuota(new Date(500_000)), {
+      remaining: 300,
+      resetsAt: new Date(1_000_000),
+    });
+    // After the core window resets, only the GraphQL window still counts.
+    assert.equal(github.lowestQuota(new Date(1_500_000))?.remaining, 4000);
+  });
+
+  it('records the quota of a response that failed', async () => {
+    const { fetch } = fakeFetch([json({}, { status: 403, headers: quotaHeaders('core', 0, 9) })]);
+    const github = client(fetch);
+
+    await assert.rejects(github.restPaginated('/x'));
+
+    assert.equal(github.lowestQuota(new Date(0))?.remaining, 0);
+  });
+});
+
 describe('nextPageUrl', () => {
   it('returns the next link, or null when there is none', () => {
     const link = '<https://x/a?page=2>; rel="next", <https://x/a?page=5>; rel="last"';

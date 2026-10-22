@@ -16,6 +16,12 @@ export class GitHubError extends Error {
   }
 }
 
+/** What is left of a GitHub rate-limit window, as reported by the last response. */
+export interface Quota {
+  readonly remaining: number;
+  readonly resetsAt: Date;
+}
+
 interface GraphQLResponse<T> {
   readonly data?: T | null;
   readonly errors?: readonly { readonly type?: string; readonly message: string }[];
@@ -27,11 +33,27 @@ export class GitHubClient {
   readonly #token: string;
   readonly #fetch: typeof fetch;
   readonly #baseUrl: string;
+  /** GraphQL and REST have separate windows, keyed by `x-ratelimit-resource`. */
+  readonly #quotas = new Map<string, Quota>();
 
   constructor(options: GitHubClientOptions) {
     this.#token = options.token;
     this.#fetch = options.fetch;
     this.#baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
+  }
+
+  /**
+   * The scarcest quota among windows that have not reset yet, or null when no response
+   * has reported one. A window past its reset time is full again, so it is ignored.
+   */
+  lowestQuota(now: Date): Quota | null {
+    let lowest: Quota | null = null;
+    for (const quota of this.#quotas.values()) {
+      if (quota.resetsAt > now && (lowest === null || quota.remaining < lowest.remaining)) {
+        lowest = quota;
+      }
+    }
+    return lowest;
   }
 
   /** Runs a GraphQL query. A NOT_FOUND error is reported as `notFoundMessage`. */
@@ -103,10 +125,20 @@ export class GitHubClient {
       const reason = error instanceof Error ? error.message : String(error);
       throw new GitHubError(`Could not reach GitHub: ${reason}`);
     }
+    this.#recordQuota(response.headers);
     if (!response.ok) {
       throw httpError(response);
     }
     return response;
+  }
+
+  #recordQuota(headers: Headers): void {
+    const remaining = Number(headers.get('x-ratelimit-remaining') ?? Number.NaN);
+    const reset = Number(headers.get('x-ratelimit-reset') ?? Number.NaN);
+    if (Number.isFinite(remaining) && Number.isFinite(reset)) {
+      const resource = headers.get('x-ratelimit-resource') ?? 'core';
+      this.#quotas.set(resource, { remaining, resetsAt: new Date(reset * 1000) });
+    }
   }
 }
 
