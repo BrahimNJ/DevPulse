@@ -16,12 +16,12 @@ Run is in progress ([ADR 0007](decisions/0007-public-deployment-on-cloud-run.md)
 
 ## Prerequisites
 
-| Tool    | Version               | Notes                                        |
-| ------- | --------------------- | -------------------------------------------- |
-| Git     | 2.40 or later         |                                              |
-| Node.js | 24 LTS (see `.nvmrc`) | `engine-strict` rejects other major versions |
-| npm     | 11 or later           | Bundled with Node.js 24                      |
-| Docker  | 27 or later, optional | Only to build and run the container image    |
+| Tool    | Version               | Notes                                         |
+| ------- | --------------------- | --------------------------------------------- |
+| Git     | 2.40 or later         |                                               |
+| Node.js | 24 LTS (see `.nvmrc`) | `engine-strict` rejects other major versions  |
+| npm     | 11 or later           | Bundled with Node.js 24                       |
+| Docker  | With Compose v2       | Optional; builds and runs the container image |
 
 Tests need no secret. Running the CLI needs a GitHub token in `GITHUB_TOKEN`, because
 the GraphQL API rejects anonymous requests. With the GitHub CLI installed:

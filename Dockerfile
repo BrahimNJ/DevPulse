@@ -1,7 +1,6 @@
-# syntax=docker/dockerfile:1
-
 # Production image of the DevPulse server (ADR 0007). Base images are pinned by digest
-# so that a build is reproducible; Dependabot proposes digest updates.
+# so that a build is reproducible; Dependabot proposes digest updates. Both stages must
+# use the same Node.js major version, which changes only through an ADR.
 
 # Build stage: development dependencies and Vite, to build the interface.
 FROM node:24-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205 AS build
@@ -22,6 +21,7 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=8080
 # Files stay owned by root and read-only for the non-root user running the server.
+# Only the server layers are copied: the server must never import src/web.
 COPY package.json ./
 COPY src/branches ./src/branches
 COPY src/github ./src/github
