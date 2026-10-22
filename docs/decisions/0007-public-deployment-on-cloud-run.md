@@ -60,29 +60,39 @@ popular repositories.
   Google Secret Manager and injected as `GITHUB_TOKEN` at runtime. It is never in the
   image, the repository or CI logs.
 - **Hosting:** Google Cloud Run in `europe-west1`, one container serving the interface
-  and the API. Minimum instances 0, maximum 3, CPU allocated only during requests,
-  512 MiB of memory. This fits the Cloud Run free tier; a cold start takes about one
-  second. A dedicated runtime service account holds only `secretAccessor` on that
-  secret.
+  and the API. Minimum instances 0, maximum 3 (1 for staging), CPU allocated only
+  during requests, 512 MiB of memory. This fits the Cloud Run free tier; a cold start
+  takes about one second. A dedicated runtime service account holds only
+  `secretAccessor` on that secret.
 - **Container:** a multi-stage Dockerfile with a Node 24 slim base image pinned by
   digest, production dependencies only, a non-root user, and a health endpoint
   `GET /healthz`. A root `compose.yaml` runs the same image locally, which fulfils the
   local deployment proposed in ADR 0004.
 - **Infrastructure as code:** Terraform in a new top-level `infra/` directory, which
   this record introduces. Provider versions are pinned. Remote state lives in a
-  versioned Google Cloud Storage bucket created once by a documented bootstrap step.
+  versioned Google Cloud Storage bucket in `us-central1`, where Cloud Storage has a
+  free tier, created once by a documented bootstrap step.
   Terraform manages the Artifact Registry repository with a cleanup policy (to stay
   under the 0.5 GB free storage, SBOMs and attestations included) that always keeps
   release images and the last few commit images, so the revision used for rollback is
   never deleted, the Cloud Run services, service accounts and IAM, the
   Secret Manager secret (its value is set out of band and never enters Terraform
-  state), Workload Identity Federation, an uptime check, alerting, and a billing budget
-  alert at 1 EUR. `terraform plan` runs on pull requests that touch `infra/`; apply is
-  a manually triggered workflow behind an approval.
+  state), Workload Identity Federation, an uptime check, alerting, and the cost
+  protection below. `terraform plan` runs on pull requests that touch `infra/`; apply
+  is a manually triggered workflow behind an approval.
+- **Cost protection:** a monthly budget of 1 EUR that excludes credits, so free-trial
+  credit cannot hide real usage, emails at 10%, 50% and 100%, and publishes to
+  Pub/Sub. A budget alert never stops spending on its own, so a kill switch, a small
+  Cloud Run function in `infra/kill-switch/` with no dependency, detaches the billing
+  account from the project once the budget is reached. Its service account holds only
+  `roles/billing.projectManager` on the project. The site then stops until billing is
+  linked again by hand; billing data arrives with a delay of hours, so the worst case
+  is a small overshoot of the budget, not unbounded cost.
 - **CI authentication:** Workload Identity Federation with GitHub OIDC. No service
-  account key is stored in GitHub. The provider is restricted to this repository, and
-  the deployer service account has only the roles needed to push images and deploy
-  Cloud Run.
+  account key is stored in GitHub. The provider accepts only workflows of this
+  repository, identified by its numeric ID, running on `main` or on a `v*` release
+  tag, so pull request branches cannot deploy. The deployer service account has only
+  the roles needed to push images and deploy Cloud Run.
 - **Delivery pipeline (GitHub Actions):**
   - On pull requests: the existing checks, plus an image build and a Trivy scan that
     fails on fixable HIGH or CRITICAL vulnerabilities.
@@ -136,15 +146,15 @@ popular repositories.
   revision, rollback is one traffic switch, and no long-lived cloud credential exists
   anywhere.
 - Docker and Terraform become tooling of the project.
-- A Google Cloud project with billing enabled is required. The free tier, the maximum
-  instance count and the budget alert keep the cost at zero, but the platform does not
-  guarantee it.
+- A Google Cloud project with billing enabled is required. The free tier and the
+  maximum instance counts keep the expected cost at zero; the kill switch bounds the
+  unexpected cost near the budget, at the price of stopping the site.
 - The cache and the limits live in memory, so they reset on cold starts and are per
   instance.
 - Anonymous visitors share one quota, so heavy use degrades to 429 or 503 rather than
   to more spending.
 - The first deployment needs a manual bootstrap (project, state bucket, secret value),
-  documented in `docs/DEVELOPMENT.md`.
+  documented in `docs/DEPLOYMENT.md`.
 - The server gains state (cache and rate limiter), which falls under architectural
   review.
 - This record supersedes the "Local deployment (proposed)" part of ADR 0004; its

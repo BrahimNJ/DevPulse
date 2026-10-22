@@ -40,3 +40,5 @@ Tests never reach the network: inject `fetch` and the clock, as the existing tes
 - Rules: `CONTRIBUTING.md` (workflow), `docs/DEVELOPMENT.md` (gates, CI/CD).
 - Decisions: `docs/decisions/`. Claude Code usage: `docs/ai/CLAUDE_CODE.md`.
 - CI/CD: `.github/workflows/`. Agent config: `.claude/`.
+- Infrastructure: `infra/` (Terraform); procedure in `docs/DEPLOYMENT.md`. Never run
+  `terraform apply` or change cloud resources: the maintainer applies.

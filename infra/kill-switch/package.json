@@ -1,0 +1,7 @@
+{
+  "name": "devpulse-kill-switch",
+  "private": true,
+  "description": "Detaches billing from the project once the monthly budget is reached.",
+  "type": "module",
+  "main": "index.mjs"
+}
