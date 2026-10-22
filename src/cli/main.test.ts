@@ -3,10 +3,11 @@ import { describe, it } from 'node:test';
 
 import { run, type Environment } from './main.ts';
 
+const DEFAULT_BRANCH = { data: { repository: { defaultBranchRef: { name: 'main' } } } };
+
 const GRAPHQL_PAGE = {
   data: {
     repository: {
-      defaultBranchRef: { name: 'main' },
       refs: {
         pageInfo: { hasNextPage: false, endCursor: null },
         nodes: [
@@ -17,6 +18,7 @@ const GRAPHQL_PAGE = {
               committedDate: '2026-10-19T00:00:00Z',
               author: { name: 'Octo Cat', user: { login: 'octocat' } },
             },
+            compare: { aheadBy: 0, behindBy: 0 },
           },
           {
             name: 'old-experiment',
@@ -25,6 +27,7 @@ const GRAPHQL_PAGE = {
               committedDate: '2025-01-01T00:00:00Z',
               author: { name: 'Someone', user: null },
             },
+            compare: { aheadBy: 48, behindBy: 12 },
           },
         ],
       },
@@ -43,6 +46,7 @@ function environment(
 ): { environment: Environment; output: Captured } {
   const output: Captured = { stdout: '', stderr: '' };
   const responses = [
+    new Response(JSON.stringify(DEFAULT_BRANCH)),
     new Response(JSON.stringify(GRAPHQL_PAGE)),
     new Response(JSON.stringify([{ name: 'main' }])),
   ];
