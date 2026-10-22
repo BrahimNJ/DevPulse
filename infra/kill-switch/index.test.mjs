@@ -58,7 +58,14 @@ function fakeFetch(answers) {
   return calls;
 }
 
-const TOKEN = new Response(JSON.stringify({ access_token: 'token' }));
+/**
+ * A fresh metadata server answer for each test: a response body can be read only once.
+ *
+ * @returns {Response}
+ */
+function token() {
+  return new Response(JSON.stringify({ access_token: 'token' }));
+}
 
 describe('budget kill switch', () => {
   beforeEach(() => {
@@ -108,14 +115,14 @@ describe('budget kill switch', () => {
   });
 
   it('detaches billing once the budget is reached', async () => {
-    const calls = fakeFetch([TOKEN, new Response('{}')]);
+    const calls = fakeFetch([token(), new Response('{}')]);
     const { response, statuses } = recorder();
 
     await stopBilling({ body: envelope({ costAmount: 1.2, budgetAmount: 1 }) }, response);
 
-    const [token, unlink] = calls;
+    const [metadata, unlink] = calls;
     assert.deepEqual(statuses, [204]);
-    assert.match(token?.url ?? '', /^http:\/\/metadata\.google\.internal\//);
+    assert.match(metadata?.url ?? '', /^http:\/\/metadata\.google\.internal\//);
     assert.deepEqual(unlink, {
       url: 'https://cloudbilling.googleapis.com/v1/projects/devpulse-test/billingInfo',
       method: 'PUT',
@@ -124,11 +131,16 @@ describe('budget kill switch', () => {
   });
 
   it('answers 500 when billing cannot be detached, so that Pub/Sub retries', async () => {
-    fakeFetch([TOKEN, new Response('{}', { status: 403 })]);
+    const calls = fakeFetch([token(), new Response('{}', { status: 403 })]);
     const { response, statuses } = recorder();
 
     await stopBilling({ body: envelope({ costAmount: 1, budgetAmount: 1 }) }, response);
 
     assert.deepEqual(statuses, [500]);
+    // The failure comes from the unlink itself, not from an earlier step.
+    assert.deepEqual(
+      calls.map((call) => call.method),
+      ['GET', 'PUT'],
+    );
   });
 });

@@ -96,6 +96,8 @@ export async function stopBilling(request, response) {
  */
 async function detachBilling() {
   const project = process.env['PROJECT_ID'];
+  // A permanent error, yet retried on purpose: for a kill switch, retrying while
+  // billing stays attached is safer than silently acknowledging.
   if (project === undefined || project === '') {
     throw new Error('PROJECT_ID is not set.');
   }
