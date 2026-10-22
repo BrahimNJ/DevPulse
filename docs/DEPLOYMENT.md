@@ -7,15 +7,15 @@ the procedure.
 
 ## What Terraform manages
 
-| File            | Resources                                                             |
-| --------------- | --------------------------------------------------------------------- |
-| `apis.tf`       | The Google APIs the project uses                                      |
-| `registry.tf`   | Artifact Registry repository `devpulse`, with a cleanup policy        |
-| `run.tf`        | Cloud Run services `devpulse-staging` and `devpulse`, runtime account |
-| `secrets.tf`    | The `github-token` secret (not its value) and who may read it         |
-| `github.tf`     | Workload Identity Federation for this repository, deployer account    |
-| `monitoring.tf` | Email channel, production uptime check every 15 minutes, alert policy |
-| `budget.tf`     | Monthly budget of 1 EUR without credits, and the billing kill switch  |
+| File                | Resources                                                             |
+| ------------------- | --------------------------------------------------------------------- |
+| `apis.tf`           | The Google APIs the project uses                                      |
+| `registry.tf`       | Artifact Registry repository `devpulse`, with a cleanup policy        |
+| `run.tf`            | Cloud Run services `devpulse-staging` and `devpulse`, runtime account |
+| `secret_manager.tf` | The `github-token` secret (not its value) and who may read it         |
+| `github.tf`         | Workload Identity Federation for this repository, deployer account    |
+| `monitoring.tf`     | Email channel, production uptime check every 15 minutes, alert policy |
+| `budget.tf`         | Monthly budget of 1 EUR without credits, and the billing kill switch  |
 
 Terraform creates the services with a placeholder image; the delivery pipeline deploys
 DevPulse itself and Terraform ignores image changes afterwards.
@@ -29,7 +29,7 @@ The design targets 0 EUR (ADR 0007):
 - Cloud Storage buckets (Terraform state, function sources) are in `us-central1`, the
   only regions where Cloud Storage is free; the application stays in `europe-west1`.
 - Artifact Registry deletes images older than two weeks, except release images and the
-  five latest builds, to stay under 0.5 GB.
+  ten latest builds, to stay under 0.5 GB.
 - The budget ignores credits, so free-trial credit cannot hide real usage. It emails at
   0.10, 0.50 and 1 EUR.
 - At 1 EUR the kill switch detaches billing from the project, which stops everything.
@@ -69,12 +69,17 @@ gcloud secrets create github-token --replication-policy=automatic
 $secure = Read-Host "GitHub token" -AsSecureString
 $token = [Net.NetworkCredential]::new("", $secure).Password
 $file = New-TemporaryFile
-[IO.File]::WriteAllText($file, $token)
-gcloud secrets versions add github-token --data-file=$file
-Remove-Item $file; Remove-Variable token, secure
+try {
+  [IO.File]::WriteAllText($file, $token)
+  gcloud secrets versions add github-token --data-file=$file
+} finally {
+  # The plaintext file is removed even if gcloud fails.
+  Remove-Item $file -ErrorAction SilentlyContinue
+  Remove-Variable token, secure
+}
 ```
 
-Terraform adopts this secret through the `import` block in `secrets.tf`; the token
+Terraform adopts this secret through the `import` block in `secret_manager.tf`; the token
 value never enters the Terraform state.
 
 ### 4. Configure and apply
@@ -97,6 +102,26 @@ terraform output
 The first apply takes several minutes, mostly for the kill switch function. Then open
 the `staging` URL from `terraform output service_urls`: until the pipeline deploys
 DevPulse, it shows the Cloud Run placeholder page.
+
+On a new project, an API or a service account can take a minute to become usable after
+Terraform creates it, so the first apply may fail with a `403`, `SERVICE_DISABLED` or
+"service account does not exist" error. Wait a minute and run `terraform plan
+-out=tfplan` and `terraform apply tfplan` again: Terraform resumes where it stopped.
+
+### 5. Check the kill switch without triggering it
+
+Publish a fake budget notification below the budget; the function must log that it
+received it and do nothing else:
+
+```powershell
+$message = '{"costAmount": 0.01, "budgetAmount": 1}'
+gcloud pubsub topics publish budget-alerts --message=$message
+gcloud functions logs read budget-kill-switch --region=europe-west1 --limit=10
+```
+
+Within a minute, the logs show `Budget cost 0.01 of 1: no action.` This proves the
+whole chain: topic, trigger, permissions and code. Never publish a cost at or above
+the budget: that would detach billing and stop the site.
 
 ## Rotating the GitHub token
 

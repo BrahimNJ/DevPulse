@@ -40,6 +40,8 @@ resource "google_billing_budget" "monthly" {
     pubsub_topic                     = google_pubsub_topic.budget.id
     monitoring_notification_channels = [google_monitoring_notification_channel.email.id]
   }
+
+  depends_on = [google_project_service.apis]
 }
 
 # --- Kill switch -------------------------------------------------------------------
@@ -48,9 +50,12 @@ resource "google_service_account" "kill_switch" {
   account_id   = "devpulse-kill-switch"
   display_name = "DevPulse budget kill switch"
   description  = "Can only detach billing from this project, and receive budget events."
+
+  depends_on = [google_project_service.apis]
 }
 
-# Removing the billing account of a project needs only this project-level role.
+# Its only permissions are to link and unlink billing (create and delete billing
+# assignments on the project), which is all the function does.
 resource "google_project_iam_member" "kill_switch_billing" {
   project = var.project_id
   role    = "roles/billing.projectManager"
@@ -67,6 +72,8 @@ resource "google_service_account" "builder" {
   account_id   = "devpulse-function-builder"
   display_name = "DevPulse function builder"
   description  = "Builds the kill switch function with Cloud Build."
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_iam_member" "builder" {
@@ -148,6 +155,7 @@ resource "google_cloudfunctions2_function" "kill_switch" {
   }
 
   depends_on = [
+    google_project_service.apis,
     google_project_iam_member.builder,
     google_project_iam_member.kill_switch_receives_events,
   ]

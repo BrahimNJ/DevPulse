@@ -32,7 +32,8 @@ variable "budget_amount_eur" {
   default     = 1
 
   validation {
-    condition     = var.budget_amount_eur > 0
-    error_message = "The budget must be positive."
+    # The budget API takes whole currency units here.
+    condition     = var.budget_amount_eur >= 1 && floor(var.budget_amount_eur) == var.budget_amount_eur
+    error_message = "The budget must be a whole number of euros, at least 1."
   }
 }

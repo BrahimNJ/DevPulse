@@ -60,10 +60,10 @@ popular repositories.
   Google Secret Manager and injected as `GITHUB_TOKEN` at runtime. It is never in the
   image, the repository or CI logs.
 - **Hosting:** Google Cloud Run in `europe-west1`, one container serving the interface
-  and the API. Minimum instances 0, maximum 3 (1 for staging), CPU allocated only during requests,
-  512 MiB of memory. This fits the Cloud Run free tier; a cold start takes about one
-  second. A dedicated runtime service account holds only `secretAccessor` on that
-  secret.
+  and the API. Minimum instances 0, maximum 3 (1 for staging), CPU allocated only
+  during requests, 512 MiB of memory. This fits the Cloud Run free tier; a cold start
+  takes about one second. A dedicated runtime service account holds only
+  `secretAccessor` on that secret.
 - **Container:** a multi-stage Dockerfile with a Node 24 slim base image pinned by
   digest, production dependencies only, a non-root user, and a health endpoint
   `GET /healthz`. A root `compose.yaml` runs the same image locally, which fulfils the
@@ -89,9 +89,10 @@ popular repositories.
   linked again by hand; billing data arrives with a delay of hours, so the worst case
   is a small overshoot of the budget, not unbounded cost.
 - **CI authentication:** Workload Identity Federation with GitHub OIDC. No service
-  account key is stored in GitHub. The provider is restricted to this repository, and
-  the deployer service account has only the roles needed to push images and deploy
-  Cloud Run.
+  account key is stored in GitHub. The provider accepts only workflows of this
+  repository, identified by its numeric ID, running on `main` or on a `v*` release
+  tag, so pull request branches cannot deploy. The deployer service account has only
+  the roles needed to push images and deploy Cloud Run.
 - **Delivery pipeline (GitHub Actions):**
   - On pull requests: the existing checks, plus an image build and a Trivy scan that
     fails on fixable HIGH or CRITICAL vulnerabilities.

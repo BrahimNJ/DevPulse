@@ -13,6 +13,8 @@ resource "google_service_account" "runtime" {
   account_id   = "devpulse-runtime"
   display_name = "DevPulse server"
   description  = "Identity of the running server; it can only read the GitHub token."
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_cloud_run_v2_service" "app" {
@@ -79,5 +81,8 @@ resource "google_cloud_run_v2_service" "app" {
     ignore_changes = [template[0].containers[0].image, client, client_version]
   }
 
-  depends_on = [google_secret_manager_secret_iam_member.runtime_reads_token]
+  depends_on = [
+    google_project_service.apis,
+    google_secret_manager_secret_iam_member.runtime_reads_token,
+  ]
 }

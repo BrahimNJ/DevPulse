@@ -31,7 +31,8 @@ resource "google_artifact_registry_repository" "images" {
     id     = "keep-latest-builds"
     action = "KEEP"
     most_recent_versions {
-      keep_count = 5
+      # Staging and production deploy from the same repository, so keep enough for both.
+      keep_count = 10
     }
   }
 

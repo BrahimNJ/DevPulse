@@ -20,8 +20,12 @@ resource "google_iam_workload_identity_pool_provider" "github" {
     "attribute.ref"           = "assertion.ref"
     "attribute.workflow_ref"  = "assertion.workflow_ref"
   }
-  # Tokens from any other repository are rejected before any permission applies.
-  attribute_condition = "assertion.repository_id == '${var.github_repository_id}'"
+  # Only workflows of this repository running on main (staging) or on a release tag
+  # (production) are accepted; pull request branches cannot deploy anything.
+  attribute_condition = join(" && ", [
+    "assertion.repository_id == '${var.github_repository_id}'",
+    "(assertion.ref == 'refs/heads/main' || assertion.ref.startsWith('refs/tags/v'))",
+  ])
 
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
@@ -32,6 +36,8 @@ resource "google_service_account" "deployer" {
   account_id   = "devpulse-deployer"
   display_name = "DevPulse deployer"
   description  = "Used by GitHub Actions to push images and deploy Cloud Run revisions."
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_service_account_iam_member" "github_impersonates_deployer" {

@@ -49,32 +49,36 @@ export function readNotification(cloudEvent) {
  * @returns {Promise<void>}
  */
 export async function stopBilling(cloudEvent) {
-  const notification = readNotification(cloudEvent);
+  /** @type {BudgetNotification} */
+  let notification;
+  try {
+    notification = readNotification(cloudEvent);
+  } catch (error) {
+    // Pub/Sub would redeliver a malformed message for days; retrying cannot fix it.
+    console.error(`Ignored message: ${error instanceof Error ? error.message : String(error)}`);
+    return;
+  }
+  const status = `cost ${String(notification.costAmount)} of ${String(notification.budgetAmount)}`;
   if (!shouldStopBilling(notification)) {
+    process.stdout.write(`Budget ${status}: no action.\n`);
     return;
   }
   const project = process.env['PROJECT_ID'];
   if (project === undefined || project === '') {
     throw new Error('PROJECT_ID is not set.');
   }
-  const billingInfo = `https://cloudbilling.googleapis.com/v1/projects/${project}/billingInfo`;
-  const headers = { authorization: `Bearer ${await accessToken()}` };
-
-  const current = /** @type {{ billingEnabled?: boolean }} */ (
-    await call(billingInfo, { headers })
-  );
-  if (current.billingEnabled !== true) {
-    return;
-  }
-  await call(billingInfo, {
+  // Unlinking is idempotent, so there is no read first: reading billing information
+  // would need a permission the account does not have. A failure here throws, so that
+  // Pub/Sub retries.
+  await call(`https://cloudbilling.googleapis.com/v1/projects/${project}/billingInfo`, {
     method: 'PUT',
-    headers: { ...headers, 'content-type': 'application/json' },
+    headers: {
+      authorization: `Bearer ${await accessToken()}`,
+      'content-type': 'application/json',
+    },
     body: JSON.stringify({ billingAccountName: '' }),
   });
-  console.warn(
-    `Billing disabled for ${project}: cost ${String(notification.costAmount)} reached ` +
-      `the budget of ${String(notification.budgetAmount)}.`,
-  );
+  console.warn(`Budget ${status}: billing disabled for ${project}.`);
 }
 
 /** @returns {Promise<string>} */

@@ -31,6 +31,8 @@ resource "google_monitoring_uptime_check_config" "production" {
 
   # Three regions is the minimum, and keeps the number of checks low.
   selected_regions = ["EUROPE", "USA_VIRGINIA", "ASIA_PACIFIC"]
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_monitoring_alert_policy" "production_down" {
@@ -59,4 +61,6 @@ resource "google_monitoring_alert_policy" "production_down" {
   }
 
   notification_channels = [google_monitoring_notification_channel.email.id]
+
+  depends_on = [google_project_service.apis]
 }
