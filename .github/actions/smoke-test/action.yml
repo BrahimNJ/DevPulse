@@ -8,6 +8,9 @@ inputs:
   report:
     description: Also load the interface and a branch report. Needs a URL in ALLOWED_HOSTS.
     default: 'true'
+  token:
+    description: Google identity token, for a service that requires authentication.
+    default: ''
 
 runs:
   using: composite
@@ -17,12 +20,17 @@ runs:
       env:
         URL: ${{ inputs.url }}
         REPORT: ${{ inputs.report }}
+        TOKEN: ${{ inputs.token }}
       run: |
         set -euo pipefail
+        auth=()
+        if [ -n "$TOKEN" ]; then
+          auth=(--header "Authorization: Bearer $TOKEN")
+        fi
         # A new revision may start cold: retry for about a minute.
         get() {
           curl --fail --silent --show-error --retry 10 --retry-all-errors --retry-delay 6 \
-            --max-time 40 "$URL$1"
+            --max-time 40 "${auth[@]}" "$URL$1"
         }
         get /health | jq -e '.status == "ok"'
         if [ "$REPORT" = "true" ]; then

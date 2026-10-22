@@ -5,7 +5,11 @@ import type { RepositoryBranches } from '../branches/report.ts';
 import { GitHubClient } from '../github/client.ts';
 import { createApp, type RequestLog, type UiHandler } from './app.ts';
 import { TtlCache } from './cache.ts';
-import { loadConfig } from './config.ts';
+import { loadConfig, type VisitorConfig } from './config.ts';
+import { FirestoreQuotaStore } from './firestore-quota.ts';
+import { metadataAccessToken } from './google-auth.ts';
+import { OwnerAccess } from './owner.ts';
+import { MemoryQuotaStore, VisitorQuota } from './quota.ts';
 import { RateLimiter } from './rate-limit.ts';
 import { createBranchLoader } from './source.ts';
 
@@ -15,6 +19,11 @@ const CACHE_MAX_ENTRIES = 500;
 const QUOTA_RESERVE = 500;
 const REPORT_TIMEOUT_MS = 30_000;
 const RATE_LIMIT_MAX_CLIENTS = 10_000;
+
+// Daily allowance and maintainer access (ADR 0008).
+const QUOTA_WINDOW_MS = 24 * 60 * 60_000;
+const OWNER_COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60_000;
+const OWNER_ATTEMPTS_PER_MINUTE = 5;
 
 export interface ServeOptions {
   /** How to start this mode with a token, shown when `GITHUB_TOKEN` is missing. */
@@ -53,12 +62,30 @@ export async function serve(options: ServeOptions): Promise<void> {
   const server = createServer(
     createApp({
       config,
-      api: { loadBranches, now },
+      api: { loadBranches, now, ...visitorQuota(config.visitors, now) },
       limiter: new RateLimiter({
         limitPerMinute: config.rateLimitPerMinute,
         maxClients: RATE_LIMIT_MAX_CLIENTS,
         now: Date.now,
       }),
+      ownerLimiter: new RateLimiter({
+        limitPerMinute: OWNER_ATTEMPTS_PER_MINUTE,
+        maxClients: RATE_LIMIT_MAX_CLIENTS,
+        now: Date.now,
+      }),
+      visitors: {
+        // Without an allowance, identifiers are never stored, so any salt will do.
+        salt: config.visitors.salt ?? 'no-allowance',
+        owner:
+          config.visitors.ownerKey === null
+            ? null
+            : new OwnerAccess({
+                key: config.visitors.ownerKey,
+                // Behind Cloud Run every request arrives over HTTPS.
+                secure: config.trustProxy,
+                maxAgeMs: OWNER_COOKIE_MAX_AGE_MS,
+              }),
+      },
       ui: await options.createUi(),
       headers: options.headers,
       clock: () => performance.now(),
@@ -82,6 +109,27 @@ export async function serve(options: ServeOptions): Promise<void> {
   server.listen(config.port, config.host, () => {
     options.announce(`http://${config.host}:${String(config.port)}`);
   });
+}
+
+/** The daily allowance, in Firestore when deployed and in memory otherwise. */
+function visitorQuota(
+  visitors: VisitorConfig,
+  now: () => Date,
+): { quota: VisitorQuota } | Record<string, never> {
+  if (visitors.quotaPerDay === null) {
+    return {};
+  }
+  const store =
+    visitors.firestoreProject === null
+      ? new MemoryQuotaStore()
+      : new FirestoreQuotaStore({
+          project: visitors.firestoreProject,
+          accessToken: metadataAccessToken(globalThis.fetch),
+          fetch: globalThis.fetch,
+        });
+  return {
+    quota: new VisitorQuota({ store, limit: visitors.quotaPerDay, windowMs: QUOTA_WINDOW_MS, now }),
+  };
 }
 
 export function fail(message: string): never {

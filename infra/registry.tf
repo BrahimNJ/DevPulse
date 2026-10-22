@@ -31,8 +31,9 @@ resource "google_artifact_registry_repository" "images" {
     id     = "keep-latest-builds"
     action = "KEEP"
     most_recent_versions {
-      # Staging and production deploy from the same repository, so keep enough for both.
-      keep_count = 10
+      # Enough to roll back staging and production; at about 55 MB each, three builds
+      # plus a few releases and the kill switch image stay under the free 0.5 GB.
+      keep_count = 3
     }
   }
 

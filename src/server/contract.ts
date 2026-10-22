@@ -16,3 +16,14 @@ export type BranchReportResponse = Serialized<BranchReport>;
 export interface ApiErrorResponse {
   readonly error: string;
 }
+
+/** Body of `GET /api/quota`: the visitor's daily allowance (ADR 0008). */
+export interface QuotaResponse {
+  /** The maintainer, signed in with the owner key. */
+  readonly owner: boolean;
+  /** Null when there is no allowance: for the owner, or when it is disabled. */
+  readonly limit: number | null;
+  readonly remaining: number | null;
+  /** ISO 8601; null while nothing has been used. */
+  readonly resetsAt: string | null;
+}

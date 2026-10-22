@@ -1,90 +1,95 @@
 import { useState, type JSX, type SyntheticEvent } from 'react';
 
 import { countByStatus, FEATURE_GROUPS, type Feature, type FeatureGroup } from './features.ts';
-import { ArrowIcon, CheckIcon, FeatureIconView, PulseIcon, SearchIcon } from './icons.tsx';
+import {
+  ArrowIcon,
+  BookIcon,
+  BranchIcon,
+  CheckIcon,
+  CloudIcon,
+  CodeIcon,
+  FeatureIconView,
+  RocketIcon,
+  SearchIcon,
+  ShieldIcon,
+  UserIcon,
+} from './icons.tsx';
+import { Layout, REPOSITORY_URL } from './Layout.tsx';
+import { useQuota } from './quota.ts';
 
-const SOURCE_URL = 'https://github.com/BrahimNJ/DevPulse';
+const AUDIENCES = [
+  {
+    icon: <UserIcon />,
+    title: 'Recruiters and managers',
+    text: 'See in one screen whether a project is alive, organised and well kept, without reading code.',
+  },
+  {
+    icon: <BranchIcon />,
+    title: 'Maintainers',
+    text: 'Find abandoned branches, work that drifted from main, and what is safe to clean up.',
+  },
+  {
+    icon: <CodeIcon />,
+    title: 'Developers',
+    text: 'Read how a small product is designed, secured, tested and shipped: everything is public.',
+  },
+] as const;
 
 const STEPS = [
   {
     title: 'Name a repository',
-    text: 'Type any public owner/repository, or open a shared link.',
+    text: 'Type any public owner/repository, pick one of the examples, or open a shared link.',
   },
   {
     title: 'DevPulse reads GitHub',
-    text: 'A local server queries the GraphQL and REST APIs. Your token never leaves your machine.',
+    text: 'The server queries the GraphQL and REST APIs with its own token, which never reaches your browser.',
   },
   {
-    title: 'Read the report',
-    text: 'Summary indicators first, then every detail, filterable and shareable.',
+    title: 'Read the health report',
+    text: 'Indicators first, then every branch: age, author, protection and divergence from main.',
   },
 ] as const;
 
+/** Facts about the project itself, each checkable in the repository. */
+const FACTS = [
+  { value: '0 €', label: 'monthly cost, by design and by a billing kill switch' },
+  { value: '0', label: 'long-lived cloud keys: deployments use federated identity' },
+  { value: '100+', label: 'automated tests, run on every change' },
+  { value: '1', label: 'click to approve a release; the rest is automated' },
+] as const;
+
+const PIPELINE = [
+  { label: 'Pull request', detail: 'lint · types · tests · image scan' },
+  { label: 'Merge to main', detail: 'build once · sign · deploy staging' },
+  { label: 'Smoke test', detail: 'health · interface · real report' },
+  { label: 'Approval', detail: 'maintainer reviews the release' },
+  { label: 'Production', detail: 'no-traffic check · switch · rollback' },
+] as const;
+
 const ROADMAP = [
-  { stage: 'Now', label: 'Released in v0.1', groups: ['branches'] },
+  { stage: 'Now', label: 'Live', groups: ['branches'] },
   { stage: 'Next', label: 'Planned', groups: ['activity', 'contributors'] },
   { stage: 'Later', label: 'Planned', groups: ['collaboration', 'insights'] },
 ] as const;
 
-const STACK = [
-  'TypeScript',
-  'React 19',
-  'Vite',
-  'Node.js 24',
-  'GitHub GraphQL',
-  'node:test',
-  'GitHub Actions',
-  'Claude Code',
-] as const;
+const EXAMPLES = ['nodejs/node', 'facebook/react', 'vitejs/vite'] as const;
 
 function groupName(id: string): string {
   return FEATURE_GROUPS.find((group) => group.id === id)?.name ?? id;
 }
 
 export function Landing(): JSX.Element {
+  const { quota } = useQuota();
   return (
-    <div className="landing">
-      <Navigation />
+    <Layout page="home" quota={quota}>
       <Hero />
-      <TrustStrip />
+      <Audiences />
       <Features />
       <HowItWorks />
-      <Roadmap />
       <Engineering />
+      <Roadmap />
       <CallToAction />
-      <footer className="landing-footer">
-        <span className="brand brand-small">
-          <span className="brand-mark">
-            <PulseIcon />
-          </span>
-          DevPulse
-        </span>
-        <span>Open source, built with TypeScript. Data from the GitHub API.</span>
-        <a href={SOURCE_URL}>Source code</a>
-      </footer>
-    </div>
-  );
-}
-
-function Navigation(): JSX.Element {
-  return (
-    <nav className="nav" aria-label="Main">
-      <a className="brand" href="/">
-        <span className="brand-mark">
-          <PulseIcon />
-        </span>
-        <span className="brand-name">DevPulse</span>
-      </a>
-      <div className="nav-links">
-        <a href="#features">Features</a>
-        <a href="#how">How it works</a>
-        <a href="#roadmap">Roadmap</a>
-        <a href={SOURCE_URL}>GitHub</a>
-      </div>
-      <a className="button button-small" href="/app">
-        Open the app
-      </a>
-    </nav>
+    </Layout>
   );
 }
 
@@ -93,97 +98,163 @@ function Hero(): JSX.Element {
 
   function onSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>): void {
     event.preventDefault();
-    const target = repository.trim() === '' ? 'nodejs/node' : repository.trim();
-    window.location.assign(`/app?${new URLSearchParams({ repo: target }).toString()}`);
+    const trimmed = repository.trim();
+    window.location.assign(trimmed === '' ? '/app' : `/app?repo=${encodeURIComponent(trimmed)}`);
   }
 
   return (
-    <header className="hero-landing">
-      <div className="hero-copy">
-        <span className="eyebrow">
-          <span className="eyebrow-dot" aria-hidden="true" />
-          v0.1 · Branch health is live
-        </span>
-        <h1>
-          Understand any GitHub repository <span className="gradient-text">at a glance</span>
-        </h1>
-        <p className="hero-lede">
-          DevPulse turns a repository&apos;s history into clear signals: which branches are alive,
-          who keeps the project moving, and how fast work reaches main.
-        </p>
-        <form className="hero-search" onSubmit={onSubmit} role="search">
-          <label className="hero-search-field">
-            <SearchIcon />
-            <span className="visually-hidden">Repository</span>
-            <input
-              value={repository}
-              onChange={(event) => {
-                setRepository(event.target.value);
-              }}
-              placeholder="nodejs/node"
-              spellCheck={false}
-              autoComplete="off"
-            />
-          </label>
-          <button type="submit" className="button">
-            Analyse
-            <ArrowIcon />
-          </button>
-        </form>
-        <p className="hero-note">Free and open source. Runs locally with your GitHub token.</p>
-      </div>
-      <figure className="hero-preview">
-        <div className="window-bar" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-          <span className="window-url">127.0.0.1:5173/app?repo=nodejs/node</span>
+    <section className="hero">
+      <div className="container hero-grid">
+        <div className="hero-copy">
+          <span className="eyebrow">
+            <span className="pulse-dot" aria-hidden="true" /> Open source · live on Google Cloud
+          </span>
+          <h1>
+            Take the <span className="gradient-text">pulse</span> of any GitHub repository
+          </h1>
+          <p className="lede">
+            DevPulse turns the branches of a public repository into a clear health report: what is
+            active, what is protected, what was abandoned and what drifted away from main.
+          </p>
+          <form className="hero-search" onSubmit={onSubmit} role="search">
+            <label className="input-with-icon">
+              <SearchIcon />
+              <span className="visually-hidden">Repository</span>
+              <input
+                value={repository}
+                onChange={(event) => {
+                  setRepository(event.target.value);
+                }}
+                placeholder="owner/repository"
+                spellCheck={false}
+                autoComplete="off"
+              />
+            </label>
+            <button type="submit" className="button button-primary">
+              Analyse <ArrowIcon />
+            </button>
+          </form>
+          <p className="hero-hint">
+            Try{' '}
+            {EXAMPLES.map((example) => (
+              <a key={example} className="chip" href={`/app?repo=${example}`}>
+                {example}
+              </a>
+            ))}
+            <span className="muted"> · 3 free analyses a day</span>
+          </p>
         </div>
-        <img
-          src="/preview.png"
-          alt="The DevPulse app showing branch statistics for nodejs/node"
-          width="1440"
-          height="1040"
-        />
-      </figure>
-    </header>
+        <HeroPreview />
+      </div>
+    </section>
   );
 }
 
-function TrustStrip(): JSX.Element {
-  const items = [
-    `${String(countByStatus('available'))} features live`,
-    `${String(countByStatus('planned'))} on the roadmap`,
-    'Token stays on your machine',
-    'Strict TypeScript, tested',
-  ];
+/** A static preview of a report, so the page explains itself before any request. */
+function HeroPreview(): JSX.Element {
+  const rows = [
+    { name: 'main', age: 'today', divergence: '—', status: 'default', tone: 'ok' },
+    { name: 'v22.x', age: '1 day', divergence: '+3968 / −8130', status: 'protected', tone: 'info' },
+    {
+      name: 'fix/flaky-test',
+      age: '12 days',
+      divergence: '+3 / −41',
+      status: 'active',
+      tone: 'ok',
+    },
+    {
+      name: 'old-experiment',
+      age: '1.8 years',
+      divergence: '+12 / −48',
+      status: 'stale',
+      tone: 'warn',
+    },
+  ] as const;
   return (
-    <ul className="trust-strip">
-      {items.map((item) => (
-        <li key={item}>
-          <CheckIcon />
-          {item}
-        </li>
-      ))}
-    </ul>
+    <figure className="preview-card" aria-label="Example of a report">
+      <div className="window-bar" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <code>DevPulse · nodejs/node</code>
+      </div>
+      <div className="preview-tiles">
+        <div>
+          <strong>55</strong>
+          <span>branches</span>
+        </div>
+        <div>
+          <strong>44</strong>
+          <span>protected</span>
+        </div>
+        <div className="tone-warn">
+          <strong>37</strong>
+          <span>stale</span>
+        </div>
+      </div>
+      <div className="meter" aria-hidden="true">
+        <span className="meter-fill" />
+      </div>
+      <table className="preview-table">
+        <thead>
+          <tr>
+            <th scope="col">Branch</th>
+            <th scope="col">Last commit</th>
+            <th scope="col">Ahead / behind</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.name}>
+              <td className="mono">{row.name}</td>
+              <td>{row.age}</td>
+              <td className="mono">{row.divergence}</td>
+              <td>
+                <span className={`badge badge-${row.tone}`}>{row.status}</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <figcaption className="preview-caption">Illustrative figures</figcaption>
+    </figure>
+  );
+}
+
+function Audiences(): JSX.Element {
+  return (
+    <section className="section">
+      <div className="container">
+        <SectionHeading kicker="Who it is for" title="One report, read in two minutes" />
+        <ul className="card-grid card-grid-3">
+          {AUDIENCES.map((audience) => (
+            <li key={audience.title} className="card">
+              <span className="card-icon">{audience.icon}</span>
+              <h3>{audience.title}</h3>
+              <p>{audience.text}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
 
 function Features(): JSX.Element {
   return (
-    <section id="features" className="section">
-      <div className="section-heading">
-        <span className="section-kicker">Features</span>
-        <h2>One tool for the health of a repository</h2>
-        <p>
-          Branch health is available today. The other analyses are on the roadmap and are marked as
-          planned until they ship.
-        </p>
-      </div>
-      <div className="feature-groups">
-        {FEATURE_GROUPS.map((group) => (
-          <FeatureGroupView key={group.id} group={group} />
-        ))}
+    <section id="features" className="section section-tinted">
+      <div className="container">
+        <SectionHeading
+          kicker="Features"
+          title="Everything about the health of a repository"
+          text={`${String(countByStatus('available'))} analyses are live today and ${String(countByStatus('planned'))} are on the roadmap, each marked as such.`}
+        />
+        <div className="feature-groups">
+          {FEATURE_GROUPS.map((group) => (
+            <FeatureGroupView key={group.id} group={group} />
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -192,62 +263,128 @@ function Features(): JSX.Element {
 function FeatureGroupView({ group }: { readonly group: FeatureGroup }): JSX.Element {
   const live = group.features.every((feature) => feature.status === 'available');
   return (
-    <article className={`feature-group ${live ? 'feature-group-live' : ''}`}>
-      <header className="feature-group-header">
-        <div>
-          <h3>{group.name}</h3>
-          <p>{group.summary}</p>
-        </div>
-        <StatusBadge live={live} />
+    <article className={`feature-group${live ? ' feature-group-live' : ''}`}>
+      <header>
+        <h3>{group.name}</h3>
+        <p>{group.summary}</p>
       </header>
-      <ul className="feature-cards">
+      <ul>
         {group.features.map((feature) => (
-          <FeatureCard key={feature.title} feature={feature} />
+          <FeatureItem key={feature.title} feature={feature} />
         ))}
       </ul>
     </article>
   );
 }
 
-function FeatureCard({ feature }: { readonly feature: Feature }): JSX.Element {
+function FeatureItem({ feature }: { readonly feature: Feature }): JSX.Element {
   return (
-    <li className={`feature-card feature-card-${feature.status}`}>
+    <li className="feature-item">
       <span className="feature-icon">
         <FeatureIconView name={feature.icon} />
       </span>
-      <h4>{feature.title}</h4>
-      <p>{feature.description}</p>
+      <span>
+        <strong>{feature.title}</strong>
+        <span className="feature-description">{feature.description}</span>
+      </span>
+      {feature.status === 'available' ? (
+        <span className="badge badge-ok">
+          <CheckIcon /> Live
+        </span>
+      ) : (
+        <span className="badge badge-muted">Planned</span>
+      )}
     </li>
-  );
-}
-
-function StatusBadge({ live }: { readonly live: boolean }): JSX.Element {
-  return live ? (
-    <span className="status-badge status-live">
-      <CheckIcon />
-      Available
-    </span>
-  ) : (
-    <span className="status-badge status-planned">Planned</span>
   );
 }
 
 function HowItWorks(): JSX.Element {
   return (
-    <section id="how" className="section">
-      <div className="section-heading">
-        <span className="section-kicker">How it works</span>
-        <h2>From a name to a report in seconds</h2>
+    <section className="section">
+      <div className="container">
+        <SectionHeading kicker="How it works" title="From a name to a report in seconds" />
+        <ol className="steps">
+          {STEPS.map((step, index) => (
+            <li key={step.title} className="step">
+              <span className="step-number">{String(index + 1).padStart(2, '0')}</span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="terminal" aria-label="The same report from the command line">
+          <div className="window-bar" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <code>terminal</code>
+          </div>
+          <pre>
+            <code>
+              <span className="prompt">$</span> npm run devpulse -- branches nodejs/node{'\n'}
+              <span className="muted">nodejs/node: 55 branches, default main</span>
+              {'\n'}
+              <span className="muted">Protected: 44. Stale (no commit for 90+ days): 37.</span>
+            </code>
+          </pre>
+        </div>
       </div>
-      <ol className="steps">
-        {STEPS.map((step, index) => (
-          <li key={step.title} className="step">
-            <span className="step-number">{index + 1}</span>
-            <h3>{step.title}</h3>
-            <p>{step.text}</p>
+    </section>
+  );
+}
+
+function Engineering(): JSX.Element {
+  return (
+    <section id="engineering" className="section section-dark">
+      <div className="container">
+        <SectionHeading
+          kicker="Engineering"
+          title="Built and run like a production service"
+          text="Every choice is written down, automated and checked. The documentation explains each one."
+        />
+        <ul className="facts">
+          {FACTS.map((fact) => (
+            <li key={fact.label}>
+              <strong>{fact.value}</strong>
+              <span>{fact.label}</span>
+            </li>
+          ))}
+        </ul>
+        <ol className="pipeline" aria-label="Delivery pipeline">
+          {PIPELINE.map((stage) => (
+            <li key={stage.label}>
+              <strong>{stage.label}</strong>
+              <span>{stage.detail}</span>
+            </li>
+          ))}
+        </ol>
+        <ul className="card-grid card-grid-3 pillars">
+          <li className="card card-dark">
+            <span className="card-icon">
+              <ShieldIcon />
+            </span>
+            <h3>Secure by default</h3>
+            <p>Strict headers, no key to leak, a token the browser never sees, abuse limits.</p>
           </li>
-        ))}
-      </ol>
+          <li className="card card-dark">
+            <span className="card-icon">
+              <RocketIcon />
+            </span>
+            <h3>Fully automated</h3>
+            <p>From pull request to production: checks, signed builds, staging and rollback.</p>
+          </li>
+          <li className="card card-dark">
+            <span className="card-icon">
+              <CloudIcon />
+            </span>
+            <h3>Free to run</h3>
+            <p>Serverless, scaled to zero, sized for the free tier, with a hard spending stop.</p>
+          </li>
+        </ul>
+        <a className="button button-light" href="/docs">
+          <BookIcon /> Read the engineering docs
+        </a>
+      </div>
     </section>
   );
 }
@@ -255,63 +392,65 @@ function HowItWorks(): JSX.Element {
 function Roadmap(): JSX.Element {
   return (
     <section id="roadmap" className="section">
-      <div className="section-heading">
-        <span className="section-kicker">Roadmap</span>
-        <h2>Where DevPulse is going</h2>
-        <p>Planned items are proposals: each one is specified in an issue before it is built.</p>
+      <div className="container">
+        <SectionHeading kicker="Roadmap" title="Where DevPulse is going" />
+        <ol className="roadmap">
+          {ROADMAP.map((column) => (
+            <li key={column.stage} className="roadmap-column">
+              <span className="roadmap-stage">{column.stage}</span>
+              <span className={`badge ${column.stage === 'Now' ? 'badge-ok' : 'badge-muted'}`}>
+                {column.label}
+              </span>
+              <ul>
+                {column.groups.map((id) => (
+                  <li key={id}>{groupName(id)}</li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ol>
       </div>
-      <ol className="roadmap">
-        {ROADMAP.map((column) => (
-          <li
-            key={column.stage}
-            className={`roadmap-column ${column.stage === 'Now' ? 'roadmap-now' : ''}`}
-          >
-            <span className="roadmap-stage">{column.stage}</span>
-            <span className="roadmap-label">{column.label}</span>
-            <ul>
-              {column.groups.map((id) => (
-                <li key={id}>{groupName(id)}</li>
-              ))}
-            </ul>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
-
-function Engineering(): JSX.Element {
-  return (
-    <section className="section engineering">
-      <div className="section-heading">
-        <span className="section-kicker">Engineering</span>
-        <h2>Built like a production product</h2>
-        <p>
-          Layered architecture, strict types, automated quality gates on every pull request, and
-          every technical decision recorded with its alternatives.
-        </p>
-      </div>
-      <ul className="stack">
-        {STACK.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
-      <a className="text-link" href={SOURCE_URL}>
-        Read the code and the decision records <ArrowIcon />
-      </a>
     </section>
   );
 }
 
 function CallToAction(): JSX.Element {
   return (
-    <section className="cta">
-      <h2>See your repository&apos;s pulse</h2>
-      <p>Branch health is ready today. Try it on a project you know.</p>
-      <a className="button button-light" href="/app?repo=nodejs/node">
-        Open the app
-        <ArrowIcon />
-      </a>
+    <section className="section">
+      <div className="container">
+        <div className="cta">
+          <div>
+            <h2>See a repository&apos;s pulse now</h2>
+            <p>Three free analyses a day, no account, nothing to install.</p>
+          </div>
+          <div className="cta-actions">
+            <a className="button button-primary" href="/app?repo=nodejs/node">
+              Analyse nodejs/node <ArrowIcon />
+            </a>
+            <a className="button button-ghost" href={REPOSITORY_URL}>
+              View the source
+            </a>
+          </div>
+        </div>
+      </div>
     </section>
+  );
+}
+
+export function SectionHeading({
+  kicker,
+  title,
+  text,
+}: {
+  readonly kicker: string;
+  readonly title: string;
+  readonly text?: string;
+}): JSX.Element {
+  return (
+    <div className="section-heading">
+      <span className="kicker">{kicker}</span>
+      <h2>{title}</h2>
+      {text !== undefined && <p>{text}</p>}
+    </div>
   );
 }

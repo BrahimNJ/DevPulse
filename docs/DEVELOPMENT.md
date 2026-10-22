@@ -41,14 +41,18 @@ local; a deployment sets the first four (ADR 0007). A public `Host` header has n
 port, so a deployed `ALLOWED_HOSTS` lists bare names such as `devpulse-123.europe-west1.run.app`;
 the server refuses to start on a non-loopback `HOST` without it.
 
-| Variable                | Default                             | Purpose                                                 |
-| ----------------------- | ----------------------------------- | ------------------------------------------------------- |
-| `HOST`                  | `127.0.0.1`                         | Listen address; `0.0.0.0` in a container                |
-| `PORT`                  | `5173`                              | Listen port                                             |
-| `ALLOWED_HOSTS`         | `127.0.0.1:<PORT>,localhost:<PORT>` | Comma-separated `Host` values answered (DNS rebinding)  |
-| `TRUST_PROXY`           | `false`                             | `true` behind a proxy that appends to `X-Forwarded-For` |
-| `RATE_LIMIT_PER_MINUTE` | `30`                                | API requests per client and minute, per instance        |
-| `GITHUB_TOKEN`          | none, required                      | Token for the GitHub API                                |
+| Variable                | Default                             | Purpose                                                     |
+| ----------------------- | ----------------------------------- | ----------------------------------------------------------- |
+| `HOST`                  | `127.0.0.1`                         | Listen address; `0.0.0.0` in a container                    |
+| `PORT`                  | `5173`                              | Listen port                                                 |
+| `ALLOWED_HOSTS`         | `127.0.0.1:<PORT>,localhost:<PORT>` | Comma-separated `Host` values answered (DNS rebinding)      |
+| `TRUST_PROXY`           | `false`                             | `true` behind a proxy that appends to `X-Forwarded-For`     |
+| `RATE_LIMIT_PER_MINUTE` | `30`                                | API requests per client and minute, per instance            |
+| `GITHUB_TOKEN`          | none, required                      | Token for the GitHub API                                    |
+| `QUOTA_PER_DAY`         | unset: no allowance                 | Distinct repositories per visitor per 24 hours (ADR 0008)   |
+| `VISITOR_SALT`          | none; required with the allowance   | Secret of at least 20 characters that hashes addresses      |
+| `FIRESTORE_PROJECT`     | unset: allowance in memory          | Project whose Firestore database stores the allowance       |
+| `OWNER_KEY`             | unset: owner sign-in disabled       | Key of at least 20 characters; `/owner` lifts the allowance |
 
 Reports are cached for 10 minutes per repository. Below 500 remaining points of GitHub
 quota the API answers 503 for uncached repositories, and a report that takes more than

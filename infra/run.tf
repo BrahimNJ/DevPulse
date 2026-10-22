@@ -19,7 +19,7 @@ locals {
 resource "google_service_account" "runtime" {
   account_id   = "devpulse-runtime"
   display_name = "DevPulse server"
-  description  = "Identity of the running server; it can only read the GitHub token."
+  description  = "Identity of the running server: reads its secrets and the visitor allowance."
 
   depends_on = [google_project_service.apis]
 }
@@ -30,8 +30,9 @@ resource "google_cloud_run_v2_service" "app" {
   name     = each.value.name
   location = var.region
   ingress  = "INGRESS_TRAFFIC_ALL"
-  # Public site: anyone may call it without a Google identity.
-  invoker_iam_disabled = true
+  # Production is public. Staging requires a Google identity (ADR 0008): it runs with
+  # the production GitHub token, so it must not be another way to drain its quota.
+  invoker_iam_disabled = each.key == "production"
   deletion_protection  = each.key == "production"
 
   template {
@@ -79,6 +80,33 @@ resource "google_cloud_run_v2_service" "app" {
           }
         }
       }
+      # Daily allowance and maintainer access (ADR 0008).
+      env {
+        name  = "QUOTA_PER_DAY"
+        value = tostring(var.visitor_quota_per_day)
+      }
+      env {
+        name  = "FIRESTORE_PROJECT"
+        value = var.project_id
+      }
+      env {
+        name = "VISITOR_SALT"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.visitor["visitor_salt"].secret_id
+            version = "latest"
+          }
+        }
+      }
+      env {
+        name = "OWNER_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.visitor["owner_key"].secret_id
+            version = "latest"
+          }
+        }
+      }
     }
   }
 
@@ -91,5 +119,8 @@ resource "google_cloud_run_v2_service" "app" {
   depends_on = [
     google_project_service.apis,
     google_secret_manager_secret_iam_member.runtime_reads_token,
+    google_secret_manager_secret_iam_member.runtime_reads_visitor_secrets,
+    google_project_iam_member.runtime_uses_firestore,
+    google_firestore_field.visitor_expiry,
   ]
 }
