@@ -25,7 +25,7 @@ resource "google_monitoring_uptime_check_config" "production" {
     type = "uptime_url"
     labels = {
       project_id = var.project_id
-      host       = "${local.services.production.name}-${data.google_project.this.number}.${var.region}.run.app"
+      host       = local.hosts.production
     }
   }
 

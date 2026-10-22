@@ -1,6 +1,6 @@
 output "service_urls" {
-  description = "Public URLs of the Cloud Run services."
-  value       = { for key, service in google_cloud_run_v2_service.app : key => service.uri }
+  description = "Public URLs of the Cloud Run services; the only ones the server answers."
+  value       = { for key, host in local.hosts : key => "https://${host}" }
 }
 
 output "image_repository" {
