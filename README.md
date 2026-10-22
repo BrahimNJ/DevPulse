@@ -103,13 +103,17 @@ Design choices worth noting, each recorded in an ADR:
   network or the real clock.
 - **One request per 100 branches.** GraphQL returns branches with their last commit in
   a single query, where REST would need one call per branch.
-- **The token never reaches the browser.** The React app calls a local API; only the
-  server, bound to `127.0.0.1`, holds `GITHUB_TOKEN`, and pagination links are only
-  followed on the GitHub API origin.
+- **The token never reaches the browser.** The React app calls the API; only the
+  server holds `GITHUB_TOKEN`, it answers only to its configured host names, and
+  pagination links are only followed on the GitHub API origin.
+- **One token, many visitors.** A 10-minute cache shared by concurrent requests,
+  per-client rate limiting and a quota reserve keep anonymous visitors from exhausting
+  the GitHub API quota.
 - **A shared, typed contract.** The API response type is derived from the domain type,
   so the server and the React app cannot drift apart.
-- **No build step for the back end.** Node.js 24 runs the TypeScript sources directly;
-  Vite serves the React interface with hot reload in the same process.
+- **No build step for the back end.** Node.js 24 runs the TypeScript sources directly.
+  In development Vite serves the React interface with hot reload in the same process;
+  in production the server serves the built files and never loads Vite.
 
 | ADR                                                               | Decision                                                    |
 | ----------------------------------------------------------------- | ----------------------------------------------------------- |
@@ -217,6 +221,8 @@ GITHUB_TOKEN=$(gh auth token) npm run devpulse -- branches nodejs/node --stale-d
 | Command             | Description                             |
 | ------------------- | --------------------------------------- |
 | `npm run web`       | Start the dashboard and its API locally |
+| `npm run build`     | Build the interface for production      |
+| `npm start`         | Start the production server             |
 | `npm run devpulse`  | Run the command-line tool               |
 | `npm run check`     | Run every quality gate, tests included  |
 | `npm test`          | Run the unit tests                      |

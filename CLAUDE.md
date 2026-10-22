@@ -21,6 +21,8 @@ run natively by Node.js 24 LTS, npm, `node:test`, React and Vite for `src/web`. 
 | `npm test`          | Unit tests with `node:test` (`src/**/*.test.ts`)    |
 | `npm run devpulse`  | Run the CLI; needs `GITHUB_TOKEN`                   |
 | `npm run web`       | Dashboard on `127.0.0.1:5173`; needs `GITHUB_TOKEN` |
+| `npm run build`     | Production build of the interface into `dist/web`   |
+| `npm start`         | Production server for `dist/web`; see DEVELOPMENT   |
 
 Tests never reach the network: inject `fetch` and the clock, as the existing tests do.
 

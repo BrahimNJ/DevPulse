@@ -32,6 +32,31 @@ GITHUB_TOKEN=$(gh auth token) npm run web   # http://127.0.0.1:5173
 Never commit a token. If a `.env` file is introduced, it stays untracked and a committed
 `.env.example` carries placeholder values only.
 
+### Server configuration
+
+Both `npm run web` and `npm start` read these variables. Every default keeps the server
+local; a deployment sets the first four (ADR 0007).
+
+| Variable                | Default                             | Purpose                                                 |
+| ----------------------- | ----------------------------------- | ------------------------------------------------------- |
+| `HOST`                  | `127.0.0.1`                         | Listen address; `0.0.0.0` in a container                |
+| `PORT`                  | `5173`                              | Listen port                                             |
+| `ALLOWED_HOSTS`         | `127.0.0.1:<PORT>,localhost:<PORT>` | Comma-separated `Host` values answered (DNS rebinding)  |
+| `TRUST_PROXY`           | `false`                             | `true` behind a proxy that appends to `X-Forwarded-For` |
+| `RATE_LIMIT_PER_MINUTE` | `30`                                | API requests per client and minute, per instance        |
+| `GITHUB_TOKEN`          | none, required                      | Token for the GitHub API                                |
+
+Reports are cached for 10 minutes per repository. Below 500 remaining points of GitHub
+quota the API answers 503 for uncached repositories, and a report that takes more than
+30 seconds answers 504. `GET /healthz` answers without calling GitHub.
+
+To run the production server locally:
+
+```sh
+npm run build
+GITHUB_TOKEN=$(gh auth token) npm start   # http://127.0.0.1:5173, JSON logs on stdout
+```
+
 ## Setup
 
 ```sh
@@ -54,22 +79,24 @@ npm run check     # every gate should pass on a fresh clone
 | `npm run typecheck`    | TypeScript in strict mode, JavaScript included via `checkJs`   |
 | `npm test`             | Unit tests with `node:test`, matching `src/**/*.test.ts`       |
 | `npm run devpulse`     | Runs the CLI, for example `npm run devpulse -- --help`         |
-| `npm run web`          | Starts the dashboard and its API on `127.0.0.1:5173` (`PORT`)  |
+| `npm run web`          | Starts the dashboard with Vite hot reload on `127.0.0.1:5173`  |
+| `npm run build`        | Builds the interface for production into `dist/web`            |
+| `npm start`            | Starts the production server, which serves `dist/web`          |
 | `npm run lint:commits` | commitlint on every commit between `origin/main` and `HEAD`    |
 
 ## Tooling
 
-| Concern         | Tool                                              | Configuration                          |
-| --------------- | ------------------------------------------------- | -------------------------------------- |
-| Editor baseline | EditorConfig (LF, UTF-8, 2 spaces, final newline) | `.editorconfig`, `.gitattributes`      |
-| Formatting      | Prettier                                          | `.prettierrc.json`                     |
-| Linting         | ESLint with `typescript-eslint` strict rules      | `eslint.config.mjs`                    |
-| Types           | TypeScript, strict                                | `tsconfig.json`                        |
-| Documentation   | markdownlint                                      | `.markdownlint-cli2.jsonc`             |
-| Commit messages | commitlint, Conventional Commits                  | `commitlint.config.mjs`                |
-| Git hooks       | husky and lint-staged                             | `.husky/`, `lint-staged.config.mjs`    |
-| Tests           | `node:test` and `node:assert`, built into Node.js | `test` script in `package.json`        |
-| Web interface   | React, served by Vite in middleware mode          | `vite.config.ts`, `src/server/main.ts` |
+| Concern         | Tool                                                     | Configuration                                               |
+| --------------- | -------------------------------------------------------- | ----------------------------------------------------------- |
+| Editor baseline | EditorConfig (LF, UTF-8, 2 spaces, final newline)        | `.editorconfig`, `.gitattributes`                           |
+| Formatting      | Prettier                                                 | `.prettierrc.json`                                          |
+| Linting         | ESLint with `typescript-eslint` strict rules             | `eslint.config.mjs`                                         |
+| Types           | TypeScript, strict                                       | `tsconfig.json`                                             |
+| Documentation   | markdownlint                                             | `.markdownlint-cli2.jsonc`                                  |
+| Commit messages | commitlint, Conventional Commits                         | `commitlint.config.mjs`                                     |
+| Git hooks       | husky and lint-staged                                    | `.husky/`, `lint-staged.config.mjs`                         |
+| Tests           | `node:test` and `node:assert`, built into Node.js        | `test` script in `package.json`                             |
+| Web interface   | React; Vite in development, a static build in production | `vite.config.ts`, `src/server/dev.ts`, `src/server/main.ts` |
 
 ### Git hooks
 
