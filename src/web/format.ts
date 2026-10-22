@@ -23,6 +23,13 @@ export function formatAge(days: number): string {
   return `${(days / 365).toFixed(1)} years`;
 }
 
+/** Commits ahead and behind the default branch, such as "+12 / −48". */
+export function formatDivergence(
+  divergence: { readonly ahead: number; readonly behind: number } | null,
+): string {
+  return divergence === null ? '–' : `+${String(divergence.ahead)} / −${String(divergence.behind)}`;
+}
+
 export function median(values: readonly number[]): number | null {
   const sorted = [...values].sort((a, b) => a - b);
   const middle = Math.floor(sorted.length / 2);
