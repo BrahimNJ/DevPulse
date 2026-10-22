@@ -66,7 +66,8 @@ popular repositories.
   `secretAccessor` on that secret.
 - **Container:** a multi-stage Dockerfile with a Node 24 slim base image pinned by
   digest, production dependencies only, a non-root user, and a health endpoint
-  `GET /healthz`. A root `compose.yaml` runs the same image locally, which fulfils the
+  `GET /health` (not `/healthz`: Cloud Run reserves paths ending in `z` for its front
+  end, which answers them itself). A root `compose.yaml` runs the same image locally, which fulfils the
   local deployment proposed in ADR 0004.
 - **Infrastructure as code:** Terraform in a new top-level `infra/` directory, which
   this record introduces. Provider versions are pinned. Remote state lives in a
@@ -114,7 +115,7 @@ popular repositories.
   CI tool, not an npm dependency.
 - **Observability:** structured JSON logs on stdout, which Cloud Logging parses, with
   one line per request giving status, duration and cache hit, and never a token. An
-  uptime check on the production `/healthz` every 15 minutes with email alerting; each
+  uptime check on the production `/health` every 15 minutes with email alerting; each
   check may wake an instance, which is accepted, and staging has no check. An availability objective of 99% per
   month, documented as an SLO.
 - **Out of scope:** a custom domain, a CDN or WAF (for example Cloudflare) in front of

@@ -102,7 +102,7 @@ async function route(
 ): Promise<void> {
   const { pathname } = new URL(request.url ?? '/', 'http://localhost');
   // Health reveals nothing, so probes may use any Host, such as the instance address.
-  if (pathname === '/healthz') {
+  if (pathname === '/health') {
     context.route = 'health';
     sendJson(response, 200, { status: 'ok' });
     return;

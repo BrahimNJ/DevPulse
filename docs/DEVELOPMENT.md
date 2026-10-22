@@ -52,7 +52,7 @@ the server refuses to start on a non-loopback `HOST` without it.
 
 Reports are cached for 10 minutes per repository. Below 500 remaining points of GitHub
 quota the API answers 503 for uncached repositories, and a report that takes more than
-30 seconds answers 504. `GET /healthz` answers without calling GitHub.
+30 seconds answers 504. `GET /health` answers without calling GitHub.
 
 To run the production server locally:
 

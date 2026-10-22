@@ -24,7 +24,7 @@ runs:
           curl --fail --silent --show-error --retry 10 --retry-all-errors --retry-delay 6 \
             --max-time 40 "$URL$1"
         }
-        get /healthz | jq -e '.status == "ok"'
+        get /health | jq -e '.status == "ok"'
         if [ "$REPORT" = "true" ]; then
           # Read the page fully first: `grep -q` stops early and would break the pipe.
           page=$(get /)
