@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.5.0](https://github.com/BrahimNJ/DevPulse/compare/v0.4.0...v0.5.0) (2026-10-22)
+
+
+### Features
+
+* **github:** track the remaining API quota ([d465a39](https://github.com/BrahimNJ/DevPulse/commit/d465a39bde01931482b6e3665cda99a8a3aea3c8)), closes [#24](https://github.com/BrahimNJ/DevPulse/issues/24)
+* **server:** add a per-client rate limiter ([6769bc2](https://github.com/BrahimNJ/DevPulse/commit/6769bc237ad586f043cd3d95710b1cb715accf9c)), closes [#24](https://github.com/BrahimNJ/DevPulse/issues/24)
+* **server:** add a production entry point with health and logs ([84e65fb](https://github.com/BrahimNJ/DevPulse/commit/84e65fbe3a8e500dd40cb844d7a18db7d8e45b7e)), closes [#24](https://github.com/BrahimNJ/DevPulse/issues/24)
+* **server:** add an expiring cache that shares concurrent loads ([1525b12](https://github.com/BrahimNJ/DevPulse/commit/1525b12d66a9a045e4de6aa7d175ca796596245d)), closes [#24](https://github.com/BrahimNJ/DevPulse/issues/24)
+* **server:** protect the GitHub quota behind a cache and a reserve ([1d8404f](https://github.com/BrahimNJ/DevPulse/commit/1d8404f50d81dbb7d52ed3432f80da5633075759)), closes [#24](https://github.com/BrahimNJ/DevPulse/issues/24)
+* **server:** read server settings from the environment ([1d442d1](https://github.com/BrahimNJ/DevPulse/commit/1d442d10c2147f9069a86fbe5ad18d76b33f7bae)), closes [#24](https://github.com/BrahimNJ/DevPulse/issues/24)
+* **server:** serve the dashboard in production behind quota protection ([056767a](https://github.com/BrahimNJ/DevPulse/commit/056767aa164a8bb0f15323e767f9f1f6d4fa043c))
+
+
+### Bug Fixes
+
+* **infra:** address review of the first apply and the kill switch ([f31345c](https://github.com/BrahimNJ/DevPulse/commit/f31345c179e3439a5588bda7b9f1501557a40b7f)), closes [#29](https://github.com/BrahimNJ/DevPulse/issues/29)
+* **infra:** make the budget kill switch handle Eventarc requests ([d7e3d33](https://github.com/BrahimNJ/DevPulse/commit/d7e3d3373eec8462cc794cde8061022d9c77d54e))
+* **infra:** make the kill switch handle Eventarc HTTP requests ([f321265](https://github.com/BrahimNJ/DevPulse/commit/f321265210da33b21b8e55d0a3dcd3f3517171e2)), closes [#31](https://github.com/BrahimNJ/DevPulse/issues/31)
+* **infra:** output the deterministic service URLs ([a1bd0b9](https://github.com/BrahimNJ/DevPulse/commit/a1bd0b93935d2e5c6466a127199166981fca30fe)), closes [#31](https://github.com/BrahimNJ/DevPulse/issues/31)
+* **server:** refuse a public address without host names ([1ac50c7](https://github.com/BrahimNJ/DevPulse/commit/1ac50c76d206f13651660f2f909dad1ff90aaf45)), closes [#24](https://github.com/BrahimNJ/DevPulse/issues/24)
+
 ## [0.4.0](https://github.com/BrahimNJ/DevPulse/compare/v0.3.0...v0.4.0) (2026-10-22)
 
 
