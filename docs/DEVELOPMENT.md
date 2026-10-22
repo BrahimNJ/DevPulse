@@ -137,6 +137,9 @@ A change is complete when all of the following hold.
 - No secret is present in the history (gitleaks).
 - No runtime dependency with a known advisory is introduced; npm signatures verify.
 - Workflows pass actionlint.
+- The container image builds and has no fixable high or critical vulnerability or
+  secret (Trivy).
+- Terraform is formatted and valid.
 
 ### At merge
 
@@ -149,12 +152,12 @@ A change is complete when all of the following hold.
 CI makes the quality gates objective, so that [CONTRIBUTING.md](../CONTRIBUTING.md) is
 enforced without relying on reviewer memory.
 
-| Workflow           | Trigger                    | Jobs                                                                                     |
-| ------------------ | -------------------------- | ---------------------------------------------------------------------------------------- |
-| `ci.yml`           | Pull request, push to main | format, lint, Markdown, types, tests, commits, audit, actionlint, gitleaks, `ci-success` |
-| `pull-request.yml` | Pull request               | `pr-title`, `dependency-review`                                                          |
-| `release.yml`      | Push to main               | `release-please`                                                                         |
-| Dependabot         | Weekly, Monday             | Grouped updates for npm and GitHub Actions                                               |
+| Workflow           | Trigger                    | Jobs                                                                                                                                   |
+| ------------------ | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`           | Pull request, push to main | format, lint, Markdown, types, tests, commits, audit, actionlint, gitleaks, image build and Trivy scan, Terraform checks, `ci-success` |
+| `pull-request.yml` | Pull request               | `pr-title`, `dependency-review`                                                                                                        |
+| `delivery.yml`     | Push to main               | `release-please`, build and push, staging, production on a release; see DEPLOYMENT.md                                                  |
+| Dependabot         | Weekly, Monday             | Grouped updates for npm, GitHub Actions and base images                                                                                |
 
 Pipeline rules:
 
@@ -169,7 +172,15 @@ Pipeline rules:
 | ---------------------- | -------- | -------------------------------------------------- |
 | `RELEASE_PLEASE_TOKEN` | Optional | Lets CI run on release pull requests; see ADR 0004 |
 
-`GITHUB_TOKEN` is provided automatically. No other secret is used.
+`GITHUB_TOKEN` is provided automatically. No other secret is used: Google Cloud is
+reached through Workload Identity Federation, configured by three repository
+**variables**, which are not secret:
+
+| Variable                         | Value                                         |
+| -------------------------------- | --------------------------------------------- |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | `terraform output workload_identity_provider` |
+| `GCP_SERVICE_ACCOUNT`            | `terraform output deployer_service_account`   |
+| `GCP_IMAGE_REPOSITORY`           | `terraform output image_repository`           |
 
 ### Releases
 
