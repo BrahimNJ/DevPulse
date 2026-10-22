@@ -11,7 +11,11 @@ export interface TestResponse {
 
 export type Send = (
   path: string,
-  options?: { readonly method?: string; readonly headers?: OutgoingHttpHeaders },
+  options?: {
+    readonly method?: string;
+    readonly headers?: OutgoingHttpHeaders;
+    readonly body?: string;
+  },
 ) => Promise<TestResponse>;
 
 /**
@@ -45,7 +49,7 @@ export async function withServer(
         },
       );
       outgoing.on('error', reject);
-      outgoing.end();
+      outgoing.end(options.body);
     });
   try {
     await test(send);

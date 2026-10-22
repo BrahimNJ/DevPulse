@@ -1,10 +1,14 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
-import { handleBranchesRequest, type ApiDependencies } from './api.ts';
+import type { ApiDependencies, Visitor } from './api.ts';
+import { API_ROUTES } from './api-routes.ts';
 import { clientIp } from './client-ip.ts';
 import type { ServerConfig } from './config.ts';
 import { isAllowedHost } from './host.ts';
+import type { OwnerAccess } from './owner.ts';
 import type { RateLimiter } from './rate-limit.ts';
+import { sendJson } from './respond.ts';
+import { visitorId } from './visitor.ts';
 
 /** Serves the interface; calls `next` when it has nothing for the request. */
 export type UiHandler = (
@@ -38,6 +42,14 @@ export interface AppOptions {
   readonly config: ServerConfig;
   readonly api: ApiDependencies;
   readonly limiter: RateLimiter;
+  /** Stricter limit on owner sign-in attempts, against guessing the key. */
+  readonly ownerLimiter: RateLimiter;
+  readonly visitors: {
+    /** Salt of the visitor identifiers (ADR 0008). */
+    readonly salt: string;
+    /** Maintainer access; null when no owner key is configured. */
+    readonly owner: OwnerAccess | null;
+  };
   readonly ui: UiHandler;
   /** Sent with every response. */
   readonly headers: Readonly<Record<string, string>>;
@@ -69,7 +81,7 @@ export const PRODUCTION_HEADERS: Readonly<Record<string, string>> = {
 /** The conventional status for a request that the client abandoned before the answer. */
 const CLIENT_CLOSED = 499;
 
-interface Context {
+export interface Context {
   route: Route;
   cacheHit?: boolean;
   error?: string;
@@ -89,7 +101,7 @@ export function createApp(options: AppOptions): RequestHandler {
     }
     route(request, response, options, context).catch((error: unknown) => {
       context.error = error instanceof Error ? (error.stack ?? error.message) : String(error);
-      sendJson(response, 500, { error: 'Unexpected server error.' });
+      sendJson({ request, response }, 500, { error: 'Unexpected server error.' });
     });
   };
 }
@@ -104,78 +116,49 @@ async function route(
   // Health reveals nothing, so probes may use any Host, such as the instance address.
   if (pathname === '/health') {
     context.route = 'health';
-    sendJson(response, 200, { status: 'ok' });
+    sendJson({ request, response }, 200, { status: 'ok' });
     return;
   }
   if (!isAllowedHost(request.headers.host, options.config.allowedHosts)) {
-    sendJson(response, 403, { error: 'Requests must be addressed to this server by name.' });
+    sendJson({ request, response }, 403, {
+      error: 'Requests must be addressed to this server by name.',
+    });
     return;
   }
-  if (pathname === '/api/branches') {
-    context.route = 'api';
-    await serveApi(request, response, options, context);
+  if (!pathname.startsWith('/api/')) {
+    context.route = 'ui';
+    options.ui(request, response, () => {
+      sendJson({ request, response }, 404, { error: 'Not found.' });
+    });
     return;
   }
-  if (pathname.startsWith('/api/')) {
-    context.route = 'api';
-    sendJson(response, 404, { error: 'Not found.' });
-    return;
-  }
-  context.route = 'ui';
-  options.ui(request, response, () => {
-    sendJson(response, 404, { error: 'Not found.' });
-  });
-}
-
-async function serveApi(
-  request: IncomingMessage,
-  response: ServerResponse,
-  { api, config, limiter }: AppOptions,
-  context: Context,
-): Promise<void> {
-  if (request.method !== 'GET') {
-    sendJson(response, 405, { error: 'Only GET is supported.' }, { allow: 'GET' });
+  context.route = 'api';
+  const api = API_ROUTES.get(pathname);
+  if (api === undefined) {
+    sendJson({ request, response }, 404, { error: 'Not found.' });
     return;
   }
   const client = clientIp(
     request.headers['x-forwarded-for'],
     request.socket.remoteAddress,
-    config.trustProxy,
+    options.config.trustProxy,
   );
-  const decision = limiter.take(client);
-  if (!decision.allowed) {
-    const seconds = String(decision.retryAfterSeconds);
-    sendJson(
-      response,
-      429,
-      { error: `Too many requests. Try again in ${seconds} seconds.` },
-      { 'retry-after': seconds },
-    );
-    return;
-  }
-  const { searchParams } = new URL(request.url ?? '/', 'http://localhost');
-  const result = await handleBranchesRequest(searchParams, api);
-  if (result.cacheHit !== undefined) {
-    context.cacheHit = result.cacheHit;
-  }
-  sendJson(response, result.status, result.body, {
-    ...result.headers,
-    'cache-control': 'no-store',
+  await api({
+    request,
+    response,
+    options,
+    context,
+    client,
+    visitor: identify(request, client, options),
   });
 }
 
-function sendJson(
-  response: ServerResponse,
-  status: number,
-  body: unknown,
-  headers: Readonly<Record<string, string>> = {},
-): void {
-  if (response.headersSent) {
-    response.end();
-    return;
-  }
-  response.writeHead(status, { ...headers, 'content-type': 'application/json; charset=utf-8' });
-  response.end(JSON.stringify(body));
+function identify(request: IncomingMessage, client: string, options: AppOptions): Visitor {
+  const { salt, owner } = options.visitors;
+  return {
+    id: visitorId(client, salt),
+    owner: owner?.isOwner(request.headers.cookie, options.api.now()) ?? false,
+  };
 }
 
 /** The client address is left out on purpose: it is personal data and not needed. */
