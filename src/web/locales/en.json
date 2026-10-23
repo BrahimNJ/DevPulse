@@ -463,7 +463,7 @@
   },
   "admin": {
     "title": "Usage statistics",
-    "lede": "Anonymous analyses by visitors, your own left out. Events are deleted after 30 days.",
+    "lede": "Analyses by visitors, recorded under a pseudonym and without your own. Events are deleted after 30 days.",
     "period": "Period",
     "days": {
       "7": "7 days",
@@ -520,7 +520,7 @@
         "ok": "",
         "invalid": "The name is not owner/repository: the examples could be clearer.",
         "not-found": "A typo or a private repository: suggestions could help.",
-        "allowance": "Real demand: consider a higher limit or a limit per browser.",
+        "allowance": "Real demand: consider a higher daily limit.",
         "rate-limited": "Bursts from one address: a script or a quick visitor.",
         "github": "GitHub answered an error: check its status page.",
         "unavailable": "The server kept the last GitHub points in reserve.",
@@ -660,7 +660,7 @@
               "**Host validation.** The server only answers its own names, which blocks DNS rebinding attacks.",
               "**Hardened container.** Non-root user, read-only files, no shell, base images pinned by digest and scanned for vulnerabilities on every change.",
               "**Supply chain.** Every CI action is pinned to a commit, every image is signed with a provenance attestation and a bill of materials, and secret scanning runs on every pull request.",
-              "**Privacy.** Client addresses are never logged or stored; the daily allowance keeps only a salted hash and the repositories analysed, which expire after 24 hours and are deleted shortly after. Usage statistics for the maintainer record each analysis anonymously, with the same hash, the repository, the outcome and a coarse device class, and are deleted after 30 days."
+              "**Privacy.** Client addresses are never logged or stored; the daily allowance keeps only a salted hash and the repositories analysed, which expire after 24 hours and are deleted shortly after. Usage statistics for the maintainer record each analysis under the same pseudonymous hash, with the report, the repository, the outcome, its duration, whether the cache answered, a coarse device class (mobile, desktop or bot) and the browser's first language; they are deleted after 30 days."
             ]
           }
         ]

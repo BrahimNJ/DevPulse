@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type JSX, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
 
 import { fetchAdminStats, type AdminStatsResponse } from './api.ts';
 import { percentage } from './format.ts';
@@ -14,6 +14,8 @@ type Load =
   | { readonly kind: 'ready'; readonly stats: Stats };
 
 const PERIODS: readonly Days[] = [7, 30];
+/** The most events a view reads, as MAX_EVENTS in src/server/admin.ts. */
+const SERVER_EVENT_LIMIT = 5000;
 
 /** "320 ms" or "4.2 s". */
 function formatMilliseconds(ms: number, locale: Locale): string {
@@ -43,12 +45,19 @@ export function OwnerStats(): JSX.Element {
   const [days, setDays] = useState<Days>(7);
   const [load, setLoad] = useState<Load>({ kind: 'loading' });
 
-  const refresh = useCallback((): (() => void) => {
+  const inFlight = useRef<AbortController | null>(null);
+
+  // Each load aborts the previous one, so a slow answer never replaces a newer view.
+  const refresh = useCallback((): void => {
+    inFlight.current?.abort();
     const controller = new AbortController();
+    inFlight.current = controller;
     setLoad({ kind: 'loading' });
     fetchAdminStats(days, controller.signal).then(
       (stats) => {
-        setLoad({ kind: 'ready', stats });
+        if (!controller.signal.aborted) {
+          setLoad({ kind: 'ready', stats });
+        }
       },
       () => {
         if (!controller.signal.aborted) {
@@ -56,12 +65,14 @@ export function OwnerStats(): JSX.Element {
         }
       },
     );
-    return (): void => {
-      controller.abort();
-    };
   }, [days]);
 
-  useEffect(refresh, [refresh]);
+  useEffect(() => {
+    refresh();
+    return (): void => {
+      inFlight.current?.abort();
+    };
+  }, [refresh]);
 
   return (
     <section className="section owner-stats" aria-labelledby="owner-stats-title">
@@ -124,7 +135,7 @@ function Dashboard({ stats, t, locale }: ViewProps): JSX.Element {
       </p>
       {stats.truncated && (
         <p className="notice notice-info" role="note">
-          {interpolate(copy.truncated, { count: formatNumber(5000, locale) })}
+          {interpolate(copy.truncated, { count: formatNumber(SERVER_EVENT_LIMIT, locale) })}
         </p>
       )}
       {stats.totals.analyses === 0 && (

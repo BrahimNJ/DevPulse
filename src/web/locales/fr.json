@@ -463,7 +463,7 @@
   },
   "admin": {
     "title": "Statistiques d'utilisation",
-    "lede": "Les analyses anonymes des visiteurs, hors les vôtres. Les événements sont effacés après 30 jours.",
+    "lede": "Les analyses des visiteurs, enregistrées sous pseudonyme et hors les vôtres. Les événements sont effacés après 30 jours.",
     "period": "Période",
     "days": {
       "7": "7 jours",
@@ -520,7 +520,7 @@
         "ok": "",
         "invalid": "Le nom n'est pas owner/repository : les exemples pourraient être plus clairs.",
         "not-found": "Une faute de frappe ou un repository privé : des suggestions aideraient.",
-        "allowance": "Une vraie demande : envisager une limite plus haute ou par navigateur.",
+        "allowance": "Une vraie demande : envisager une limite quotidienne plus haute.",
         "rate-limited": "Des rafales depuis une même adresse : un script ou un visiteur pressé.",
         "github": "GitHub a répondu une erreur : vérifier sa page de statut.",
         "unavailable": "Le serveur a gardé les derniers points GitHub en réserve.",
@@ -660,7 +660,7 @@
               "**Validation de l'hôte.** Le serveur ne répond qu'à ses propres noms, ce qui bloque les attaques par DNS rebinding.",
               "**Conteneur durci.** Utilisateur non root, fichiers en lecture seule, aucun shell, images de base épinglées par digest et scannées à chaque modification.",
               "**Chaîne d'approvisionnement.** Chaque action de CI est épinglée sur un commit, chaque image est signée avec une attestation de provenance et un inventaire de ses composants, et la détection de secrets s'exécute sur chaque pull request.",
-              "**Confidentialité.** Les adresses des visiteurs ne sont jamais journalisées ni stockées ; le quota quotidien ne conserve qu'une empreinte salée et les repositories analysés, qui expirent après 24 heures puis sont supprimés peu après. Les statistiques d'usage du mainteneur enregistrent chaque analyse de façon anonyme, avec la même empreinte, le repository, le résultat et un type d'appareil, et sont supprimées après 30 jours."
+              "**Confidentialité.** Les adresses des visiteurs ne sont jamais journalisées ni stockées ; le quota quotidien ne conserve qu'une empreinte salée et les repositories analysés, qui expirent après 24 heures puis sont supprimés peu après. Les statistiques d'usage du mainteneur enregistrent chaque analyse sous la même empreinte pseudonyme, avec le rapport, le repository, le résultat, sa durée, l'usage du cache, un type d'appareil (mobile, ordinateur ou robot) et la première langue du navigateur ; elles sont supprimées après 30 jours."
             ]
           }
         ]
