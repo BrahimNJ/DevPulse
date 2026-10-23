@@ -24,6 +24,7 @@ Decided, see [decision records](decisions/):
   (ADR 0007).
 - A daily allowance of three analyses per visitor in Firestore, maintainer access
   through a signed cookie, and a private staging service (ADR 0008).
+- The web interface in French by default and in English, from two JSON files (ADR 0009).
 
 Undecided:
 
