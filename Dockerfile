@@ -22,8 +22,10 @@ ENV NODE_ENV=production \
     PORT=8080
 # Files stay owned by root and read-only for the non-root user running the server.
 # Only the server layers are copied: the server must never import src/web.
+# src/server/image.test.ts fails when the server imports a directory not listed here.
 COPY package.json ./
 COPY src/branches ./src/branches
+COPY src/delivery ./src/delivery
 COPY src/github ./src/github
 COPY src/server ./src/server
 COPY --from=build /app/dist/web ./dist/web
