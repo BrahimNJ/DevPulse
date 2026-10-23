@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0](https://github.com/BrahimNJ/DevPulse/compare/v0.6.0...v0.7.0) (2026-10-23)
+
+
+### Features
+
+* **web:** offer the site in French by default, with an English option ([d0ad18c](https://github.com/BrahimNJ/DevPulse/commit/d0ad18cdee16cc7531c22b31e8ae6898ff2c8d33))
+* **web:** offer the site in French by default, with an English option ([5f1e4da](https://github.com/BrahimNJ/DevPulse/commit/5f1e4dae520b1e42019c559dd1ca519d74a4eb71)), closes [#43](https://github.com/BrahimNJ/DevPulse/issues/43)
+
+
+### Bug Fixes
+
+* **web:** address review of the French copy and the language switch ([7ea66e4](https://github.com/BrahimNJ/DevPulse/commit/7ea66e460d38172ac0b4728a268cca3dddf243bf)), closes [#43](https://github.com/BrahimNJ/DevPulse/issues/43)
+
 ## [0.6.0](https://github.com/BrahimNJ/DevPulse/compare/v0.5.0...v0.6.0) (2026-10-23)
 
 
