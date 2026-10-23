@@ -28,6 +28,7 @@ Decided, see [decision records](decisions/):
 - The web interface in French by default and in English, from two JSON files (ADR 0009).
 - Delivery health: DORA-style proxies from public GitHub data, the sample and search
   counts it reads, and the example shown before a first analysis (ADR 0010).
+- Anonymous analysis events, kept 30 days, behind the owner statistics (ADR 0011).
 
 Undecided:
 
