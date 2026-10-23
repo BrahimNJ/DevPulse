@@ -461,6 +461,101 @@
     "signedOut": "Signed out.",
     "invalid": "This key is not valid."
   },
+  "admin": {
+    "title": "Usage statistics",
+    "lede": "Anonymous analyses by visitors, your own left out. Events are deleted after 30 days.",
+    "period": "Period",
+    "days": {
+      "7": "7 days",
+      "30": "30 days"
+    },
+    "refresh": "Refresh",
+    "updated": "Updated {time}",
+    "loading": "Reading the statistics…",
+    "error": "The statistics could not be read.",
+    "truncated": "Only the {count} most recent events were read; older ones are left out.",
+    "empty": "No analysis by a visitor in this period yet.",
+    "kpis": {
+      "visitors": "Unique visitors",
+      "visitorsDetail": {
+        "one": "{count} reached the daily allowance",
+        "other": "{count} reached the daily allowance"
+      },
+      "repositories": "Distinct repositories",
+      "repositoriesDetail": "analysed by visitors",
+      "analyses": "Analyses",
+      "analysesDetail": "{succeeded} succeeded, {failed} failed",
+      "success": "Success rate",
+      "successDetail": "of analyses answered with a report",
+      "speed": "Response time",
+      "speedDetail": "median; 90th percentile {p90}",
+      "cache": "Served from cache",
+      "cacheDetail": "answers without a GitHub call",
+      "delivery": "Delivery reports",
+      "deliveryDetail": "delivery tabs loaded with a report",
+      "github": "GitHub points left",
+      "githubDetail": "of 5,000 an hour, until {time}",
+      "githubUnknown": "no GitHub call since the last start"
+    },
+    "perDay": {
+      "title": "Analyses per day",
+      "succeeded": "Succeeded",
+      "failed": "Failed"
+    },
+    "outcomes": {
+      "title": "Why analyses fail",
+      "none": "No failure in this period.",
+      "labels": {
+        "ok": "Succeeded",
+        "invalid": "Invalid name",
+        "not-found": "Repository not found",
+        "allowance": "Daily allowance reached",
+        "rate-limited": "Too many requests",
+        "github": "GitHub error",
+        "unavailable": "GitHub quota protected",
+        "timeout": "Too slow (over 30 s)",
+        "error": "Server error"
+      },
+      "hints": {
+        "ok": "",
+        "invalid": "The name is not owner/repository: the examples could be clearer.",
+        "not-found": "A typo or a private repository: suggestions could help.",
+        "allowance": "Real demand: consider a higher limit or a limit per browser.",
+        "rate-limited": "Bursts from one address: a script or a quick visitor.",
+        "github": "GitHub answered an error: check its status page.",
+        "unavailable": "The server kept the last GitHub points in reserve.",
+        "timeout": "Very large repositories: a longer cache or a lighter query would help.",
+        "error": "A bug: the server logs give the cause."
+      }
+    },
+    "repositories": {
+      "title": "Most analysed repositories",
+      "name": "Repository",
+      "analyses": "Analyses",
+      "failed": "Failed"
+    },
+    "audience": {
+      "title": "Audience",
+      "mobile": "Mobile",
+      "desktop": "Desktop",
+      "bot": "Bots and tools",
+      "fr": "French",
+      "en": "English",
+      "other": "Other languages"
+    },
+    "failures": {
+      "title": "Latest failures",
+      "when": "When",
+      "report": "Report",
+      "repository": "Repository",
+      "reason": "Reason",
+      "none": "None."
+    },
+    "reports": {
+      "branches": "Branches",
+      "delivery": "Delivery"
+    }
+  },
   "docs": {
     "kicker": "Documentation",
     "title": "How DevPulse is built",
@@ -565,7 +660,7 @@
               "**Host validation.** The server only answers its own names, which blocks DNS rebinding attacks.",
               "**Hardened container.** Non-root user, read-only files, no shell, base images pinned by digest and scanned for vulnerabilities on every change.",
               "**Supply chain.** Every CI action is pinned to a commit, every image is signed with a provenance attestation and a bill of materials, and secret scanning runs on every pull request.",
-              "**Privacy.** Client addresses are never logged or stored; the daily allowance keeps only a salted hash and the repositories analysed, which expire after 24 hours and are deleted shortly after."
+              "**Privacy.** Client addresses are never logged or stored; the daily allowance keeps only a salted hash and the repositories analysed, which expire after 24 hours and are deleted shortly after. Usage statistics for the maintainer record each analysis anonymously, with the same hash, the repository, the outcome and a coarse device class, and are deleted after 30 days."
             ]
           }
         ]

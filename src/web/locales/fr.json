@@ -461,6 +461,101 @@
     "signedOut": "Déconnecté.",
     "invalid": "Cette clé n'est pas valide."
   },
+  "admin": {
+    "title": "Statistiques d'utilisation",
+    "lede": "Les analyses anonymes des visiteurs, hors les vôtres. Les événements sont effacés après 30 jours.",
+    "period": "Période",
+    "days": {
+      "7": "7 jours",
+      "30": "30 jours"
+    },
+    "refresh": "Actualiser",
+    "updated": "Mis à jour {time}",
+    "loading": "Lecture des statistiques…",
+    "error": "Les statistiques n'ont pas pu être lues.",
+    "truncated": "Seuls les {count} événements les plus récents ont été lus ; les plus anciens sont ignorés.",
+    "empty": "Aucune analyse de visiteur sur cette période pour l'instant.",
+    "kpis": {
+      "visitors": "Visiteurs uniques",
+      "visitorsDetail": {
+        "one": "{count} a atteint la limite quotidienne",
+        "other": "{count} ont atteint la limite quotidienne"
+      },
+      "repositories": "Repositories distincts",
+      "repositoriesDetail": "analysés par les visiteurs",
+      "analyses": "Analyses",
+      "analysesDetail": "{succeeded} réussies, {failed} en échec",
+      "success": "Taux de réussite",
+      "successDetail": "des analyses ont abouti à un rapport",
+      "speed": "Temps de réponse",
+      "speedDetail": "médiane · 90e centile {p90}",
+      "cache": "Servies par le cache",
+      "cacheDetail": "réponses sans appel à GitHub",
+      "delivery": "Rapports de livraison",
+      "deliveryDetail": "onglets Livraison chargés avec un rapport",
+      "github": "Points GitHub restants",
+      "githubDetail": "sur 5 000 par heure, jusqu'à {time}",
+      "githubUnknown": "aucun appel à GitHub depuis le dernier démarrage"
+    },
+    "perDay": {
+      "title": "Analyses par jour",
+      "succeeded": "Réussies",
+      "failed": "En échec"
+    },
+    "outcomes": {
+      "title": "Pourquoi les analyses échouent",
+      "none": "Aucun échec sur cette période.",
+      "labels": {
+        "ok": "Réussie",
+        "invalid": "Nom invalide",
+        "not-found": "Repository introuvable",
+        "allowance": "Limite quotidienne atteinte",
+        "rate-limited": "Trop de requêtes",
+        "github": "Erreur GitHub",
+        "unavailable": "Quota GitHub protégé",
+        "timeout": "Trop lente (plus de 30 s)",
+        "error": "Erreur serveur"
+      },
+      "hints": {
+        "ok": "",
+        "invalid": "Le nom n'est pas owner/repository : les exemples pourraient être plus clairs.",
+        "not-found": "Une faute de frappe ou un repository privé : des suggestions aideraient.",
+        "allowance": "Une vraie demande : envisager une limite plus haute ou par navigateur.",
+        "rate-limited": "Des rafales depuis une même adresse : un script ou un visiteur pressé.",
+        "github": "GitHub a répondu une erreur : vérifier sa page de statut.",
+        "unavailable": "Le serveur a gardé les derniers points GitHub en réserve.",
+        "timeout": "De très gros repositories : un cache plus long ou une requête plus légère aiderait.",
+        "error": "Un bug : les logs du serveur en donnent la cause."
+      }
+    },
+    "repositories": {
+      "title": "Repositories les plus analysés",
+      "name": "Repository",
+      "analyses": "Analyses",
+      "failed": "Échecs"
+    },
+    "audience": {
+      "title": "Audience",
+      "mobile": "Mobile",
+      "desktop": "Ordinateur",
+      "bot": "Robots et outils",
+      "fr": "Français",
+      "en": "Anglais",
+      "other": "Autres langues"
+    },
+    "failures": {
+      "title": "Derniers échecs",
+      "when": "Quand",
+      "report": "Rapport",
+      "repository": "Repository",
+      "reason": "Raison",
+      "none": "Aucun."
+    },
+    "reports": {
+      "branches": "Branches",
+      "delivery": "Livraison"
+    }
+  },
   "docs": {
     "kicker": "Documentation",
     "title": "Comment DevPulse est construit",
@@ -565,7 +660,7 @@
               "**Validation de l'hôte.** Le serveur ne répond qu'à ses propres noms, ce qui bloque les attaques par DNS rebinding.",
               "**Conteneur durci.** Utilisateur non root, fichiers en lecture seule, aucun shell, images de base épinglées par digest et scannées à chaque modification.",
               "**Chaîne d'approvisionnement.** Chaque action de CI est épinglée sur un commit, chaque image est signée avec une attestation de provenance et un inventaire de ses composants, et la détection de secrets s'exécute sur chaque pull request.",
-              "**Confidentialité.** Les adresses des visiteurs ne sont jamais journalisées ni stockées ; le quota quotidien ne conserve qu'une empreinte salée et les repositories analysés, qui expirent après 24 heures puis sont supprimés peu après."
+              "**Confidentialité.** Les adresses des visiteurs ne sont jamais journalisées ni stockées ; le quota quotidien ne conserve qu'une empreinte salée et les repositories analysés, qui expirent après 24 heures puis sont supprimés peu après. Les statistiques d'usage du mainteneur enregistrent chaque analyse de façon anonyme, avec la même empreinte, le repository, le résultat et un type d'appareil, et sont supprimées après 30 jours."
             ]
           }
         ]
