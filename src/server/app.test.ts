@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import type { RepositoryBranches } from '../branches/report.ts';
+import type { Analytics } from './admin.ts';
+import { MemoryEventStore, type AdminStats } from './analytics.ts';
 import { createApp, PRODUCTION_HEADERS, type AppOptions, type RequestLog } from './app.ts';
 import { loadConfig } from './config.ts';
 import { withServer } from './http-test.ts';
@@ -32,7 +34,12 @@ const OWNER_KEY = 'an-owner-key-for-the-tests';
 const EMPTY: RepositoryBranches = { owner: 'acme', name: 'app', defaultBranch: null, branches: [] };
 
 function options(
-  overrides: { loadBranches?: BranchLoader; limitPerMinute?: number; quota?: number } = {},
+  overrides: {
+    loadBranches?: BranchLoader;
+    limitPerMinute?: number;
+    quota?: number;
+    analytics?: Analytics;
+  } = {},
 ): AppOptions & { logs: RequestLog[] } {
   const config = loadConfig({ ALLOWED_HOSTS: 'devpulse.test' });
   assert.ok(typeof config !== 'string');
@@ -67,6 +74,7 @@ function options(
       salt: 'a-salt-for-the-tests',
       owner: new OwnerAccess({ key: OWNER_KEY, secure: false, maxAgeMs: 86_400_000 }),
     },
+    ...(overrides.analytics === undefined ? {} : { analytics: overrides.analytics }),
     ui: (request, response, next): void => {
       if (request.url === '/') {
         response.end('interface');
@@ -241,6 +249,78 @@ describe('createApp', () => {
       assert.equal(compressed.headers['vary'], 'accept-encoding');
       assert.ok(Number(compressed.headers['content-length']) < plain.body.length / 5);
       assert.equal(plain.headers['content-encoding'], undefined);
+    });
+  });
+
+  it('records analyses and shows statistics to the owner only', async () => {
+    const warnings: string[] = [];
+    const analytics: Analytics = {
+      events: new MemoryEventStore(),
+      githubQuota: () => ({ remaining: 4200, resetsAt: new Date('2026-10-20T01:00:00Z') }),
+      warn: (message) => warnings.push(message),
+    };
+    await withServer(createApp(options({ quota: 1, analytics })), async (send) => {
+      const visitor = {
+        headers: { 'user-agent': 'Mozilla/5.0 (iPhone)', 'accept-language': 'fr-FR,fr' },
+      };
+      await send('/api/branches?repo=Acme/App', visitor);
+      await send('/api/delivery?repo=acme/app', visitor);
+      await send('/api/branches?repo=acme/other', visitor);
+      await send('/api/branches?repo=not-a-repository', visitor);
+
+      assert.equal((await send('/api/admin/stats')).status, 404);
+      const signIn = await send('/api/owner', {
+        method: 'POST',
+        headers: { origin: 'http://devpulse.test', 'content-type': 'application/json' },
+        body: JSON.stringify({ key: OWNER_KEY }),
+      });
+      const asOwner = {
+        headers: { cookie: String(signIn.headers['set-cookie']).split(';')[0] ?? '' },
+      };
+      await send('/api/branches?repo=owner/own', asOwner);
+      const response = await send('/api/admin/stats?days=30', asOwner);
+
+      assert.equal(response.status, 200);
+      assert.equal(response.headers['cache-control'], 'no-store');
+      const stats = JSON.parse(response.body) as AdminStats;
+      assert.equal(stats.days, 30);
+      assert.deepEqual(stats.totals, {
+        visitors: 1,
+        analyses: 3,
+        succeeded: 1,
+        failed: 2,
+        deliveryOpened: 1,
+        repositories: 2,
+        cacheHitRate: 0.5,
+        medianMs: 0,
+        p90Ms: 0,
+        allowanceReached: 1,
+      });
+      assert.deepEqual(stats.outcomes, [
+        { outcome: 'allowance', count: 1 },
+        { outcome: 'invalid', count: 1 },
+      ]);
+      assert.deepEqual(stats.repositories[0], { name: 'acme/app', analyses: 1, failed: 0 });
+      assert.deepEqual(stats.devices, { mobile: 3, desktop: 0, bot: 0 });
+      assert.deepEqual(stats.languages, { fr: 3, en: 0, other: 0 });
+      assert.deepEqual(stats.github, { remaining: 4200, resetsAt: '2026-10-20T01:00:00.000Z' });
+      assert.deepEqual(warnings, []);
+    });
+  });
+
+  it('answers the visitor even when an analysis cannot be recorded', async () => {
+    const warnings: string[] = [];
+    const analytics: Analytics = {
+      events: {
+        add: () => Promise.reject(new Error('Firestore is down')),
+        recent: () => Promise.resolve([]),
+      },
+      githubQuota: () => null,
+      warn: (message) => warnings.push(message),
+    };
+    await withServer(createApp(options({ analytics })), async (send) => {
+      assert.equal((await send('/api/branches?repo=acme/app')).status, 200);
+      assert.deepEqual(warnings, ['Could not record an analysis: Firestore is down']);
     });
   });
 });

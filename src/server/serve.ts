@@ -4,9 +4,12 @@ import { performance } from 'node:perf_hooks';
 import type { RepositoryBranches } from '../branches/report.ts';
 import type { DeliveryData } from '../delivery/report.ts';
 import { GitHubClient } from '../github/client.ts';
+import type { Analytics } from './admin.ts';
+import { MemoryEventStore } from './analytics.ts';
 import { createApp, type RequestLog, type UiHandler } from './app.ts';
 import { TtlCache } from './cache.ts';
 import { loadConfig, type VisitorConfig } from './config.ts';
+import { FirestoreEventStore } from './firestore-events.ts';
 import { FirestoreQuotaStore } from './firestore-quota.ts';
 import { metadataAccessToken } from './google-auth.ts';
 import { OwnerAccess } from './owner.ts';
@@ -25,6 +28,9 @@ const RATE_LIMIT_MAX_CLIENTS = 10_000;
 const QUOTA_WINDOW_MS = 24 * 60 * 60_000;
 const OWNER_COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60_000;
 const OWNER_ATTEMPTS_PER_MINUTE = 5;
+
+// Usage statistics (ADR 0011).
+const EVENT_RETENTION_MS = 30 * 24 * 60 * 60_000;
 
 export interface ServeOptions {
   /** How to start this mode with a token, shown when `GITHUB_TOKEN` is missing. */
@@ -95,6 +101,7 @@ export async function serve(options: ServeOptions): Promise<void> {
                 maxAgeMs: OWNER_COOKIE_MAX_AGE_MS,
               }),
       },
+      analytics: analytics(config.visitors, client),
       ui: await options.createUi(),
       headers: options.headers,
       clock: () => performance.now(),
@@ -138,6 +145,26 @@ function visitorQuota(
         });
   return {
     quota: new VisitorQuota({ store, limit: visitors.quotaPerDay, windowMs: QUOTA_WINDOW_MS, now }),
+  };
+}
+
+/** Analysis events, in Firestore when deployed and in memory otherwise. */
+function analytics(visitors: VisitorConfig, client: GitHubClient): Analytics {
+  const events =
+    visitors.firestoreProject === null
+      ? new MemoryEventStore()
+      : new FirestoreEventStore({
+          project: visitors.firestoreProject,
+          accessToken: metadataAccessToken(globalThis.fetch),
+          fetch: globalThis.fetch,
+          retentionMs: EVENT_RETENTION_MS,
+        });
+  return {
+    events,
+    githubQuota: (now: Date) => client.lowestQuota(now),
+    warn: (message: string): void => {
+      process.stdout.write(`${JSON.stringify({ severity: 'WARNING', message })}\n`);
+    },
   };
 }
 

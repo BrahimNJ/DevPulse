@@ -1,9 +1,13 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
+import { handleStatsRequest, recordAnalysis, type AnalysisRecord } from './admin.ts';
+import type { ReportKind } from './analytics.ts';
 import {
   handleBranchesRequest,
   handleDeliveryRequest,
   handleQuotaRequest,
+  type ApiDependencies,
+  type ApiResponse,
   type Visitor,
 } from './api.ts';
 import type { AppOptions, Context } from './app.ts';
@@ -32,32 +36,80 @@ export const API_ROUTES: ReadonlyMap<string, ApiRoute> = new Map([
   ['/api/delivery', delivery],
   ['/api/quota', quota],
   ['/api/owner', owner],
+  ['/api/admin/stats', stats],
 ]);
 
+type ReportHandler = (
+  query: URLSearchParams,
+  dependencies: ApiDependencies,
+  visitor: Visitor,
+) => Promise<ApiResponse>;
+
 async function branches(call: ApiCall): Promise<void> {
-  const { request, response, options, context, visitor } = call;
-  if (!allowMethods(call, ['GET']) || !withinRateLimit(call)) {
-    return;
-  }
-  const { searchParams } = new URL(request.url ?? '/', 'http://localhost');
-  const result = await handleBranchesRequest(searchParams, options.api, visitor);
-  if (result.cacheHit !== undefined) {
-    context.cacheHit = result.cacheHit;
-  }
-  sendJson({ request, response }, result.status, result.body, { ...result.headers, ...NO_STORE });
+  await analysis(call, 'branches', handleBranchesRequest);
 }
 
 async function delivery(call: ApiCall): Promise<void> {
+  await analysis(call, 'delivery', handleDeliveryRequest);
+}
+
+/**
+ * Serves a report and records the analysis for the owner's statistics (ADR 0011),
+ * including those the rate limit refused.
+ */
+async function analysis(call: ApiCall, report: ReportKind, handle: ReportHandler): Promise<void> {
   const { request, response, options, context, visitor } = call;
+  if (!allowMethods(call, ['GET'])) {
+    return;
+  }
+  const started = options.clock();
+  const { searchParams } = new URL(request.url ?? '/', 'http://localhost');
+  const record = (
+    result: Pick<ApiResponse, 'status' | 'headers' | 'cacheHit'>,
+  ): AnalysisRecord => ({
+    report,
+    query: searchParams,
+    visitor,
+    headers: {
+      ...(request.headers['user-agent'] === undefined
+        ? {}
+        : { userAgent: request.headers['user-agent'] }),
+      ...(request.headers['accept-language'] === undefined
+        ? {}
+        : { acceptLanguage: request.headers['accept-language'] }),
+    },
+    at: options.api.now(),
+    status: result.status,
+    allowanceHeaders: result.headers?.['x-quota-limit'] !== undefined,
+    durationMs: options.clock() - started,
+    cacheHit: result.cacheHit ?? null,
+  });
+  if (!withinRateLimit(call)) {
+    await recordAnalysis(options.analytics, record({ status: 429 }));
+    return;
+  }
+  const result = await handle(searchParams, options.api, visitor);
+  if (result.cacheHit !== undefined) {
+    context.cacheHit = result.cacheHit;
+  }
+  // Recorded before answering: Cloud Run may throttle the instance once it has answered.
+  await recordAnalysis(options.analytics, record(result));
+  sendJson({ request, response }, result.status, result.body, { ...result.headers, ...NO_STORE });
+}
+
+/** The owner's statistics (ADR 0011): anyone else is told the route does not exist. */
+async function stats(call: ApiCall): Promise<void> {
+  const { request, options, visitor } = call;
+  if (options.analytics === undefined || !visitor.owner) {
+    sendJson(call, 404, { error: 'Not found.' }, NO_STORE);
+    return;
+  }
   if (!allowMethods(call, ['GET']) || !withinRateLimit(call)) {
     return;
   }
   const { searchParams } = new URL(request.url ?? '/', 'http://localhost');
-  const result = await handleDeliveryRequest(searchParams, options.api, visitor);
-  if (result.cacheHit !== undefined) {
-    context.cacheHit = result.cacheHit;
-  }
-  sendJson({ request, response }, result.status, result.body, { ...result.headers, ...NO_STORE });
+  const body = await handleStatsRequest(options.analytics, searchParams, options.api.now());
+  sendJson(call, 200, body, NO_STORE);
 }
 
 async function quota(call: ApiCall): Promise<void> {
