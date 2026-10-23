@@ -1,6 +1,11 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
-import { handleBranchesRequest, handleQuotaRequest, type Visitor } from './api.ts';
+import {
+  handleBranchesRequest,
+  handleDeliveryRequest,
+  handleQuotaRequest,
+  type Visitor,
+} from './api.ts';
 import type { AppOptions, Context } from './app.ts';
 import { sendJson } from './respond.ts';
 
@@ -24,6 +29,7 @@ const NO_STORE = { 'cache-control': 'no-store' };
 
 export const API_ROUTES: ReadonlyMap<string, ApiRoute> = new Map([
   ['/api/branches', branches],
+  ['/api/delivery', delivery],
   ['/api/quota', quota],
   ['/api/owner', owner],
 ]);
@@ -35,6 +41,19 @@ async function branches(call: ApiCall): Promise<void> {
   }
   const { searchParams } = new URL(request.url ?? '/', 'http://localhost');
   const result = await handleBranchesRequest(searchParams, options.api, visitor);
+  if (result.cacheHit !== undefined) {
+    context.cacheHit = result.cacheHit;
+  }
+  sendJson({ request, response }, result.status, result.body, { ...result.headers, ...NO_STORE });
+}
+
+async function delivery(call: ApiCall): Promise<void> {
+  const { request, response, options, context, visitor } = call;
+  if (!allowMethods(call, ['GET']) || !withinRateLimit(call)) {
+    return;
+  }
+  const { searchParams } = new URL(request.url ?? '/', 'http://localhost');
+  const result = await handleDeliveryRequest(searchParams, options.api, visitor);
   if (result.cacheHit !== undefined) {
     context.cacheHit = result.cacheHit;
   }

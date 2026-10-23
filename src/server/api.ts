@@ -5,13 +5,15 @@ import {
   type RepositoryRef,
 } from '../branches/input.ts';
 import { buildBranchReport, type BranchReport } from '../branches/report.ts';
+import { buildDeliveryReport, type DeliveryReport } from '../delivery/report.ts';
 import { GitHubError } from '../github/client.ts';
 import type { ApiErrorResponse, QuotaResponse } from './contract.ts';
 import type { QuotaStatus, VisitorQuota } from './quota.ts';
-import { ServiceError, type BranchLoader } from './source.ts';
+import { ServiceError, type BranchLoader, type DeliveryLoader } from './source.ts';
 
 export interface ApiDependencies {
   readonly loadBranches: BranchLoader;
+  readonly loadDelivery: DeliveryLoader;
   readonly now: () => Date;
   /** The daily allowance; absent when it is disabled, as in local development. */
   readonly quota?: VisitorQuota;
@@ -27,7 +29,7 @@ export interface Visitor {
 
 export interface ApiResponse {
   readonly status: number;
-  readonly body: BranchReport | ApiErrorResponse;
+  readonly body: BranchReport | DeliveryReport | ApiErrorResponse;
   readonly headers?: Readonly<Record<string, string>>;
   /** Whether the repository data came from the cache; absent when none was loaded. */
   readonly cacheHit?: boolean;
@@ -44,17 +46,53 @@ export async function handleBranchesRequest(
     return parsed;
   }
   const { repository, staleDays } = parsed;
-  // Reserved before calling GitHub, so parallel requests cannot exceed the allowance.
+  return withAllowance(repository, dependencies, visitor, (headers) =>
+    report(repository, staleDays, dependencies, headers),
+  );
+}
+
+/**
+ * Handles `GET /api/delivery?repo=<owner>/<repo>`. It shares the allowance with branch
+ * reports: a repository already analysed today costs nothing more.
+ */
+export async function handleDeliveryRequest(
+  query: URLSearchParams,
+  dependencies: ApiDependencies,
+  visitor: Visitor,
+): Promise<ApiResponse> {
+  const repository = parseRepository(query.get('repo') ?? '');
+  if (repository === null) {
+    return failure(400, 'Expected a repository as <owner>/<repo>.');
+  }
+  return withAllowance(repository, dependencies, visitor, async (headers) => {
+    const { delivery, cacheHit } = await dependencies.loadDelivery(repository);
+    return {
+      status: 200,
+      body: buildDeliveryReport(delivery, { now: dependencies.now() }),
+      headers,
+      cacheHit,
+    };
+  });
+}
+
+/**
+ * Runs a report within the visitor's daily allowance. The repository is reserved before
+ * calling GitHub, so parallel requests cannot exceed the allowance.
+ */
+async function withAllowance(
+  repository: RepositoryRef,
+  dependencies: ApiDependencies,
+  visitor: Visitor,
+  run: (headers: Readonly<Record<string, string>>) => Promise<ApiResponse>,
+): Promise<ApiResponse> {
   const quota = visitor.owner ? undefined : dependencies.quota;
   const name = `${repository.owner}/${repository.name}`;
   const reservation = await quota?.reserve(visitor.id, name);
   if (reservation?.allowed === false) {
     return quotaExceeded(reservation.status, dependencies.now());
   }
-
   try {
-    const headers = reservation === undefined ? {} : quotaHeadersOf(reservation.status);
-    return await report(repository, staleDays, dependencies, headers);
+    return await run(reservation === undefined ? {} : quotaHeadersOf(reservation.status));
   } catch (error) {
     // A repository already counted earlier today stays counted.
     if (reservation?.charged === true) {

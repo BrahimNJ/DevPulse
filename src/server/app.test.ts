@@ -8,9 +8,24 @@ import { withServer } from './http-test.ts';
 import { OwnerAccess } from './owner.ts';
 import { MemoryQuotaStore, VisitorQuota } from './quota.ts';
 import { RateLimiter } from './rate-limit.ts';
-import type { BranchLoader } from './source.ts';
+import type { DeliveryData } from '../delivery/report.ts';
+import type { BranchLoader, DeliveryLoader } from './source.ts';
 
 const NOW = new Date('2026-10-20T00:00:00Z');
+
+const DELIVERY: DeliveryData = {
+  owner: 'acme',
+  name: 'app',
+  windowDays: 90,
+  searchIndexed: true,
+  mergedCount: 0,
+  sample: [],
+  abandonedCount: 0,
+  staleOpenCount: 0,
+  revertCount: 0,
+  weeklyMerged: [],
+  releases: [],
+};
 
 const OWNER_KEY = 'an-owner-key-for-the-tests';
 
@@ -28,6 +43,8 @@ function options(
       loadBranches:
         overrides.loadBranches ??
         ((): ReturnType<BranchLoader> => Promise.resolve({ branches: EMPTY, cacheHit: true })),
+      loadDelivery: (): ReturnType<DeliveryLoader> =>
+        Promise.resolve({ delivery: DELIVERY, cacheHit: false }),
       now: () => NOW,
       ...(overrides.quota === undefined
         ? {}
@@ -137,6 +154,19 @@ describe('createApp', () => {
     assert.ok(entry);
     assert.equal(entry.severity, 'ERROR');
     assert.match(entry.error ?? '', /Error: bug/);
+  });
+
+  it('serves a delivery report that shares the allowance of the repository', async () => {
+    await withServer(createApp(options({ quota: 1 })), async (send) => {
+      const branches = await send('/api/branches?repo=acme/app');
+      const delivery = await send('/api/delivery?repo=acme/app');
+
+      assert.equal(branches.status, 200);
+      assert.equal(delivery.status, 200);
+      assert.equal(delivery.headers['x-quota-remaining'], '0');
+      assert.equal((JSON.parse(delivery.body) as { repository: string }).repository, 'acme/app');
+      assert.equal((await send('/api/delivery?repo=acme/other')).status, 429);
+    });
   });
 
   it('reports the allowance and lets the owner sign in and out', async () => {
