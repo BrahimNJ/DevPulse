@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.8.0](https://github.com/BrahimNJ/DevPulse/compare/v0.7.0...v0.8.0) (2026-10-23)
+
+
+### Features
+
+* delivery health (DORA-style metrics) in a two-column workspace ([18ebd55](https://github.com/BrahimNJ/DevPulse/commit/18ebd55a6d4fae4e15c2683b15ee2280cf09d971))
+* **delivery:** compute DORA-style delivery health ([bb15d71](https://github.com/BrahimNJ/DevPulse/commit/bb15d71441b76ced84323bf37cfeef3dce5998ab)), closes [#49](https://github.com/BrahimNJ/DevPulse/issues/49)
+* **github:** read the delivery history of a repository ([5b5d87d](https://github.com/BrahimNJ/DevPulse/commit/5b5d87d866dd6ac6f8c2582e61af522288e04075)), closes [#49](https://github.com/BrahimNJ/DevPulse/issues/49)
+* **server:** serve delivery reports from /api/delivery ([79da0a0](https://github.com/BrahimNJ/DevPulse/commit/79da0a0bc00b3f64412a2bcdb15c1c51eb28b872)), closes [#49](https://github.com/BrahimNJ/DevPulse/issues/49)
+* **web:** format durations and fetch delivery reports ([20745b5](https://github.com/BrahimNJ/DevPulse/commit/20745b53ec2b6f516c2e8e99b694710d69f6809a)), closes [#49](https://github.com/BrahimNJ/DevPulse/issues/49)
+* **web:** show delivery health in a two-column workspace ([dc06700](https://github.com/BrahimNJ/DevPulse/commit/dc06700846014ce708ff3021a19398b42e7987db)), closes [#49](https://github.com/BrahimNJ/DevPulse/issues/49)
+
+
+### Bug Fixes
+
+* **delivery:** align revert counting and weekly windows with search ([d6c85a2](https://github.com/BrahimNJ/DevPulse/commit/d6c85a22d8c669bf3c26658d0d5d57e9ac51f92c)), closes [#49](https://github.com/BrahimNJ/DevPulse/issues/49)
+* **web:** complete tab keyboard support and trust only read names ([003bd0b](https://github.com/BrahimNJ/DevPulse/commit/003bd0b9fb651b53ed033cf6ef91a7fdf2963680)), closes [#49](https://github.com/BrahimNJ/DevPulse/issues/49)
+* **web:** keep the header on two lines on phones ([0429c1b](https://github.com/BrahimNJ/DevPulse/commit/0429c1bd519e88fc93d7c7f938f5088de4892670))
+* **web:** keep the header on two lines on phones ([5fc0506](https://github.com/BrahimNJ/DevPulse/commit/5fc050654482880e1fc2ea258d4b0c68529f2450)), closes [#46](https://github.com/BrahimNJ/DevPulse/issues/46)
+
 ## [0.7.0](https://github.com/BrahimNJ/DevPulse/compare/v0.6.0...v0.7.0) (2026-10-23)
 
 
