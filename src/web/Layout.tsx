@@ -29,8 +29,7 @@ export function Layout({
   readonly quota: QuotaResponse | null;
   readonly children: ReactNode;
 }): JSX.Element {
-  const { t, locale } = useI18n();
-  const allowance = describeQuota(quota, t, locale);
+  const { t } = useI18n();
 
   useEffect(() => {
     document.title = t.meta.titles[page];
@@ -70,19 +69,7 @@ export function Layout({
             ))}
           </nav>
           <div className="header-actions">
-            {allowance !== null && (
-              <span
-                className={`quota-pill${quota?.remaining === 0 ? ' quota-empty' : ''}`}
-                title={
-                  quota?.limit === null || quota?.limit === undefined
-                    ? undefined
-                    : interpolate(t.quota.tooltip, { limit: quota.limit })
-                }
-              >
-                <span className="quota-dot" aria-hidden="true" />
-                {allowance}
-              </span>
-            )}
+            <QuotaPill quota={quota} />
             <LanguageSwitch />
             <a className="icon-link" href={REPOSITORY_URL} aria-label={t.nav.source}>
               <GitHubIcon />
@@ -135,6 +122,31 @@ export function Layout({
         </div>
       </footer>
     </div>
+  );
+}
+
+/** The visitor's daily allowance; nothing when there is none. */
+function QuotaPill({ quota }: { readonly quota: QuotaResponse | null }): JSX.Element | null {
+  const { t, locale } = useI18n();
+  const allowance = describeQuota(quota, t, locale);
+  if (quota === null || allowance === null) {
+    return null;
+  }
+  const compact = quota.owner ? '∞' : `${String(quota.remaining)}/${String(quota.limit)}`;
+  return (
+    <span
+      className={`quota-pill${quota.remaining === 0 ? ' quota-empty' : ''}`}
+      title={
+        quota.limit === null ? undefined : interpolate(t.quota.tooltip, { limit: quota.limit })
+      }
+    >
+      <span className="quota-dot" aria-hidden="true" />
+      {/* Phones show the compact form; screen readers always get the sentence. */}
+      <span className="quota-full">{allowance}</span>
+      <span className="quota-compact" aria-hidden="true">
+        {compact}
+      </span>
+    </span>
   );
 }
 
