@@ -6,8 +6,9 @@ document only records the structure they fit into.
 
 ## Current State
 
-DevPulse is a command-line tool that analyses public GitHub repositories. Its first
-feature reports branch statistics (#12). The repository also contains standards,
+DevPulse analyses public GitHub repositories, as a command-line tool and a web
+dashboard. Its first feature reports branch statistics (#12); the second reports
+delivery health (#49), in the dashboard and API only. The repository also contains standards,
 documentation, quality tooling, CI/CD, and agent configuration.
 
 Decided, see [decision records](decisions/):
