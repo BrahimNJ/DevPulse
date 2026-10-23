@@ -130,7 +130,10 @@ export function App(): JSX.Element {
     fetchBranchReport(trimmed, days, controller.signal).then(
       (result) => {
         settle(setBranches)(result);
-        setRecent(rememberRecent(storage(), trimmed));
+        if (controller.signal.aborted) {
+          return;
+        }
+        setRecent(rememberRecent(storage(), result.report.repository));
         fetchDeliveryReport(trimmed, controller.signal).then(
           settle(setDelivery),
           fail(setDelivery),
@@ -182,9 +185,9 @@ export function App(): JSX.Element {
             analyse(target, staleDays);
           }}
         />
-        <section className="workspace-main" aria-live="polite">
+        <section className="workspace-main">
           <WorkspaceHeader
-            repository={isDemo ? DEMO_REPOSITORY : repository.trim()}
+            repository={isDemo ? DEMO_REPOSITORY : headingOf(branches, repository)}
             generatedAt={branches.kind === 'ready' ? branches.report.generatedAt : null}
             demo={isDemo}
           />
@@ -212,6 +215,11 @@ export function App(): JSX.Element {
       </div>
     </Layout>
   );
+}
+
+/** The name GitHub returned once a report is ready, the typed one until then. */
+function headingOf(load: Load<BranchReportResponse>, typed: string): string {
+  return load.kind === 'ready' ? load.report.repository : typed.trim();
 }
 
 function demo<T>(report: T): Load<T> {
@@ -411,7 +419,8 @@ function WorkspaceHeader({
               : formatDate(generatedAt, locale)}
         </p>
       </div>
-      {!isDemo && repository !== '' && (
+      {/* Only for a report: then the name is the one the server read on GitHub. */}
+      {!isDemo && generatedAt !== null && (
         <a className="button button-ghost button-small" href={`https://github.com/${repository}`}>
           <GitHubIcon /> {t.workspace.openOnGitHub}
         </a>
@@ -420,7 +429,19 @@ function WorkspaceHeader({
   );
 }
 
-/** WAI-ARIA tabs: arrow keys move between them, as in any desktop tool. */
+/** The tab a key leads to from `index`, wrapping around, or null for other keys. */
+function tabForKey(key: string, index: number): Tab | null {
+  const targets: Readonly<Record<string, number>> = {
+    ArrowRight: index + 1,
+    ArrowLeft: index - 1 + TABS.length,
+    Home: 0,
+    End: TABS.length - 1,
+  };
+  const target = targets[key];
+  return target === undefined ? null : (TABS[target % TABS.length] ?? null);
+}
+
+/** WAI-ARIA tabs: arrow keys, Home and End move between them, as in any desktop tool. */
 function Tabs({
   tab,
   onSelect,
@@ -430,10 +451,11 @@ function Tabs({
 }): JSX.Element {
   const { t } = useI18n();
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+    const next = tabForKey(event.key, TABS.indexOf(tab));
+    if (next === null) {
       return;
     }
-    const next = TABS[(TABS.indexOf(tab) + 1) % TABS.length] ?? 'branches';
+    event.preventDefault();
     onSelect(next);
     document.getElementById(`tab-${next}`)?.focus();
   }
@@ -446,7 +468,8 @@ function Tabs({
           type="button"
           role="tab"
           aria-selected={tab === item}
-          aria-controls={`panel-${item}`}
+          // Only the selected tab's panel is rendered.
+          aria-controls={tab === item ? `panel-${item}` : undefined}
           tabIndex={tab === item ? 0 : -1}
           onClick={() => {
             onSelect(item);
@@ -514,7 +537,7 @@ function LoadView<T>({
     case 'idle':
     case 'loading':
       return (
-        <div className="loading">
+        <div className="loading" role="status">
           <span className="spinner" aria-hidden="true" />
           <span>{loading}</span>
         </div>

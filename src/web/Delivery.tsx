@@ -8,17 +8,22 @@ import { useI18n } from './I18nProvider.tsx';
 
 type Band = 'elite' | 'high' | 'medium' | 'low';
 
+/** The most merged pull requests the server reads as a sample (src/github/delivery.ts). */
+const SAMPLE_LIMIT = 100;
+
 /** The Delivery tab: DORA-style indicators, throughput, sizes, reviews and flow. */
 export function DeliveryView({ report }: { readonly report: DeliveryReportResponse }): JSX.Element {
   const { t, locale } = useI18n();
   const copy = t.delivery;
   const sample = report.leadTime?.sampleSize ?? 0;
+  // Without search the count is the sample's, capped by the query: a full sample is a floor.
+  const capped = !report.searchIndexed && report.merged >= SAMPLE_LIMIT;
   return (
     <div className="delivery">
       <p className="report-meta">
         {interpolate(copy.window, {
           days: formatNumber(report.windowDays, locale),
-          merged: formatNumber(report.merged, locale),
+          merged: `${formatNumber(report.merged, locale)}${capped ? '+' : ''}`,
           sample: formatNumber(sample, locale),
         })}
       </p>
