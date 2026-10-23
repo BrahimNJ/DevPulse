@@ -14,7 +14,7 @@ describe('feature catalogue', () => {
 
   it('gives every group and feature a unique name', () => {
     const groups = FEATURE_GROUPS.map((group) => group.id);
-    const titles = FEATURE_GROUPS.flatMap((group) => group.features.map((f) => f.title));
+    const titles = FEATURE_GROUPS.flatMap((group) => group.features.map((f) => f.id));
     assert.equal(new Set(groups).size, groups.length);
     assert.equal(new Set(titles).size, titles.length);
   });

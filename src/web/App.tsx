@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type JSX, type SyntheticEvent } from 'reac
 
 import { ApiError, fetchBranchReport, type BranchReportResponse } from './api.ts';
 import { BranchTable } from './BranchTable.tsx';
+import { formatNumber, interpolate, type Messages } from './i18n.ts';
+import { useI18n } from './I18nProvider.tsx';
 import { AlertIcon, ArrowIcon, ClockIcon, SearchIcon } from './icons.tsx';
 import { Insights } from './Insights.tsx';
 import { Layout } from './Layout.tsx';
@@ -11,7 +13,7 @@ import { Summary } from './Summary.tsx';
 type LoadState =
   | { readonly kind: 'idle' }
   | { readonly kind: 'loading'; readonly repository: string }
-  | { readonly kind: 'error'; readonly message: string; readonly quotaExceeded: boolean }
+  | { readonly kind: 'error'; readonly error: unknown }
   | { readonly kind: 'ready'; readonly report: BranchReportResponse };
 
 const STALE_OPTIONS = [30, 90, 180, 365] as const;
@@ -26,7 +28,31 @@ function initialQuery(): { repository: string; staleDays: number } {
   };
 }
 
+/** The failure in the visitor's language; the server's own text is the last resort. */
+function describeError(error: unknown, t: Messages, limit: number | null): string {
+  if (!(error instanceof ApiError)) {
+    return t.app.errors.generic;
+  }
+  if (error.status === 429) {
+    return error.quotaExceeded
+      ? interpolate(t.app.errors['429'], {
+          limit: limit ?? 3,
+          when: timeUntil(error.resetsAt, t),
+        })
+      : t.app.errors.tooManyRequests;
+  }
+  const known: Readonly<Record<number, string>> = {
+    400: t.app.errors['400'],
+    404: t.app.errors['404'],
+    502: t.app.errors['502'],
+    503: t.app.errors['503'],
+    504: t.app.errors['504'],
+  };
+  return known[error.status] ?? t.app.errors.generic;
+}
+
 export function App(): JSX.Element {
+  const { t, locale } = useI18n();
   const [initial] = useState(initialQuery);
   const [repository, setRepository] = useState(initial.repository);
   const [staleDays, setStaleDays] = useState(initial.staleDays);
@@ -60,15 +86,10 @@ export function App(): JSX.Element {
         if (controller.signal.aborted) {
           return;
         }
-        const quotaExceeded = error instanceof ApiError && error.status === 429;
-        if (quotaExceeded) {
+        if (error instanceof ApiError && error.quotaExceeded) {
           refresh();
         }
-        setState({
-          kind: 'error',
-          message: error instanceof Error ? error.message : String(error),
-          quotaExceeded,
-        });
+        setState({ kind: 'error', error });
       },
     );
   }
@@ -94,29 +115,26 @@ export function App(): JSX.Element {
     <Layout page="app" quota={quota}>
       <section className="app-hero">
         <div className="container">
-          <span className="kicker">Analyse</span>
-          <h1>Branch health report</h1>
-          <p className="lede">
-            Every branch of a public repository: last activity, author, protection, and how far it
-            drifted from the default branch.
-          </p>
+          <span className="kicker">{t.app.kicker}</span>
+          <h1>{t.app.title}</h1>
+          <p className="lede">{t.app.lede}</p>
 
           <form className="analyse-form" onSubmit={onSubmit} role="search">
             <label className="input-with-icon">
               <SearchIcon />
-              <span className="visually-hidden">Repository</span>
+              <span className="visually-hidden">{t.home.repositoryLabel}</span>
               <input
                 value={repository}
                 onChange={(event) => {
                   setRepository(event.target.value);
                 }}
-                placeholder="owner/repository"
+                placeholder={t.home.placeholder}
                 spellCheck={false}
                 autoComplete="off"
               />
             </label>
             <label className="select-field">
-              <span>Stale after</span>
+              <span>{t.app.staleAfter}</span>
               <select
                 value={staleDays}
                 onChange={(event) => {
@@ -125,7 +143,7 @@ export function App(): JSX.Element {
               >
                 {STALE_OPTIONS.map((days) => (
                   <option key={days} value={days}>
-                    {days} days
+                    {interpolate(t.app.days, { days: formatNumber(days, locale) })}
                   </option>
                 ))}
               </select>
@@ -135,13 +153,13 @@ export function App(): JSX.Element {
               className="button button-primary"
               disabled={state.kind === 'loading'}
             >
-              {state.kind === 'loading' ? 'Analysing…' : 'Analyse'}
+              {state.kind === 'loading' ? t.app.analysing : t.home.analyse}
               <ArrowIcon />
             </button>
           </form>
 
           <p className="hero-hint">
-            Examples{' '}
+            {t.app.examples}{' '}
             {EXAMPLES.map((example) => (
               <button
                 key={example}
@@ -160,41 +178,55 @@ export function App(): JSX.Element {
           {exhausted && (
             <p className="notice notice-warn" role="status">
               <ClockIcon />
-              You have used today&apos;s three analyses. Repositories you already analysed still
-              open; new ones are available again {timeUntil(quota.resetsAt)}.
+              {interpolate(t.quota.exhausted, {
+                limit: quota.limit ?? 3,
+                when: timeUntil(quota.resetsAt, t),
+              })}
             </p>
           )}
         </div>
       </section>
 
       <div className="container report">
-        <Result state={state} />
+        <Result state={state} limit={quota?.limit ?? null} />
       </div>
     </Layout>
   );
 }
 
-function Result({ state }: { readonly state: LoadState }): JSX.Element {
+function Result({
+  state,
+  limit,
+}: {
+  readonly state: LoadState;
+  readonly limit: number | null;
+}): JSX.Element {
+  const { t } = useI18n();
   switch (state.kind) {
     case 'idle':
       return <EmptyState />;
-    case 'loading':
+    case 'loading': {
+      const [before, after] = t.app.loading.split('{repository}');
       return (
         <div className="loading" aria-live="polite">
           <span className="spinner" aria-hidden="true" />
-          Reading the branches of <strong className="mono">{state.repository}</strong>…
+          <span>
+            {before}
+            <strong className="mono">{state.repository}</strong>
+            {after}
+          </span>
         </div>
       );
-    case 'error':
+    }
+    case 'error': {
+      const quotaExceeded = state.error instanceof ApiError && state.error.status === 429;
       return (
-        <p
-          className={`notice ${state.quotaExceeded ? 'notice-warn' : 'notice-error'}`}
-          role="alert"
-        >
+        <p className={`notice ${quotaExceeded ? 'notice-warn' : 'notice-error'}`} role="alert">
           <AlertIcon />
-          {state.message}
+          {describeError(state.error, t, limit)}
         </p>
       );
+    }
     case 'ready':
       return (
         <>
@@ -207,22 +239,17 @@ function Result({ state }: { readonly state: LoadState }): JSX.Element {
 }
 
 function EmptyState(): JSX.Element {
+  const { t } = useI18n();
   return (
     <div className="empty-state">
-      <h2>What the report shows</h2>
+      <h2>{t.app.empty.title}</h2>
       <ul className="card-grid card-grid-3">
-        <li className="card">
-          <h3>Activity</h3>
-          <p>When each branch last received a commit, and by whom.</p>
-        </li>
-        <li className="card">
-          <h3>Abandoned work</h3>
-          <p>Branches without a commit for longer than the threshold you choose.</p>
-        </li>
-        <li className="card">
-          <h3>Divergence</h3>
-          <p>Commits each branch has that main lacks, and the reverse.</p>
-        </li>
+        {t.app.empty.cards.map((card) => (
+          <li key={card.title} className="card">
+            <h3>{card.title}</h3>
+            <p>{card.text}</p>
+          </li>
+        ))}
       </ul>
     </div>
   );

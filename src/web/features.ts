@@ -2,6 +2,7 @@
  * The product catalogue shown on the landing page. Only `available` entries exist in
  * the code; `planned` entries are proposals from the roadmap, not commitments, and
  * the page labels them as such (AGENTS.md: undefined features are marked as proposed).
+ * Names and descriptions are in the language files, under `catalogue`.
  */
 export type FeatureStatus = 'available' | 'planned';
 
@@ -24,156 +25,79 @@ export type FeatureIcon =
   | 'compare'
   | 'download';
 
+export type GroupId = 'branches' | 'activity' | 'contributors' | 'collaboration' | 'insights';
+
+export type FeatureId =
+  | 'branch-overview'
+  | 'stale-detection'
+  | 'protection-status'
+  | 'branch-divergence'
+  | 'cli-json'
+  | 'commit-heatmap'
+  | 'activity-trends'
+  | 'top-contributors'
+  | 'bus-factor'
+  | 'new-returning'
+  | 'time-to-merge'
+  | 'review-latency'
+  | 'ageing-pull-requests'
+  | 'issue-response'
+  | 'health-score'
+  | 'repository-comparison'
+  | 'report-export';
+
 export interface Feature {
-  readonly title: string;
-  readonly description: string;
+  readonly id: FeatureId;
   readonly icon: FeatureIcon;
   readonly status: FeatureStatus;
 }
 
 export interface FeatureGroup {
-  readonly id: string;
-  readonly name: string;
-  readonly summary: string;
+  readonly id: GroupId;
   readonly features: readonly Feature[];
 }
 
 export const FEATURE_GROUPS: readonly FeatureGroup[] = [
   {
     id: 'branches',
-    name: 'Branch health',
-    summary: 'Know which work is alive, protected or abandoned.',
     features: [
-      {
-        title: 'Branch overview',
-        description: 'Every branch with its last commit, author and age, newest first.',
-        icon: 'branch',
-        status: 'available',
-      },
-      {
-        title: 'Stale detection',
-        description: 'Flags branches without a commit for 30 to 365 days.',
-        icon: 'clock',
-        status: 'available',
-      },
-      {
-        title: 'Protection status',
-        description: 'Classic protection rules and rulesets, without admin rights.',
-        icon: 'lock',
-        status: 'available',
-      },
-      {
-        title: 'Branch divergence',
-        description: 'How far each branch is ahead of or behind the default branch.',
-        icon: 'diverge',
-        status: 'available',
-      },
-      {
-        title: 'CLI and JSON',
-        description: 'The same report in a terminal, or as JSON for scripts and CI.',
-        icon: 'terminal',
-        status: 'available',
-      },
+      { id: 'branch-overview', icon: 'branch', status: 'available' },
+      { id: 'stale-detection', icon: 'clock', status: 'available' },
+      { id: 'protection-status', icon: 'lock', status: 'available' },
+      { id: 'branch-divergence', icon: 'diverge', status: 'available' },
+      { id: 'cli-json', icon: 'terminal', status: 'available' },
     ],
   },
   {
     id: 'activity',
-    name: 'Activity',
-    summary: 'See how a repository moves over time.',
     features: [
-      {
-        title: 'Commit heatmap',
-        description: 'Commits by day and hour, to reveal the rhythm of a project.',
-        icon: 'calendar',
-        status: 'planned',
-      },
-      {
-        title: 'Activity trends',
-        description: 'Weekly commits and active branches, with the change over time.',
-        icon: 'activity',
-        status: 'planned',
-      },
+      { id: 'commit-heatmap', icon: 'calendar', status: 'planned' },
+      { id: 'activity-trends', icon: 'activity', status: 'planned' },
     ],
   },
   {
     id: 'contributors',
-    name: 'Contributors',
-    summary: 'Understand who keeps the project running.',
     features: [
-      {
-        title: 'Top contributors',
-        description: 'Who commits, reviews and merges, over a chosen period.',
-        icon: 'users',
-        status: 'planned',
-      },
-      {
-        title: 'Bus factor',
-        description: 'How many people the project depends on to keep moving.',
-        icon: 'shield',
-        status: 'planned',
-      },
-      {
-        title: 'New and returning',
-        description: 'First-time contributors versus regulars, period by period.',
-        icon: 'sparkle',
-        status: 'planned',
-      },
+      { id: 'top-contributors', icon: 'users', status: 'planned' },
+      { id: 'bus-factor', icon: 'shield', status: 'planned' },
+      { id: 'new-returning', icon: 'sparkle', status: 'planned' },
     ],
   },
   {
     id: 'collaboration',
-    name: 'Pull requests and issues',
-    summary: 'Measure how fast work flows from idea to main.',
     features: [
-      {
-        title: 'Time to merge',
-        description: 'From opening to merge, with medians and outliers.',
-        icon: 'merge',
-        status: 'planned',
-      },
-      {
-        title: 'Review latency',
-        description: 'How long a pull request waits for its first review.',
-        icon: 'eye',
-        status: 'planned',
-      },
-      {
-        title: 'Ageing pull requests',
-        description: 'Open pull requests that have gone quiet, oldest first.',
-        icon: 'hourglass',
-        status: 'planned',
-      },
-      {
-        title: 'Issue response time',
-        description: 'Time to the first answer on a new issue.',
-        icon: 'message',
-        status: 'planned',
-      },
+      { id: 'time-to-merge', icon: 'merge', status: 'planned' },
+      { id: 'review-latency', icon: 'eye', status: 'planned' },
+      { id: 'ageing-pull-requests', icon: 'hourglass', status: 'planned' },
+      { id: 'issue-response', icon: 'message', status: 'planned' },
     ],
   },
   {
     id: 'insights',
-    name: 'Insights',
-    summary: 'Turn the numbers into a decision.',
     features: [
-      {
-        title: 'Health score',
-        description: 'One score that combines activity, ownership and review flow.',
-        icon: 'gauge',
-        status: 'planned',
-      },
-      {
-        title: 'Repository comparison',
-        description: 'Two repositories side by side, metric by metric.',
-        icon: 'compare',
-        status: 'planned',
-      },
-      {
-        title: 'Report export',
-        description: 'Download a report as CSV or Markdown to share it.',
-        icon: 'download',
-        status: 'planned',
-      },
+      { id: 'health-score', icon: 'gauge', status: 'planned' },
+      { id: 'repository-comparison', icon: 'compare', status: 'planned' },
+      { id: 'report-export', icon: 'download', status: 'planned' },
     ],
   },
 ];

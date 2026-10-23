@@ -2,16 +2,13 @@ import { useState, type JSX } from 'react';
 
 import type { BranchReportResponse, BranchRow } from './api.ts';
 import { formatAge, formatDate, formatDivergence } from './format.ts';
+import { formatNumber, interpolate } from './i18n.ts';
+import { useI18n } from './I18nProvider.tsx';
 import { BranchIcon, ClockIcon, LockIcon, StarIcon } from './icons.tsx';
 
 type Filter = 'all' | 'active' | 'stale' | 'protected';
 
-const FILTERS: readonly { readonly id: Filter; readonly label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'active', label: 'Active' },
-  { id: 'stale', label: 'Stale' },
-  { id: 'protected', label: 'Protected' },
-];
+const FILTERS: readonly Filter[] = ['all', 'active', 'stale', 'protected'];
 
 function matches(branch: BranchRow, filter: Filter, search: string): boolean {
   const byFilter =
@@ -23,24 +20,26 @@ function matches(branch: BranchRow, filter: Filter, search: string): boolean {
 }
 
 export function BranchTable({ report }: { readonly report: BranchReportResponse }): JSX.Element {
+  const { t, locale } = useI18n();
+  const copy = t.table;
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
   const rows = report.branches.filter((branch) => matches(branch, filter, search.trim()));
 
   return (
-    <section className="branches" aria-label="Branches">
+    <section className="branches" aria-label={copy.label}>
       <div className="toolbar">
-        <div className="segmented" role="group" aria-label="Filter branches">
+        <div className="segmented" role="group" aria-label={copy.filterGroup}>
           {FILTERS.map((option) => (
             <button
-              key={option.id}
+              key={option}
               type="button"
-              aria-pressed={filter === option.id}
+              aria-pressed={filter === option}
               onClick={() => {
-                setFilter(option.id);
+                setFilter(option);
               }}
             >
-              {option.label}
+              {copy.filters[option]}
             </button>
           ))}
         </div>
@@ -50,8 +49,8 @@ export function BranchTable({ report }: { readonly report: BranchReportResponse 
           onChange={(event) => {
             setSearch(event.target.value);
           }}
-          placeholder="Filter by name"
-          aria-label="Filter branches by name"
+          placeholder={copy.filterPlaceholder}
+          aria-label={copy.filterLabel}
         />
       </div>
 
@@ -59,20 +58,22 @@ export function BranchTable({ report }: { readonly report: BranchReportResponse 
         <table>
           <thead>
             <tr>
-              <th scope="col">Branch</th>
-              <th scope="col">Last commit</th>
+              <th scope="col">{copy.columns.branch}</th>
+              <th scope="col">{copy.columns.lastCommit}</th>
               <th scope="col" className="numeric">
-                Age
+                {copy.columns.age}
               </th>
               <th
                 scope="col"
                 className="numeric"
-                title={`Commits ahead of and behind ${report.defaultBranch ?? 'the default branch'}`}
+                title={interpolate(copy.columns.divergenceTitle, {
+                  base: report.defaultBranch ?? t.insights.defaultBranch,
+                })}
               >
-                Ahead / behind
+                {copy.columns.divergence}
               </th>
-              <th scope="col">Author</th>
-              <th scope="col">Status</th>
+              <th scope="col">{copy.columns.author}</th>
+              <th scope="col">{copy.columns.status}</th>
             </tr>
           </thead>
           <tbody>
@@ -84,9 +85,9 @@ export function BranchTable({ report }: { readonly report: BranchReportResponse 
                     <span className="branch-label">{branch.name}</span>
                   </span>
                 </td>
-                <td className="numeric-text">{formatDate(branch.lastCommit.date)}</td>
-                <td className="numeric">{formatAge(branch.ageDays)}</td>
-                <td className="numeric">{formatDivergence(branch.divergence)}</td>
+                <td className="numeric-text">{formatDate(branch.lastCommit.date, locale)}</td>
+                <td className="numeric">{formatAge(branch.ageDays, locale, t.time.today)}</td>
+                <td className="numeric">{formatDivergence(branch.divergence, locale)}</td>
                 <td className="muted">{branch.lastCommit.author ?? '–'}</td>
                 <td>
                   <Badges branch={branch} />
@@ -95,10 +96,13 @@ export function BranchTable({ report }: { readonly report: BranchReportResponse 
             ))}
           </tbody>
         </table>
-        {rows.length === 0 && <p className="empty">No branch matches this filter.</p>}
+        {rows.length === 0 && <p className="empty">{copy.empty}</p>}
       </div>
       <p className="table-caption">
-        Showing {rows.length} of {report.branches.length} branches, most recently updated first.
+        {interpolate(copy.caption, {
+          shown: formatNumber(rows.length, locale),
+          total: formatNumber(report.branches.length, locale),
+        })}
       </p>
     </section>
   );
@@ -106,24 +110,25 @@ export function BranchTable({ report }: { readonly report: BranchReportResponse 
 
 /** Each status pairs an icon with a label, so colour never carries meaning alone. */
 function Badges({ branch }: { readonly branch: BranchRow }): JSX.Element {
+  const { t } = useI18n();
   return (
     <span className="badges">
       {branch.isDefault && (
         <span className="badge badge-default">
           <StarIcon />
-          default
+          {t.table.badges.default}
         </span>
       )}
       {branch.isProtected && (
         <span className="badge badge-protected">
           <LockIcon />
-          protected
+          {t.table.badges.protected}
         </span>
       )}
       {branch.isStale && (
         <span className="badge badge-stale">
           <ClockIcon />
-          stale
+          {t.table.badges.stale}
         </span>
       )}
     </span>
