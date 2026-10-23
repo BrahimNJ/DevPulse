@@ -1,31 +1,62 @@
-import { useEffect, useRef, useState, type JSX, type SyntheticEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type JSX,
+  type KeyboardEvent,
+  type ReactNode,
+  type SyntheticEvent,
+} from 'react';
 
-import { ApiError, fetchBranchReport, type BranchReportResponse } from './api.ts';
+import {
+  ApiError,
+  fetchBranchReport,
+  fetchDeliveryReport,
+  type BranchReportResponse,
+  type DeliveryReportResponse,
+  type QuotaResponse,
+} from './api.ts';
 import { BranchTable } from './BranchTable.tsx';
+import { DeliveryView } from './Delivery.tsx';
+import { DEMO_BRANCH_REPORT, DEMO_DELIVERY_REPORT, DEMO_REPOSITORY } from './demo.ts';
+import { formatDate } from './format.ts';
 import { formatNumber, interpolate, type Messages } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
-import { AlertIcon, ArrowIcon, ClockIcon, SearchIcon } from './icons.tsx';
+import { AlertIcon, ArrowIcon, ClockIcon, GitHubIcon, SearchIcon } from './icons.tsx';
 import { Insights } from './Insights.tsx';
 import { Layout } from './Layout.tsx';
-import { timeUntil, useQuota } from './quota.ts';
+import { describeQuota, timeUntil, useQuota } from './quota.ts';
+import { readRecent, rememberRecent } from './recent.ts';
 import { Summary } from './Summary.tsx';
 
-type LoadState =
+type Load<T> =
   | { readonly kind: 'idle' }
-  | { readonly kind: 'loading'; readonly repository: string }
+  | { readonly kind: 'loading' }
   | { readonly kind: 'error'; readonly error: unknown }
-  | { readonly kind: 'ready'; readonly report: BranchReportResponse };
+  | { readonly kind: 'ready'; readonly report: T };
+
+type Tab = 'branches' | 'delivery';
 
 const STALE_OPTIONS = [30, 90, 180, 365] as const;
-const EXAMPLES = ['nodejs/node', 'facebook/react', 'vitejs/vite'] as const;
+const EXAMPLES = ['nodejs/node', 'facebook/react', 'kubernetes/kubernetes'] as const;
+const TABS: readonly Tab[] = ['branches', 'delivery'];
 
-function initialQuery(): { repository: string; staleDays: number } {
+function initialQuery(): { repository: string; staleDays: number; tab: Tab } {
   const params = new URLSearchParams(window.location.search);
   const staleDays = Number(params.get('staleDays'));
   return {
     repository: params.get('repo') ?? '',
     staleDays: STALE_OPTIONS.some((option) => option === staleDays) ? staleDays : 90,
+    tab: params.get('tab') === 'delivery' ? 'delivery' : 'branches',
   };
+}
+
+function storage(): Storage | undefined {
+  try {
+    return window.localStorage;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -38,10 +69,7 @@ function describeError(error: unknown, t: Messages, limit: number | null): strin
   }
   if (error.status === 429) {
     return error.quotaExceeded
-      ? interpolate(t.app.errors['429'], {
-          limit: limit ?? 3,
-          when: timeUntil(error.resetsAt, t),
-        })
+      ? interpolate(t.app.errors['429'], { limit: limit ?? 3, when: timeUntil(error.resetsAt, t) })
       : t.app.errors.tooManyRequests;
   }
   const known: Readonly<Record<number, string>> = {
@@ -55,15 +83,17 @@ function describeError(error: unknown, t: Messages, limit: number | null): strin
 }
 
 export function App(): JSX.Element {
-  const { t, locale } = useI18n();
   const [initial] = useState(initialQuery);
   const [repository, setRepository] = useState(initial.repository);
   const [staleDays, setStaleDays] = useState(initial.staleDays);
-  const [state, setState] = useState<LoadState>({ kind: 'idle' });
+  const [tab, setTab] = useState<Tab>(initial.tab);
+  const [branches, setBranches] = useState<Load<BranchReportResponse>>({ kind: 'idle' });
+  const [delivery, setDelivery] = useState<Load<DeliveryReportResponse>>({ kind: 'idle' });
+  const [recent, setRecent] = useState(() => readRecent(storage()));
   const inFlight = useRef<AbortController | null>(null);
   const { quota, update, refresh } = useQuota();
 
-  function analyse(target: string, days: number): void {
+  function analyse(target: string, days: number, nextTab: Tab = tab): void {
     const trimmed = target.trim();
     if (trimmed === '') {
       return;
@@ -71,35 +101,63 @@ export function App(): JSX.Element {
     inFlight.current?.abort();
     const controller = new AbortController();
     inFlight.current = controller;
+    // Keep the URL shareable: reloading it shows the same report and tab.
+    writeUrl(trimmed, days, nextTab);
+    setBranches({ kind: 'loading' });
+    setDelivery({ kind: 'loading' });
 
-    // Keep the URL shareable: reloading it shows the same report.
-    const query = new URLSearchParams({ repo: trimmed, staleDays: String(days) });
-    window.history.replaceState(null, '', `?${query.toString()}`);
-    setState({ kind: 'loading', repository: trimmed });
-
-    fetchBranchReport(trimmed, days, controller.signal).then(
-      (result) => {
+    const settle =
+      <T,>(set: (load: Load<T>) => void) =>
+      (result: { report: T; quota: Parameters<typeof update>[0] }): void => {
         update(result.quota);
-        // A newer request may have started while this one was resolving.
         if (!controller.signal.aborted) {
-          setState({ kind: 'ready', report: result.report });
+          set({ kind: 'ready', report: result.report });
         }
-      },
-      (error: unknown) => {
+      };
+    const fail =
+      <T,>(set: (load: Load<T>) => void) =>
+      (error: unknown): void => {
         if (controller.signal.aborted) {
           return;
         }
         if (error instanceof ApiError && error.quotaExceeded) {
           refresh();
         }
-        setState({ kind: 'error', error });
+        set({ kind: 'error', error });
+      };
+
+    // The branch report reserves the repository in the allowance; delivery then reuses it.
+    fetchBranchReport(trimmed, days, controller.signal).then(
+      (result) => {
+        settle(setBranches)(result);
+        setRecent(rememberRecent(storage(), trimmed));
+        fetchDeliveryReport(trimmed, controller.signal).then(
+          settle(setDelivery),
+          fail(setDelivery),
+        );
+      },
+      (error: unknown) => {
+        fail(setBranches)(error);
+        fail(setDelivery)(error);
       },
     );
   }
 
+  function writeUrl(target: string, days: number, nextTab: Tab): void {
+    const query = new URLSearchParams({ repo: target, staleDays: String(days), tab: nextTab });
+    window.history.replaceState(null, '', `?${query.toString()}`);
+  }
+
+  function selectTab(next: Tab): void {
+    setTab(next);
+    if (branches.kind !== 'idle') {
+      writeUrl(repository, staleDays, next);
+    }
+  }
+
   useEffect(() => {
     if (initial.repository !== '') {
-      analyse(initial.repository, initial.staleDays);
+      analyse(initial.repository, initial.staleDays, initial.tab);
     }
     return (): void => {
       inFlight.current?.abort();
@@ -107,153 +165,370 @@ export function App(): JSX.Element {
     // Runs once, for a report requested through the URL.
   }, []);
 
-  function onSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>): void {
-    event.preventDefault();
-    analyse(repository, staleDays);
-  }
-
-  const exhausted = quota?.remaining === 0;
-
+  const isDemo = branches.kind === 'idle';
   return (
     <Layout page="app" quota={quota}>
-      <section className="app-hero">
-        <div className="container">
-          <span className="kicker">{t.app.kicker}</span>
-          <h1>{t.app.title}</h1>
-          <p className="lede">{t.app.lede}</p>
-
-          <form className="analyse-form" onSubmit={onSubmit} role="search">
-            <label className="input-with-icon">
-              <SearchIcon />
-              <span className="visually-hidden">{t.home.repositoryLabel}</span>
-              <input
-                value={repository}
-                onChange={(event) => {
-                  setRepository(event.target.value);
-                }}
-                placeholder={t.home.placeholder}
-                spellCheck={false}
-                autoComplete="off"
+      <div className="container workspace">
+        <Sidebar
+          repository={repository}
+          staleDays={staleDays}
+          busy={branches.kind === 'loading'}
+          quota={quota}
+          recent={recent}
+          onRepository={setRepository}
+          onStaleDays={setStaleDays}
+          onAnalyse={(target) => {
+            setRepository(target);
+            analyse(target, staleDays);
+          }}
+        />
+        <section className="workspace-main" aria-live="polite">
+          <WorkspaceHeader
+            repository={isDemo ? DEMO_REPOSITORY : repository.trim()}
+            generatedAt={branches.kind === 'ready' ? branches.report.generatedAt : null}
+            demo={isDemo}
+          />
+          <Tabs tab={tab} onSelect={selectTab} />
+          <div
+            role="tabpanel"
+            id={`panel-${tab}`}
+            aria-labelledby={`tab-${tab}`}
+            className="tab-panel"
+          >
+            {tab === 'branches' ? (
+              <BranchesPanel
+                load={isDemo ? demo(DEMO_BRANCH_REPORT) : branches}
+                repository={repository.trim()}
+                limit={quota?.limit ?? null}
               />
-            </label>
-            <label className="select-field">
-              <span>{t.app.staleAfter}</span>
-              <select
-                value={staleDays}
-                onChange={(event) => {
-                  setStaleDays(Number(event.target.value));
-                }}
-              >
-                {STALE_OPTIONS.map((days) => (
-                  <option key={days} value={days}>
-                    {interpolate(t.app.days, { days: formatNumber(days, locale) })}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="submit"
-              className="button button-primary"
-              disabled={state.kind === 'loading'}
-            >
-              {state.kind === 'loading' ? t.app.analysing : t.home.analyse}
-              <ArrowIcon />
-            </button>
-          </form>
-
-          <p className="hero-hint">
-            {t.app.examples}{' '}
-            {EXAMPLES.map((example) => (
-              <button
-                key={example}
-                type="button"
-                className="chip"
-                onClick={() => {
-                  setRepository(example);
-                  analyse(example, staleDays);
-                }}
-              >
-                {example}
-              </button>
-            ))}
-          </p>
-
-          {exhausted && (
-            <p className="notice notice-warn" role="status">
-              <ClockIcon />
-              {interpolate(t.quota.exhausted, {
-                limit: quota.limit ?? 3,
-                when: timeUntil(quota.resetsAt, t),
-              })}
-            </p>
-          )}
-        </div>
-      </section>
-
-      <div className="container report">
-        <Result state={state} limit={quota?.limit ?? null} />
+            ) : (
+              <DeliveryPanel
+                load={isDemo ? demo(DEMO_DELIVERY_REPORT) : delivery}
+                limit={quota?.limit ?? null}
+              />
+            )}
+          </div>
+        </section>
       </div>
     </Layout>
   );
 }
 
-function Result({
-  state,
+function demo<T>(report: T): Load<T> {
+  return { kind: 'ready', report };
+}
+
+function Sidebar({
+  repository,
+  staleDays,
+  busy,
+  quota,
+  recent,
+  onRepository,
+  onStaleDays,
+  onAnalyse,
+}: {
+  readonly repository: string;
+  readonly staleDays: number;
+  readonly busy: boolean;
+  readonly quota: QuotaResponse | null;
+  readonly recent: readonly string[];
+  readonly onRepository: (value: string) => void;
+  readonly onStaleDays: (value: number) => void;
+  readonly onAnalyse: (repository: string) => void;
+}): JSX.Element {
+  const { t, locale } = useI18n();
+  const copy = t.workspace;
+
+  function onSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>): void {
+    event.preventDefault();
+    onAnalyse(repository);
+  }
+
+  return (
+    <aside className="sidebar">
+      <section className="side-card">
+        <h2>{copy.searchTitle}</h2>
+        <form className="side-form" onSubmit={onSubmit} role="search">
+          <label className="input-with-icon">
+            <SearchIcon />
+            <span className="visually-hidden">{t.home.repositoryLabel}</span>
+            <input
+              value={repository}
+              onChange={(event) => {
+                onRepository(event.target.value);
+              }}
+              placeholder={t.home.placeholder}
+              spellCheck={false}
+              autoComplete="off"
+            />
+          </label>
+          <label className="select-field">
+            <span>{t.app.staleAfter}</span>
+            <select
+              value={staleDays}
+              onChange={(event) => {
+                onStaleDays(Number(event.target.value));
+              }}
+            >
+              {STALE_OPTIONS.map((days) => (
+                <option key={days} value={days}>
+                  {interpolate(t.app.days, { days: formatNumber(days, locale) })}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="submit" className="button button-primary" disabled={busy}>
+            {busy ? t.app.analysing : t.home.analyse}
+            <ArrowIcon />
+          </button>
+        </form>
+        <p className="side-examples">
+          {t.app.examples}{' '}
+          {EXAMPLES.map((example) => (
+            <button
+              key={example}
+              type="button"
+              className="chip"
+              onClick={() => {
+                onAnalyse(example);
+              }}
+            >
+              {example}
+            </button>
+          ))}
+        </p>
+      </section>
+
+      <AllowanceCard quota={quota} />
+
+      <section className="side-card">
+        <h2>{copy.recentTitle}</h2>
+        {recent.length === 0 ? (
+          <p className="muted small">{copy.recentEmpty}</p>
+        ) : (
+          <ul className="recent-list">
+            {recent.map((item) => (
+              <li key={item}>
+                <button
+                  type="button"
+                  className="link-button mono"
+                  onClick={() => {
+                    onAnalyse(item);
+                  }}
+                >
+                  {item}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="side-card">
+        <h2>{copy.glossaryTitle}</h2>
+        <dl className="glossary">
+          {copy.glossary.map((entry) => (
+            <div key={entry.term}>
+              <dt>{entry.term}</dt>
+              <dd>{entry.definition}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    </aside>
+  );
+}
+
+function AllowanceCard({ quota }: { readonly quota: QuotaResponse | null }): JSX.Element {
+  const { t } = useI18n();
+  const limited =
+    quota !== null && !quota.owner && quota.limit !== null && quota.remaining !== null;
+  return (
+    <section className="side-card">
+      <h2>{t.workspace.allowanceTitle}</h2>
+      {limited ? (
+        <Allowance quota={quota} limit={quota.limit} remaining={quota.remaining} />
+      ) : (
+        <p className="muted small">
+          {quota?.owner === true ? t.quota.owner : t.workspace.allowanceUnlimited}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function Allowance({
+  quota,
+  limit,
+  remaining,
+}: {
+  readonly quota: QuotaResponse;
+  readonly limit: number;
+  readonly remaining: number;
+}): JSX.Element {
+  const { t, locale } = useI18n();
+  return (
+    <>
+      <p className="allowance">
+        <strong>{formatNumber(remaining, locale)}</strong>
+        <span>/ {formatNumber(limit, locale)}</span>
+      </p>
+      <p className="muted small">{describeQuota(quota, t, locale)}</p>
+      {remaining === 0 && (
+        <p className="notice notice-warn small" role="status">
+          <ClockIcon />
+          {interpolate(t.quota.exhausted, { limit, when: timeUntil(quota.resetsAt, t) })}
+        </p>
+      )}
+      <p className="muted small">{t.workspace.allowanceHint}</p>
+    </>
+  );
+}
+
+function WorkspaceHeader({
+  repository,
+  generatedAt,
+  demo: isDemo,
+}: {
+  readonly repository: string;
+  readonly generatedAt: string | null;
+  readonly demo: boolean;
+}): JSX.Element {
+  const { t, locale } = useI18n();
+  return (
+    <header className="workspace-header">
+      <div>
+        <h1 className="repository-heading mono">
+          {repository}
+          {isDemo && <span className="badge badge-muted">{t.workspace.example}</span>}
+        </h1>
+        <p className="muted small">
+          {isDemo
+            ? t.workspace.exampleNote
+            : generatedAt === null
+              ? ' '
+              : formatDate(generatedAt, locale)}
+        </p>
+      </div>
+      {!isDemo && repository !== '' && (
+        <a className="button button-ghost button-small" href={`https://github.com/${repository}`}>
+          <GitHubIcon /> {t.workspace.openOnGitHub}
+        </a>
+      )}
+    </header>
+  );
+}
+
+/** WAI-ARIA tabs: arrow keys move between them, as in any desktop tool. */
+function Tabs({
+  tab,
+  onSelect,
+}: {
+  readonly tab: Tab;
+  readonly onSelect: (tab: Tab) => void;
+}): JSX.Element {
+  const { t } = useI18n();
+  function onKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+      return;
+    }
+    const next = TABS[(TABS.indexOf(tab) + 1) % TABS.length] ?? 'branches';
+    onSelect(next);
+    document.getElementById(`tab-${next}`)?.focus();
+  }
+  return (
+    <div className="tabs" role="tablist" aria-label={t.workspace.tabsLabel} onKeyDown={onKeyDown}>
+      {TABS.map((item) => (
+        <button
+          key={item}
+          id={`tab-${item}`}
+          type="button"
+          role="tab"
+          aria-selected={tab === item}
+          aria-controls={`panel-${item}`}
+          tabIndex={tab === item ? 0 : -1}
+          onClick={() => {
+            onSelect(item);
+          }}
+        >
+          {t.workspace.tabs[item]}
+          {item === 'delivery' && <span className="tab-new">{t.workspace.tabs.new}</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function BranchesPanel({
+  load,
+  repository,
   limit,
 }: {
-  readonly state: LoadState;
+  readonly load: Load<BranchReportResponse>;
+  readonly repository: string;
   readonly limit: number | null;
 }): JSX.Element {
   const { t } = useI18n();
-  switch (state.kind) {
+  return (
+    <LoadView load={load} limit={limit} loading={interpolate(t.app.loading, { repository })}>
+      {(report) => (
+        <>
+          <Summary report={report} />
+          <Insights report={report} />
+          <BranchTable report={report} />
+        </>
+      )}
+    </LoadView>
+  );
+}
+
+function DeliveryPanel({
+  load,
+  limit,
+}: {
+  readonly load: Load<DeliveryReportResponse>;
+  readonly limit: number | null;
+}): JSX.Element {
+  const { t } = useI18n();
+  return (
+    <LoadView load={load} limit={limit} loading={t.delivery.loading}>
+      {(report) => <DeliveryView report={report} />}
+    </LoadView>
+  );
+}
+
+function LoadView<T>({
+  load,
+  limit,
+  loading,
+  children,
+}: {
+  readonly load: Load<T>;
+  readonly limit: number | null;
+  readonly loading: string;
+  readonly children: (report: T) => ReactNode;
+}): JSX.Element {
+  const { t } = useI18n();
+  switch (load.kind) {
     case 'idle':
-      return <EmptyState />;
-    case 'loading': {
-      const [before, after] = t.app.loading.split('{repository}');
+    case 'loading':
       return (
-        <div className="loading" aria-live="polite">
+        <div className="loading">
           <span className="spinner" aria-hidden="true" />
-          <span>
-            {before}
-            <strong className="mono">{state.repository}</strong>
-            {after}
-          </span>
+          <span>{loading}</span>
         </div>
       );
-    }
     case 'error': {
-      const quotaExceeded = state.error instanceof ApiError && state.error.status === 429;
+      const quotaExceeded = load.error instanceof ApiError && load.error.status === 429;
       return (
         <p className={`notice ${quotaExceeded ? 'notice-warn' : 'notice-error'}`} role="alert">
           <AlertIcon />
-          {describeError(state.error, t, limit)}
+          {describeError(load.error, t, limit)}
         </p>
       );
     }
     case 'ready':
-      return (
-        <>
-          <Summary report={state.report} />
-          <Insights report={state.report} />
-          <BranchTable report={state.report} />
-        </>
-      );
+      return <>{children(load.report)}</>;
   }
-}
-
-function EmptyState(): JSX.Element {
-  const { t } = useI18n();
-  return (
-    <div className="empty-state">
-      <h2>{t.app.empty.title}</h2>
-      <ul className="card-grid card-grid-3">
-        {t.app.empty.cards.map((card) => (
-          <li key={card.title} className="card">
-            <h3>{card.title}</h3>
-            <p>{card.text}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
 }

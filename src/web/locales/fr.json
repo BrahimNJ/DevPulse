@@ -2,12 +2,12 @@
   "meta": {
     "lang": "fr",
     "titles": {
-      "home": "DevPulse · La santé des branches de vos repositories GitHub",
+      "home": "DevPulse · La santé des branches et de la livraison de vos repositories GitHub",
       "app": "DevPulse · Analyser un repository",
       "docs": "DevPulse · Documentation technique",
       "owner": "DevPulse · Accès propriétaire"
     },
-    "description": "La santé des branches de n'importe quel repository GitHub public : activité, protection, travail abandonné et divergence. Open source, conçu et livré de bout en bout."
+    "description": "La santé des branches et de la livraison de n'importe quel repository GitHub public : branches inactives, divergence, lead time, charge de review et repères DORA. Open source, conçu et livré de bout en bout."
   },
   "nav": {
     "skip": "Aller au contenu",
@@ -32,7 +32,7 @@
     "inMinutes": "dans {minutes} min"
   },
   "footer": {
-    "tagline": "La santé des branches des repositories GitHub publics. Un projet portfolio open source, conçu, sécurisé et livré de bout en bout.",
+    "tagline": "La santé des branches et de la livraison des repositories GitHub publics. Un projet portfolio open source, conçu, sécurisé et livré de bout en bout.",
     "product": "Produit",
     "overview": "Présentation",
     "analyse": "Analyser un repository",
@@ -52,7 +52,7 @@
     "titleBefore": "Prenez le",
     "titleAccent": "pouls",
     "titleAfter": "de n'importe quel repository GitHub",
-    "lede": "DevPulse transforme les branches d'un repository public en un bilan de santé clair : ce qui est actif, ce qui est protégé, ce qui a été abandonné et ce qui s'est éloigné de main.",
+    "lede": "DevPulse transforme un repository public en un bilan de santé clair : l'état de ses branches, et la vitesse et la fiabilité avec lesquelles ses pull requests arrivent sur main, mesurées selon les repères DORA.",
     "placeholder": "owner/repository",
     "repositoryLabel": "Repository",
     "analyse": "Analyser",
@@ -236,6 +236,10 @@
       "insights": {
         "name": "Synthèse",
         "summary": "Transformez les chiffres en décisions."
+      },
+      "security": {
+        "name": "Sécurité et supply chain",
+        "summary": "Sachez si un projet est sûr pour en dépendre."
       }
     },
     "features": {
@@ -306,6 +310,22 @@
       "report-export": {
         "title": "Export du rapport",
         "description": "Téléchargez un rapport en CSV ou en Markdown pour le partager."
+      },
+      "dora-metrics": {
+        "title": "Indicateurs façon DORA",
+        "description": "Lead time, fréquence de release et taux de revert, classés d'Elite à Low."
+      },
+      "review-load": {
+        "title": "Charge de review",
+        "description": "Qui relit, et ce qui repose sur deux personnes."
+      },
+      "dependency-vulnerabilities": {
+        "title": "Vulnérabilités des dépendances",
+        "description": "Les vulnérabilités connues des dépendances déclarées, via OSV.dev."
+      },
+      "openssf-scorecard": {
+        "title": "OpenSSF Scorecard",
+        "description": "Le score de bonnes pratiques de sécurité de l'Open Source Security Foundation."
       }
     }
   },
@@ -686,6 +706,46 @@
         ]
       },
       {
+        "id": "methodology",
+        "title": "Méthodologie de la livraison",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "L'onglet Livraison lit les 90 derniers jours d'un repository : les 100 pull requests mergées les plus récentes avec leurs premières reviews, les releases et des comptages par recherche. Cela coûte un point de quota GitHub et reste en cache 10 minutes."
+          },
+          {
+            "type": "table",
+            "head": ["Indicateur", "Comment il est mesuré"],
+            "rows": [
+              [
+                "Lead time",
+                "De l'ouverture au merge des pull requests humaines, en médiane et au 90e centile ; les bots sont exclus."
+              ],
+              [
+                "Fréquence de release",
+                "Releases stables par mois ; Elite est quotidien, High hebdomadaire, Medium mensuel."
+              ],
+              [
+                "Taux de revert",
+                "Pull requests mergées dont le titre commence par « Revert » : une approximation du taux d'échec des changements."
+              ],
+              [
+                "Première review",
+                "De l'ouverture à la première review par une autre personne que l'auteur."
+              ],
+              [
+                "Délai par taille",
+                "Lead time médian par taille, selon les lignes modifiées : S moins de 50, M moins de 250, L moins de 1 000."
+              ]
+            ]
+          },
+          {
+            "type": "p",
+            "text": "DORA mesure la livraison sur les déploiements internes ; les pull requests et releases publiques n'en donnent qu'une approximation, donc les niveaux sont des indications, pas un verdict. Quand la recherche GitHub n'indexe pas un repository, les volumes viennent de l'échantillon et certains indicateurs sont signalés indisponibles plutôt qu'affichés à zéro."
+          }
+        ]
+      },
+      {
         "id": "tokens",
         "title": "Optimisation des tokens",
         "blocks": [
@@ -735,5 +795,118 @@
         ]
       }
     ]
+  },
+  "workspace": {
+    "searchTitle": "Analyser un repository",
+    "allowanceTitle": "Votre quota du jour",
+    "allowanceUnlimited": "Aucune limite quotidienne ici.",
+    "allowanceHint": "Un repository déjà analysé aujourd'hui ne compte pas deux fois.",
+    "recentTitle": "Analyses récentes",
+    "recentEmpty": "Vos analyses apparaîtront ici.",
+    "glossaryTitle": "Glossaire",
+    "glossary": [
+      {
+        "term": "Lead time",
+        "definition": "Délai entre l'ouverture d'une pull request et son merge."
+      },
+      {
+        "term": "Première review",
+        "definition": "Délai avant qu'une autre personne que l'auteur relise."
+      },
+      {
+        "term": "DORA",
+        "definition": "Programme de recherche dont les quatre métriques mesurent la performance de livraison."
+      },
+      {
+        "term": "Taux de revert",
+        "definition": "Changements mergés puis annulés : une approximation du taux d'échec."
+      },
+      {
+        "term": "Branch inactive",
+        "definition": "Aucun commit depuis plus longtemps que le seuil choisi."
+      }
+    ],
+    "example": "Exemple",
+    "exampleNote": "Données illustratives. Analysez un repository pour voir de vrais chiffres.",
+    "openOnGitHub": "Voir sur GitHub",
+    "tabsLabel": "Rapport",
+    "tabs": {
+      "branches": "Branches",
+      "delivery": "Livraison",
+      "new": "Nouveau"
+    }
+  },
+  "delivery": {
+    "loading": "Lecture de 90 jours de pull requests…",
+    "window": "{days} derniers jours · {merged} pull requests mergées · échantillon de {sample}",
+    "notIndexed": "La recherche GitHub n'indexe pas ce repository : les volumes proviennent des {sample} pull requests mergées les plus récentes, et certains indicateurs sont indisponibles.",
+    "unknown": "n/d",
+    "bandTitle": "Niveau DORA",
+    "bands": {
+      "elite": "Elite",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "kpis": {
+      "leadTime": "Lead time",
+      "leadTimeDetail": "médiane · 90e centile {p90}",
+      "releases": "Fréquence de release",
+      "releasesValue": "{count} / mois",
+      "releasesDetail": "dernière il y a {age}",
+      "releasesNone": "aucune release sur la période",
+      "changeFailure": "Taux de revert",
+      "changeFailureDetail": "approximation du taux d'échec des changements",
+      "firstReview": "Première review",
+      "firstReviewDetail": "{share} des pull requests relues par un tiers"
+    },
+    "throughput": {
+      "title": "Débit hebdomadaire",
+      "subtitle": "Pull requests mergées par semaine",
+      "up": "+{change} sur les 4 dernières semaines",
+      "down": "{change} sur les 4 dernières semaines",
+      "flat": "Stable sur les 4 dernières semaines",
+      "perWeek": "{count} par semaine en moyenne",
+      "weeksAgo": "S-{weeks}",
+      "thisWeek": "Cette sem.",
+      "unavailable": "Indisponible : la recherche GitHub n'indexe pas ce repository."
+    },
+    "sizes": {
+      "title": "Délai de merge par taille",
+      "subtitle": "Lignes modifiées : S moins de 50, M moins de 250, L moins de 1 000, XL au-delà",
+      "count": {
+        "one": "{count} pull request",
+        "other": "{count} pull requests"
+      },
+      "ratio": "Les pull requests XL mettent {ratio}× plus de temps à être mergées que les S.",
+      "none": "aucune"
+    },
+    "reviews": {
+      "title": "Charge de review",
+      "reviewers": {
+        "one": "{count} reviewer",
+        "other": "{count} reviewers"
+      },
+      "topTwo": "{share} des reviews viennent de deux personnes",
+      "none": "Aucune review par un tiers dans l'échantillon."
+    },
+    "flow": {
+      "title": "Flux",
+      "abandoned": "Fermées sans merge",
+      "stale": "Ouvertes, inactives depuis 30 jours",
+      "bots": "Mergées par des bots"
+    },
+    "insights": {
+      "title": "Synthèse",
+      "leadTime": "{repository} merge une pull request en {median} en médiane : niveau {band} selon DORA.",
+      "sizeRatio": "Les pull requests XL prennent {ratio}× plus de temps que les petites : découper les changements accélérerait la livraison.",
+      "concentrated": "{share} des reviews reposent sur deux personnes : un goulot d'étranglement, et un risque en leur absence.",
+      "spread": "Les reviews sont réparties entre {count} personnes.",
+      "trendUp": "Le débit accélère : {change} de merges sur les quatre dernières semaines.",
+      "trendDown": "Le débit ralentit : {change} de merges sur les quatre dernières semaines.",
+      "reverts": "Moins de {rate} des changements mergés sont annulés."
+    },
+    "methodology": "Calculé à partir des données publiques de GitHub ; ce sont des approximations des métriques DORA, qui se mesurent normalement sur les déploiements internes.",
+    "methodologyLink": "Lire la méthodologie"
   }
 }

@@ -2,12 +2,12 @@
   "meta": {
     "lang": "en",
     "titles": {
-      "home": "DevPulse · Branch health for GitHub repositories",
+      "home": "DevPulse · Branch and delivery health for GitHub repositories",
       "app": "DevPulse · Analyse a repository",
       "docs": "DevPulse · Engineering documentation",
       "owner": "DevPulse · Owner access"
     },
-    "description": "Branch health for any public GitHub repository: activity, protection, abandoned work and divergence. Open source, built and shipped end to end."
+    "description": "Branch and delivery health for any public GitHub repository: stale branches, divergence, lead time, review load and DORA-style benchmarks. Open source, built and shipped end to end."
   },
   "nav": {
     "skip": "Skip to content",
@@ -32,7 +32,7 @@
     "inMinutes": "in {minutes} min"
   },
   "footer": {
-    "tagline": "Branch health for public GitHub repositories. An open-source portfolio project, designed, secured and shipped end to end.",
+    "tagline": "Branch and delivery health for public GitHub repositories. An open-source portfolio project, designed, secured and shipped end to end.",
     "product": "Product",
     "overview": "Overview",
     "analyse": "Analyse a repository",
@@ -52,7 +52,7 @@
     "titleBefore": "Take the",
     "titleAccent": "pulse",
     "titleAfter": "of any GitHub repository",
-    "lede": "DevPulse turns the branches of a public repository into a clear health report: what is active, what is protected, what was abandoned and what drifted away from main.",
+    "lede": "DevPulse turns a public repository into a clear health report: the state of its branches, and how fast and how safely its pull requests reach main, measured against the DORA benchmarks.",
     "placeholder": "owner/repository",
     "repositoryLabel": "Repository",
     "analyse": "Analyse",
@@ -236,6 +236,10 @@
       "insights": {
         "name": "Insights",
         "summary": "Turn the numbers into a decision."
+      },
+      "security": {
+        "name": "Security and supply chain",
+        "summary": "Know whether a project is safe to depend on."
       }
     },
     "features": {
@@ -306,6 +310,22 @@
       "report-export": {
         "title": "Report export",
         "description": "Download a report as CSV or Markdown to share it."
+      },
+      "dora-metrics": {
+        "title": "DORA-style indicators",
+        "description": "Lead time, release frequency and revert rate, banded Elite to Low."
+      },
+      "review-load": {
+        "title": "Review load",
+        "description": "Who reviews, and how much depends on two people."
+      },
+      "dependency-vulnerabilities": {
+        "title": "Dependency vulnerabilities",
+        "description": "Known vulnerabilities in declared dependencies, from OSV.dev."
+      },
+      "openssf-scorecard": {
+        "title": "OpenSSF Scorecard",
+        "description": "The security practices score of the Open Source Security Foundation."
       }
     }
   },
@@ -686,6 +706,43 @@
         ]
       },
       {
+        "id": "methodology",
+        "title": "Delivery methodology",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "The Delivery tab reads the last 90 days of a repository: the 100 most recently merged pull requests with their first reviews, the releases, and search counts. It costs one GitHub API point and is cached for 10 minutes."
+          },
+          {
+            "type": "table",
+            "head": ["Indicator", "How it is measured"],
+            "rows": [
+              [
+                "Lead time",
+                "Opening to merge of human pull requests, as median and 90th percentile; bots are left out."
+              ],
+              [
+                "Release frequency",
+                "Stable releases per month; Elite is daily, High weekly, Medium monthly."
+              ],
+              [
+                "Revert rate",
+                "Merged pull requests whose title starts with \"Revert\": a proxy of the change failure rate."
+              ],
+              ["First review", "Opening to the first review by someone other than the author."],
+              [
+                "Merge time by size",
+                "Median lead time per size, from changed lines: S under 50, M under 250, L under 1,000."
+              ]
+            ]
+          },
+          {
+            "type": "p",
+            "text": "DORA measures delivery on internal deployments; public pull requests and releases only approximate it, so the bands are indications, not a verdict. When GitHub search does not index a repository, volumes come from the sample and some indicators are marked unavailable rather than shown as zero."
+          }
+        ]
+      },
+      {
         "id": "tokens",
         "title": "Token optimisation",
         "blocks": [
@@ -735,5 +792,118 @@
         ]
       }
     ]
+  },
+  "workspace": {
+    "searchTitle": "Analyse a repository",
+    "allowanceTitle": "Your daily allowance",
+    "allowanceUnlimited": "No daily limit here.",
+    "allowanceHint": "A repository already analysed today does not count twice.",
+    "recentTitle": "Recent analyses",
+    "recentEmpty": "Your analyses will appear here.",
+    "glossaryTitle": "Glossary",
+    "glossary": [
+      {
+        "term": "Lead time",
+        "definition": "Time from opening a pull request to merging it."
+      },
+      {
+        "term": "First review",
+        "definition": "Time until someone other than the author reviews."
+      },
+      {
+        "term": "DORA",
+        "definition": "Research programme whose four metrics measure delivery performance."
+      },
+      {
+        "term": "Revert rate",
+        "definition": "Merged changes later reverted: a proxy of change failure."
+      },
+      {
+        "term": "Stale branch",
+        "definition": "No commit for longer than the chosen threshold."
+      }
+    ],
+    "example": "Example",
+    "exampleNote": "Illustrative data. Analyse a repository to see real figures.",
+    "openOnGitHub": "Open on GitHub",
+    "tabsLabel": "Report",
+    "tabs": {
+      "branches": "Branches",
+      "delivery": "Delivery",
+      "new": "New"
+    }
+  },
+  "delivery": {
+    "loading": "Reading 90 days of pull requests…",
+    "window": "Last {days} days · {merged} merged pull requests · sample of {sample}",
+    "notIndexed": "GitHub search does not index this repository: volumes come from the {sample} most recently merged pull requests, and some indicators are unavailable.",
+    "unknown": "n/a",
+    "bandTitle": "DORA level",
+    "bands": {
+      "elite": "Elite",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "kpis": {
+      "leadTime": "Lead time",
+      "leadTimeDetail": "median · 90th percentile {p90}",
+      "releases": "Release frequency",
+      "releasesValue": "{count} / month",
+      "releasesDetail": "last one {age} ago",
+      "releasesNone": "no release in the window",
+      "changeFailure": "Revert rate",
+      "changeFailureDetail": "proxy of the change failure rate",
+      "firstReview": "First review",
+      "firstReviewDetail": "{share} of pull requests reviewed by someone else"
+    },
+    "throughput": {
+      "title": "Weekly throughput",
+      "subtitle": "Pull requests merged per week",
+      "up": "+{change} over the last 4 weeks",
+      "down": "{change} over the last 4 weeks",
+      "flat": "Steady over the last 4 weeks",
+      "perWeek": "{count} per week on average",
+      "weeksAgo": "{weeks} wk ago",
+      "thisWeek": "This week",
+      "unavailable": "Unavailable: GitHub search does not index this repository."
+    },
+    "sizes": {
+      "title": "Merge time by size",
+      "subtitle": "Changed lines: S under 50, M under 250, L under 1,000, XL above",
+      "count": {
+        "one": "{count} pull request",
+        "other": "{count} pull requests"
+      },
+      "ratio": "XL pull requests take {ratio}× longer to merge than S ones.",
+      "none": "none"
+    },
+    "reviews": {
+      "title": "Review load",
+      "reviewers": {
+        "one": "{count} reviewer",
+        "other": "{count} reviewers"
+      },
+      "topTwo": "{share} of reviews come from two people",
+      "none": "No review by someone other than the author in the sample."
+    },
+    "flow": {
+      "title": "Flow",
+      "abandoned": "Closed without merge",
+      "stale": "Open, idle for 30 days",
+      "bots": "Merged by bots"
+    },
+    "insights": {
+      "title": "Insights",
+      "leadTime": "{repository} merges a pull request in {median} at the median: {band} level by DORA standards.",
+      "sizeRatio": "XL pull requests take {ratio}× longer than small ones: splitting changes would speed delivery.",
+      "concentrated": "{share} of reviews rely on two people: a bottleneck and a risk if they are away.",
+      "spread": "Reviews are spread across {count} people.",
+      "trendUp": "Throughput is rising: {change} merged over the last four weeks.",
+      "trendDown": "Throughput is slowing: {change} merged over the last four weeks.",
+      "reverts": "Fewer than {rate} of merged changes are reverted."
+    },
+    "methodology": "Computed from public GitHub data; these are proxies of the DORA metrics, which are normally measured on internal deployments.",
+    "methodologyLink": "Read the methodology"
   }
 }
