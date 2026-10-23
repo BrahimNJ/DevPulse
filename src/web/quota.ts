@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { fetchQuota, type QuotaResponse, type ReportResult } from './api.ts';
-import { formatNumber, interpolate, type Locale, type Messages } from './i18n.ts';
+import { formatNumber, interpolate, plural, type Locale, type Messages } from './i18n.ts';
 
 export interface QuotaState {
   /** Null until the server has answered. */
@@ -47,7 +47,7 @@ export function describeQuota(
   if (quota.limit === null || quota.remaining === null) {
     return null;
   }
-  return interpolate(t.quota.left, {
+  return plural(t.quota.left, quota.remaining, locale, {
     remaining: formatNumber(quota.remaining, locale),
     limit: formatNumber(quota.limit, locale),
   });

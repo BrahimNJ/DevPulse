@@ -103,7 +103,16 @@ describe('buildInsights', () => {
     );
     assert.equal(
       describeQuota({ owner: false, limit: 3, remaining: 2, resetsAt: null }, fr, 'fr'),
-      "2 analyses sur 3 restantes aujourd'hui",
+      "2 analyses restantes sur 3 aujourd'hui",
+    );
+    // French treats 0 and 1 as singular.
+    assert.equal(
+      describeQuota({ owner: false, limit: 3, remaining: 1, resetsAt: null }, fr, 'fr'),
+      "1 analyse restante sur 3 aujourd'hui",
+    );
+    assert.equal(
+      describeQuota({ owner: false, limit: 3, remaining: 0, resetsAt: null }, fr, 'fr'),
+      "0 analyse restante sur 3 aujourd'hui",
     );
   });
 

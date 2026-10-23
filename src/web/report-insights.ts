@@ -28,7 +28,7 @@ export function buildInsights(
           title: interpolate(copy.stale.title, {
             share: percentage(totals.stale, totals.branches, locale),
           }),
-          text: interpolate(copy.stale.text, {
+          text: plural(copy.stale.text, totals.stale, locale, {
             stale: formatNumber(totals.stale, locale),
             total: formatNumber(totals.branches, locale),
             days,
@@ -47,7 +47,7 @@ export function buildInsights(
     insights.push({
       tone: behind.divergence.behind > 100 ? 'warn' : 'info',
       title: interpolate(copy.behind.title, { name: behind.name }),
-      text: interpolate(copy.behind.text, {
+      text: plural(copy.behind.text, behind.divergence.behind, locale, {
         behind: formatNumber(behind.divergence.behind, locale),
         base: report.defaultBranch ?? copy.defaultBranch,
         age: formatAge(behind.ageDays, locale, t.time.today),

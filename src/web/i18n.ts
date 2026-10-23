@@ -56,14 +56,18 @@ export function interpolate(
   });
 }
 
-/** Picks the `one` or `other` form for `count`, by the plural rules of the language. */
+/**
+ * Picks the `one` or `other` form for `count`, by the plural rules of the language
+ * (French treats 0 and 1 as singular), then fills `{count}` and any other values.
+ */
 export function plural(
   forms: { readonly one: string; readonly other: string },
   count: number,
   locale: Locale,
+  values: Readonly<Record<string, string | number>> = {},
 ): string {
   const form = new Intl.PluralRules(LOCALES[locale].tag).select(count) === 'one' ? 'one' : 'other';
-  return interpolate(forms[form], { count: formatNumber(count, locale) });
+  return interpolate(forms[form], { count: formatNumber(count, locale), ...values });
 }
 
 export function formatNumber(value: number, locale: Locale): string {

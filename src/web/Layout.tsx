@@ -138,7 +138,10 @@ export function Layout({
   );
 }
 
-/** EN | FR. Each option names its language in that language, for whoever needs it. */
+/**
+ * FR | EN. The visible code is the accessible name (WCAG 2.5.3, label in name); the
+ * full language name, in that language, is the tooltip.
+ */
 function LanguageSwitch(): JSX.Element {
   const { t, locale, setLocale } = useI18n();
   const options: readonly Locale[] = ['fr', 'en'];
@@ -150,7 +153,7 @@ function LanguageSwitch(): JSX.Element {
           type="button"
           lang={option}
           aria-pressed={option === locale}
-          aria-label={LOCALES[option].label}
+          title={LOCALES[option].label}
           onClick={() => {
             setLocale(option);
           }}

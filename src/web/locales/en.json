@@ -20,7 +20,10 @@
     "language": "Language"
   },
   "quota": {
-    "left": "{remaining} of {limit} analyses left today",
+    "left": {
+      "one": "{remaining} of {limit} analyses left today",
+      "other": "{remaining} of {limit} analyses left today"
+    },
     "owner": "Unlimited · owner",
     "tooltip": "Each visitor may analyse {limit} repositories a day",
     "exhausted": "You have used today's {limit} analyses. Repositories you already analysed still open; new ones are available again {when}.",
@@ -63,10 +66,22 @@
       "stale": "stale",
       "columns": ["Branch", "Last commit", "Ahead / behind", "Status"],
       "rows": [
-        { "age": "today", "status": "default" },
-        { "age": "1 day", "status": "protected" },
-        { "age": "12 days", "status": "active" },
-        { "age": "1.8 years", "status": "stale" }
+        {
+          "age": "today",
+          "status": "default"
+        },
+        {
+          "age": "1 day",
+          "status": "protected"
+        },
+        {
+          "age": "12 days",
+          "status": "active"
+        },
+        {
+          "age": "1.8 years",
+          "status": "stale"
+        }
       ],
       "caption": "Illustrative figures"
     },
@@ -117,18 +132,45 @@
       "title": "Built and run like a production service",
       "text": "Every choice is written down, automated and checked. The documentation explains each one.",
       "facts": [
-        { "value": "0 €", "label": "monthly cost, by design and by a billing kill switch" },
-        { "value": "0", "label": "long-lived cloud keys: deployments use federated identity" },
-        { "value": "100+", "label": "automated tests, run on every change" },
-        { "value": "1", "label": "click to approve a release; the rest is automated" }
+        {
+          "value": "0 €",
+          "label": "monthly cost, by design and by a billing kill switch"
+        },
+        {
+          "value": "0",
+          "label": "long-lived cloud keys: deployments use federated identity"
+        },
+        {
+          "value": "100+",
+          "label": "automated tests, run on every change"
+        },
+        {
+          "value": "1",
+          "label": "click to approve a release; the rest is automated"
+        }
       ],
       "pipelineLabel": "Delivery pipeline",
       "pipeline": [
-        { "label": "Pull request", "detail": "lint · types · tests · image scan" },
-        { "label": "Merge to main", "detail": "build once · sign · deploy staging" },
-        { "label": "Smoke test", "detail": "health · interface · real report" },
-        { "label": "Approval", "detail": "maintainer reviews the release" },
-        { "label": "Production", "detail": "no-traffic check · switch · rollback" }
+        {
+          "label": "Pull request",
+          "detail": "lint · types · tests · image scan"
+        },
+        {
+          "label": "Merge to main",
+          "detail": "build once · sign · deploy staging"
+        },
+        {
+          "label": "Smoke test",
+          "detail": "health · interface · real report"
+        },
+        {
+          "label": "Approval",
+          "detail": "maintainer reviews the release"
+        },
+        {
+          "label": "Production",
+          "detail": "no-traffic check · switch · rollback"
+        }
       ],
       "pillars": [
         {
@@ -150,9 +192,18 @@
       "kicker": "Roadmap",
       "title": "Where DevPulse is going",
       "stages": [
-        { "stage": "Now", "label": "Live" },
-        { "stage": "Next", "label": "Planned" },
-        { "stage": "Later", "label": "Planned" }
+        {
+          "stage": "Now",
+          "label": "Live"
+        },
+        {
+          "stage": "Next",
+          "label": "Planned"
+        },
+        {
+          "stage": "Later",
+          "label": "Planned"
+        }
       ]
     },
     "cta": {
@@ -170,7 +221,10 @@
         "name": "Branch health",
         "summary": "Know which work is alive, protected or abandoned."
       },
-      "activity": { "name": "Activity", "summary": "See how a repository moves over time." },
+      "activity": {
+        "name": "Activity",
+        "summary": "See how a repository moves over time."
+      },
       "contributors": {
         "name": "Contributors",
         "summary": "Understand who keeps the project running."
@@ -179,7 +233,10 @@
         "name": "Pull requests and issues",
         "summary": "Measure how fast work flows from idea to main."
       },
-      "insights": { "name": "Insights", "summary": "Turn the numbers into a decision." }
+      "insights": {
+        "name": "Insights",
+        "summary": "Turn the numbers into a decision."
+      }
     },
     "features": {
       "branch-overview": {
@@ -264,7 +321,10 @@
     "empty": {
       "title": "What the report shows",
       "cards": [
-        { "title": "Activity", "text": "When each branch last received a commit, and by whom." },
+        {
+          "title": "Activity",
+          "text": "When each branch last received a commit, and by whom."
+        },
         {
           "title": "Abandoned work",
           "text": "Branches without a commit for longer than the threshold you choose."
@@ -279,10 +339,10 @@
       "400": "Enter a repository as owner/repository, for example nodejs/node.",
       "404": "This repository does not exist, or it is not public.",
       "429": "You have used today's {limit} analyses. New repositories are available again {when}.",
-      "tooManyRequests": "Too many requests in a short time. Wait a minute, then try again.",
       "502": "GitHub did not answer correctly. Try again in a moment.",
       "503": "DevPulse has used its GitHub budget for now. Try again a little later.",
       "504": "This repository is very large and GitHub is taking time. Try again in a minute: the result will be ready.",
+      "tooManyRequests": "Too many requests in a short time. Wait a minute, then try again.",
       "generic": "Something went wrong. Try again in a moment."
     }
   },
@@ -300,33 +360,50 @@
   "insights": {
     "title": "Insights",
     "staleShare": "{share} of branches are stale",
-    "noBranches": { "title": "No branches", "text": "This repository has no branch yet." },
+    "noBranches": {
+      "title": "No branches",
+      "text": "This repository has no branch yet."
+    },
     "noStale": {
       "title": "No abandoned work",
       "text": "Every branch received a commit in the last {days} days."
     },
     "stale": {
       "title": "{share} of branches look abandoned",
-      "text": "{stale} of {total} branches have had no commit for {days} days or more."
+      "text": {
+        "one": "{stale} of {total} branches has had no commit for {days} days or more.",
+        "other": "{stale} of {total} branches have had no commit for {days} days or more."
+      }
     },
     "noProtection": {
       "title": "Nothing is protected",
       "text": "No branch has a protection rule, not even the default branch."
     },
     "protected": {
-      "title": { "one": "{count} protected branch", "other": "{count} protected branches" },
+      "title": {
+        "one": "{count} protected branch",
+        "other": "{count} protected branches"
+      },
       "text": "Protection rules or rulesets guard them against force pushes and unreviewed changes."
     },
     "behind": {
       "title": "{name} is the furthest behind",
-      "text": "{behind} commits behind {base}, last commit: {age}."
+      "text": {
+        "one": "{behind} commit behind {base}, last commit: {age}.",
+        "other": "{behind} commits behind {base}, last commit: {age}."
+      }
     },
     "defaultBranch": "the default branch"
   },
   "table": {
     "label": "Branches",
     "filterGroup": "Filter branches",
-    "filters": { "all": "All", "active": "Active", "stale": "Stale", "protected": "Protected" },
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "stale": "Stale",
+      "protected": "Protected"
+    },
     "filterLabel": "Filter branches by name",
     "filterPlaceholder": "Filter by name",
     "columns": {
@@ -338,11 +415,20 @@
       "author": "Author",
       "status": "Status"
     },
-    "badges": { "default": "default", "protected": "protected", "stale": "stale" },
+    "badges": {
+      "default": "default",
+      "protected": "protected",
+      "stale": "stale"
+    },
     "empty": "No branch matches this filter.",
-    "caption": "Showing {shown} of {total} branches, most recently updated first."
+    "caption": {
+      "one": "Showing {shown} of {total} branches, most recently updated first.",
+      "other": "Showing {shown} of {total} branches, most recently updated first."
+    }
   },
-  "time": { "today": "today" },
+  "time": {
+    "today": "today"
+  },
   "owner": {
     "kicker": "Maintainer",
     "title": "Owner access",
@@ -489,7 +575,10 @@
         "id": "github",
         "title": "Working through GitHub",
         "blocks": [
-          { "type": "p", "text": "Every change, however small, follows the same path:" },
+          {
+            "type": "p",
+            "text": "Every change, however small, follows the same path:"
+          },
           {
             "type": "steps",
             "items": [
@@ -600,7 +689,10 @@
         "id": "tokens",
         "title": "Token optimisation",
         "blocks": [
-          { "type": "h3", "text": "Claude" },
+          {
+            "type": "h3",
+            "text": "Claude"
+          },
           {
             "type": "checks",
             "items": [
@@ -611,7 +703,10 @@
               "Unrelated tasks start from a cleared context; long sessions are compacted with a focus."
             ]
           },
-          { "type": "h3", "text": "GitHub API" },
+          {
+            "type": "h3",
+            "text": "GitHub API"
+          },
           {
             "type": "checks",
             "items": [

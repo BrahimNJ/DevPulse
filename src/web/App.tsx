@@ -28,7 +28,10 @@ function initialQuery(): { repository: string; staleDays: number } {
   };
 }
 
-/** The failure in the visitor's language; the server's own text is the last resort. */
+/**
+ * The failure in the visitor's language, from its status: the server's messages are in
+ * English, so an unknown status gets a generic message rather than the server's text.
+ */
 function describeError(error: unknown, t: Messages, limit: number | null): string {
   if (!(error instanceof ApiError)) {
     return t.app.errors.generic;

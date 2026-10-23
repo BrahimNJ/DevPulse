@@ -2,7 +2,7 @@ import { useState, type JSX } from 'react';
 
 import type { BranchReportResponse, BranchRow } from './api.ts';
 import { formatAge, formatDate, formatDivergence } from './format.ts';
-import { formatNumber, interpolate } from './i18n.ts';
+import { formatNumber, interpolate, plural } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
 import { BranchIcon, ClockIcon, LockIcon, StarIcon } from './icons.tsx';
 
@@ -99,7 +99,7 @@ export function BranchTable({ report }: { readonly report: BranchReportResponse 
         {rows.length === 0 && <p className="empty">{copy.empty}</p>}
       </div>
       <p className="table-caption">
-        {interpolate(copy.caption, {
+        {plural(copy.caption, rows.length, locale, {
           shown: formatNumber(rows.length, locale),
           total: formatNumber(report.branches.length, locale),
         })}
