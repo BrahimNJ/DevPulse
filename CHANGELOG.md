@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.1](https://github.com/BrahimNJ/DevPulse/compare/v0.8.0...v0.8.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* **docker:** copy src/delivery into the image ([cae2a53](https://github.com/BrahimNJ/DevPulse/commit/cae2a534e244e01b66b022275097849fc6e8a725))
+* **docker:** copy src/delivery into the image ([4d54e01](https://github.com/BrahimNJ/DevPulse/commit/4d54e01bb45493ebbdad2b9259b72144b76523d2)), closes [#51](https://github.com/BrahimNJ/DevPulse/issues/51)
+
 ## [0.8.0](https://github.com/BrahimNJ/DevPulse/compare/v0.7.0...v0.8.0) (2026-10-23)
 
 
