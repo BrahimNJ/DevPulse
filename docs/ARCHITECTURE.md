@@ -26,6 +26,8 @@ Decided, see [decision records](decisions/):
 - A daily allowance of three analyses per visitor in Firestore, maintainer access
   through a signed cookie, and a private staging service (ADR 0008).
 - The web interface in French by default and in English, from two JSON files (ADR 0009).
+- Delivery health: DORA-style proxies from public GitHub data, the sample and search
+  counts it reads, and the example shown before a first analysis (ADR 0010).
 
 Undecided:
 
