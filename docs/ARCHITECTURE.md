@@ -22,9 +22,6 @@ Decided, see [decision records](decisions/):
 - Public deployment on Google Cloud Run: production build, container, Terraform in
   `infra/`, keyless delivery from GitHub Actions, quota protection and observability
   (ADR 0007).
-
-Proposed:
-
 - A daily allowance of three analyses per visitor in Firestore, maintainer access
   through a signed cookie, and a private staging service (ADR 0008).
 
