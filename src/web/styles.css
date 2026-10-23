@@ -253,6 +253,10 @@ code,
   white-space: nowrap;
 }
 
+.quota-compact {
+  display: none;
+}
+
 .quota-dot {
   width: 8px;
   height: 8px;
@@ -1765,8 +1769,39 @@ code,
 @media (max-width: 720px) {
   .header-inner {
     flex-wrap: wrap;
-    gap: 10px;
-    padding-block: 10px;
+    gap: 8px 10px;
+    padding-block: 8px;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  /* The sentence stays available to screen readers, out of the layout. */
+  .quota-full {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .quota-compact {
+    display: inline;
+  }
+
+  .quota-pill {
+    padding: 4px 10px;
+  }
+
+  .site-nav {
+    margin-inline: -8px;
+  }
+
+  .icon-link {
+    width: 34px;
+    height: 34px;
   }
 
   .site-nav {
