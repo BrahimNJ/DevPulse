@@ -1,6 +1,11 @@
-import type { ApiErrorResponse, BranchReportResponse, QuotaResponse } from '../server/contract.ts';
+import type {
+  ApiErrorResponse,
+  BranchReportResponse,
+  DeliveryReportResponse,
+  QuotaResponse,
+} from '../server/contract.ts';
 
-export type { BranchReportResponse, QuotaResponse };
+export type { BranchReportResponse, DeliveryReportResponse, QuotaResponse };
 export type BranchRow = BranchReportResponse['branches'][number];
 
 /**
@@ -38,6 +43,22 @@ export async function fetchBranchReport(
   const response = await fetch(`/api/branches?${query.toString()}`, { signal });
   const body = await readJson<BranchReportResponse>(response);
   // The allowance travels with every report, so no second request is needed.
+  return { report: body, quota: quotaFromHeaders(response.headers) };
+}
+
+export interface DeliveryResult {
+  readonly report: DeliveryReportResponse;
+  readonly quota: ReportResult['quota'];
+}
+
+/** The delivery report; it shares the allowance of the branch report of the same repository. */
+export async function fetchDeliveryReport(
+  repository: string,
+  signal: AbortSignal,
+): Promise<DeliveryResult> {
+  const query = new URLSearchParams({ repo: repository });
+  const response = await fetch(`/api/delivery?${query.toString()}`, { signal });
+  const body = await readJson<DeliveryReportResponse>(response);
   return { report: body, quota: quotaFromHeaders(response.headers) };
 }
 
