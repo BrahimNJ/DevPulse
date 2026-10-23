@@ -1,6 +1,6 @@
 {
   "name": "devpulse",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
   "description": "Analytics for public GitHub repositories.",
   "license": "UNLICENSED",
