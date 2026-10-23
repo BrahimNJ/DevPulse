@@ -1,0 +1,739 @@
+{
+  "meta": {
+    "lang": "fr",
+    "titles": {
+      "home": "DevPulse · La santé des branches de vos repositories GitHub",
+      "app": "DevPulse · Analyser un repository",
+      "docs": "DevPulse · Documentation technique",
+      "owner": "DevPulse · Accès propriétaire"
+    },
+    "description": "La santé des branches de n'importe quel repository GitHub public : activité, protection, travail abandonné et divergence. Open source, conçu et livré de bout en bout."
+  },
+  "nav": {
+    "skip": "Aller au contenu",
+    "home": "Accueil DevPulse",
+    "main": "Navigation principale",
+    "product": "Produit",
+    "analyse": "Analyser",
+    "docs": "Docs",
+    "source": "Code source sur GitHub",
+    "language": "Langue"
+  },
+  "quota": {
+    "left": {
+      "one": "{remaining} analyse restante sur {limit} aujourd'hui",
+      "other": "{remaining} analyses restantes sur {limit} aujourd'hui"
+    },
+    "owner": "Illimité · propriétaire",
+    "tooltip": "Chaque visiteur peut analyser {limit} repositories par jour",
+    "exhausted": "Vous avez utilisé vos {limit} analyses du jour. Les repositories déjà analysés restent accessibles ; de nouvelles analyses seront disponibles {when}.",
+    "within": "d'ici 24 heures",
+    "inHours": "dans {hours} h {minutes} min",
+    "inMinutes": "dans {minutes} min"
+  },
+  "footer": {
+    "tagline": "La santé des branches des repositories GitHub publics. Un projet portfolio open source, conçu, sécurisé et livré de bout en bout.",
+    "product": "Produit",
+    "overview": "Présentation",
+    "analyse": "Analyser un repository",
+    "roadmap": "Roadmap",
+    "engineering": "Ingénierie",
+    "documentation": "Documentation",
+    "security": "Sécurité",
+    "delivery": "Pipeline de livraison",
+    "source": "Code source",
+    "repository": "Repository",
+    "decisions": "Records de décision",
+    "releases": "Releases",
+    "data": "Données issues des API GraphQL et REST de GitHub."
+  },
+  "home": {
+    "eyebrow": "Open source · en ligne sur Google Cloud",
+    "titleBefore": "Prenez le",
+    "titleAccent": "pouls",
+    "titleAfter": "de n'importe quel repository GitHub",
+    "lede": "DevPulse transforme les branches d'un repository public en un bilan de santé clair : ce qui est actif, ce qui est protégé, ce qui a été abandonné et ce qui s'est éloigné de main.",
+    "placeholder": "owner/repository",
+    "repositoryLabel": "Repository",
+    "analyse": "Analyser",
+    "try": "Essayez",
+    "freeAnalyses": "3 analyses gratuites par jour",
+    "preview": {
+      "label": "Exemple de rapport",
+      "window": "DevPulse · nodejs/node",
+      "branches": "branches",
+      "protected": "protégées",
+      "stale": "inactives",
+      "columns": ["Branch", "Dernier commit", "Avance / retard", "Statut"],
+      "rows": [
+        {
+          "age": "aujourd'hui",
+          "status": "par défaut"
+        },
+        {
+          "age": "1 jour",
+          "status": "protégée"
+        },
+        {
+          "age": "12 jours",
+          "status": "active"
+        },
+        {
+          "age": "1,8 an",
+          "status": "inactive"
+        }
+      ],
+      "caption": "Chiffres donnés à titre d'exemple"
+    },
+    "audiences": {
+      "kicker": "Pour qui",
+      "title": "Un rapport qui se lit en deux minutes",
+      "items": [
+        {
+          "title": "Recruteurs et managers",
+          "text": "Voyez d'un seul coup d'œil si un projet est vivant, organisé et bien entretenu, sans lire une ligne de code."
+        },
+        {
+          "title": "Mainteneurs",
+          "text": "Repérez les branches abandonnées, le travail qui s'est éloigné de main et ce qui peut être nettoyé sans risque."
+        },
+        {
+          "title": "Développeurs",
+          "text": "Découvrez comment un petit produit est conçu, sécurisé, testé et livré : tout est public."
+        }
+      ]
+    },
+    "features": {
+      "kicker": "Fonctionnalités",
+      "title": "Tout sur la santé d'un repository",
+      "summary": "{live} analyses sont disponibles aujourd'hui et {planned} sont prévues dans la roadmap, chacune clairement indiquée."
+    },
+    "how": {
+      "kicker": "Fonctionnement",
+      "title": "D'un nom à un rapport en quelques secondes",
+      "steps": [
+        {
+          "title": "Indiquez un repository",
+          "text": "Saisissez n'importe quel owner/repository public, choisissez un exemple ou ouvrez un lien partagé."
+        },
+        {
+          "title": "DevPulse interroge GitHub",
+          "text": "Le serveur appelle les API GraphQL et REST avec son propre token, qui n'atteint jamais votre navigateur."
+        },
+        {
+          "title": "Lisez le bilan de santé",
+          "text": "Les indicateurs d'abord, puis chaque branch : âge, auteur, protection et divergence par rapport à main."
+        }
+      ],
+      "terminalLabel": "Le même rapport en ligne de commande"
+    },
+    "engineering": {
+      "kicker": "Ingénierie",
+      "title": "Conçu et exploité comme un service de production",
+      "text": "Chaque choix est documenté, automatisé et vérifié. La documentation explique chacun d'eux.",
+      "facts": [
+        {
+          "value": "0 €",
+          "label": "de coût mensuel, par conception et grâce à un coupe-circuit de facturation"
+        },
+        {
+          "value": "0",
+          "label": "clé cloud permanente : les déploiements utilisent une identité fédérée"
+        },
+        {
+          "value": "100+",
+          "label": "tests automatisés, exécutés à chaque modification"
+        },
+        {
+          "value": "1",
+          "label": "clic pour approuver une release ; tout le reste est automatisé"
+        }
+      ],
+      "pipelineLabel": "Pipeline de livraison",
+      "pipeline": [
+        {
+          "label": "Pull request",
+          "detail": "lint · types · tests · scan de l'image"
+        },
+        {
+          "label": "Merge sur main",
+          "detail": "build unique · signature · déploiement staging"
+        },
+        {
+          "label": "Smoke test",
+          "detail": "santé · interface · vrai rapport"
+        },
+        {
+          "label": "Approbation",
+          "detail": "le mainteneur valide la release"
+        },
+        {
+          "label": "Production",
+          "detail": "vérification sans trafic · bascule · rollback"
+        }
+      ],
+      "pillars": [
+        {
+          "title": "Sécurisé par défaut",
+          "text": "En-têtes stricts, aucune clé à divulguer, un token que le navigateur ne voit jamais, des limites contre les abus."
+        },
+        {
+          "title": "Entièrement automatisé",
+          "text": "De la pull request à la production : contrôles, builds signés, staging et rollback."
+        },
+        {
+          "title": "Gratuit à exploiter",
+          "text": "Serverless, mis en veille sans trafic, dimensionné pour l'offre gratuite, avec un arrêt automatique des dépenses."
+        }
+      ],
+      "docs": "Lire la documentation technique"
+    },
+    "roadmap": {
+      "kicker": "Roadmap",
+      "title": "Où va DevPulse",
+      "stages": [
+        {
+          "stage": "Maintenant",
+          "label": "Disponible"
+        },
+        {
+          "stage": "Ensuite",
+          "label": "Prévu"
+        },
+        {
+          "stage": "Plus tard",
+          "label": "Prévu"
+        }
+      ]
+    },
+    "cta": {
+      "title": "Prenez le pouls d'un repository dès maintenant",
+      "text": "Trois analyses gratuites par jour, sans compte et sans rien installer.",
+      "primary": "Analyser nodejs/node",
+      "secondary": "Voir le code source"
+    }
+  },
+  "catalogue": {
+    "live": "Disponible",
+    "planned": "Prévu",
+    "groups": {
+      "branches": {
+        "name": "Santé des branches",
+        "summary": "Sachez quel travail est vivant, protégé ou abandonné."
+      },
+      "activity": {
+        "name": "Activité",
+        "summary": "Voyez comment un repository évolue dans le temps."
+      },
+      "contributors": {
+        "name": "Contributeurs",
+        "summary": "Comprenez qui fait vivre le projet."
+      },
+      "collaboration": {
+        "name": "Pull requests et issues",
+        "summary": "Mesurez la vitesse du travail, de l'idée jusqu'à main."
+      },
+      "insights": {
+        "name": "Synthèse",
+        "summary": "Transformez les chiffres en décisions."
+      }
+    },
+    "features": {
+      "branch-overview": {
+        "title": "Vue d'ensemble des branches",
+        "description": "Chaque branch avec son dernier commit, son auteur et son âge, la plus récente en premier."
+      },
+      "stale-detection": {
+        "title": "Détection des branches inactives",
+        "description": "Signale les branches sans commit au-delà d'un seuil réglable de 30 à 365 jours."
+      },
+      "protection-status": {
+        "title": "État de la protection",
+        "description": "Règles de protection classiques et rulesets, sans droits d'administration."
+      },
+      "branch-divergence": {
+        "title": "Divergence des branches",
+        "description": "L'avance ou le retard de chaque branch par rapport à la branch par défaut."
+      },
+      "cli-json": {
+        "title": "CLI et JSON",
+        "description": "Le même rapport dans un terminal, ou en JSON pour les scripts et la CI."
+      },
+      "commit-heatmap": {
+        "title": "Heatmap des commits",
+        "description": "Les commits par jour et par heure, pour révéler le rythme d'un projet."
+      },
+      "activity-trends": {
+        "title": "Tendances d'activité",
+        "description": "Commits et branches actives par semaine, avec leur évolution."
+      },
+      "top-contributors": {
+        "title": "Principaux contributeurs",
+        "description": "Qui commite, relit et merge, sur une période choisie."
+      },
+      "bus-factor": {
+        "title": "Bus factor",
+        "description": "Le nombre de personnes dont le projet ne peut se passer pour avancer."
+      },
+      "new-returning": {
+        "title": "Nouveaux et réguliers",
+        "description": "Premiers contributeurs et habitués, période par période."
+      },
+      "time-to-merge": {
+        "title": "Délai de merge",
+        "description": "De l'ouverture au merge, avec médianes et valeurs extrêmes."
+      },
+      "review-latency": {
+        "title": "Délai de review",
+        "description": "Le temps qu'attend une pull request avant sa première review."
+      },
+      "ageing-pull-requests": {
+        "title": "Pull requests en sommeil",
+        "description": "Les pull requests ouvertes restées sans activité, les plus anciennes en premier."
+      },
+      "issue-response": {
+        "title": "Délai de réponse aux issues",
+        "description": "Le temps avant la première réponse à une nouvelle issue."
+      },
+      "health-score": {
+        "title": "Score de santé",
+        "description": "Un score unique qui combine activité, propriété du code et fluidité des reviews."
+      },
+      "repository-comparison": {
+        "title": "Comparaison de repositories",
+        "description": "Deux repositories côte à côte, indicateur par indicateur."
+      },
+      "report-export": {
+        "title": "Export du rapport",
+        "description": "Téléchargez un rapport en CSV ou en Markdown pour le partager."
+      }
+    }
+  },
+  "app": {
+    "kicker": "Analyser",
+    "title": "Bilan de santé des branches",
+    "lede": "Chaque branch d'un repository public : dernière activité, auteur, protection, et écart par rapport à la branch par défaut.",
+    "staleAfter": "Inactive après",
+    "days": "{days} jours",
+    "analysing": "Analyse en cours…",
+    "examples": "Exemples",
+    "loading": "Lecture des branches de {repository}…",
+    "empty": {
+      "title": "Ce que montre le rapport",
+      "cards": [
+        {
+          "title": "Activité",
+          "text": "Quand chaque branch a reçu son dernier commit, et de qui."
+        },
+        {
+          "title": "Travail abandonné",
+          "text": "Les branches sans commit depuis plus longtemps que le seuil que vous choisissez."
+        },
+        {
+          "title": "Divergence",
+          "text": "Les commits de chaque branch absents de main, et inversement."
+        }
+      ]
+    },
+    "errors": {
+      "400": "Saisissez un repository sous la forme owner/repository, par exemple nodejs/node.",
+      "404": "Ce repository n'existe pas ou n'est pas public.",
+      "429": "Vous avez utilisé vos {limit} analyses du jour. De nouveaux repositories seront disponibles {when}.",
+      "502": "GitHub n'a pas répondu correctement. Réessayez dans un instant.",
+      "503": "DevPulse a épuisé son quota GitHub pour le moment. Réessayez un peu plus tard.",
+      "504": "Ce repository est très volumineux et GitHub met du temps à répondre. Réessayez dans une minute : le résultat sera alors prêt.",
+      "tooManyRequests": "Trop de requêtes en peu de temps. Patientez une minute, puis réessayez.",
+      "generic": "Une erreur est survenue. Réessayez dans un instant."
+    }
+  },
+  "summary": {
+    "branches": "Branches",
+    "defaultBranch": "par défaut : {name}",
+    "none": "aucune",
+    "protected": "Protégées",
+    "protectedShare": "{share} des branches",
+    "stale": "Inactives",
+    "staleDetail": "sans commit depuis {days} jours ou plus",
+    "medianAge": "Âge médian",
+    "medianDetail": "depuis le dernier commit"
+  },
+  "insights": {
+    "title": "Synthèse",
+    "staleShare": "{share} des branches sont inactives",
+    "noBranches": {
+      "title": "Aucune branch",
+      "text": "Ce repository n'a pas encore de branch."
+    },
+    "noStale": {
+      "title": "Aucun travail abandonné",
+      "text": "Chaque branch a reçu un commit au cours des {days} derniers jours."
+    },
+    "stale": {
+      "title": "{share} des branches semblent abandonnées",
+      "text": {
+        "one": "{stale} branch sur {total} n'a reçu aucun commit depuis {days} jours ou plus.",
+        "other": "{stale} branches sur {total} n'ont reçu aucun commit depuis {days} jours ou plus."
+      }
+    },
+    "noProtection": {
+      "title": "Rien n'est protégé",
+      "text": "Aucune branch n'a de règle de protection, pas même la branch par défaut."
+    },
+    "protected": {
+      "title": {
+        "one": "{count} branch protégée",
+        "other": "{count} branches protégées"
+      },
+      "text": "Des règles de protection ou des rulesets les préservent des force push et des modifications non relues."
+    },
+    "behind": {
+      "title": "{name} est la plus en retard",
+      "text": {
+        "one": "{behind} commit de retard sur {base}, dernier commit : {age}.",
+        "other": "{behind} commits de retard sur {base}, dernier commit : {age}."
+      }
+    },
+    "defaultBranch": "la branch par défaut"
+  },
+  "table": {
+    "label": "Branches",
+    "filterGroup": "Filtrer les branches",
+    "filters": {
+      "all": "Toutes",
+      "active": "Actives",
+      "stale": "Inactives",
+      "protected": "Protégées"
+    },
+    "filterLabel": "Filtrer les branches par nom",
+    "filterPlaceholder": "Filtrer par nom",
+    "columns": {
+      "branch": "Branch",
+      "lastCommit": "Dernier commit",
+      "age": "Âge",
+      "divergence": "Avance / retard",
+      "divergenceTitle": "Commits d'avance et de retard sur {base}",
+      "author": "Auteur",
+      "status": "Statut"
+    },
+    "badges": {
+      "default": "par défaut",
+      "protected": "protégée",
+      "stale": "inactive"
+    },
+    "empty": "Aucune branch ne correspond à ce filtre.",
+    "caption": {
+      "one": "{shown} branch affichée sur {total}, les plus récemment modifiées en premier.",
+      "other": "{shown} branches affichées sur {total}, les plus récemment modifiées en premier."
+    }
+  },
+  "time": {
+    "today": "aujourd'hui"
+  },
+  "owner": {
+    "kicker": "Mainteneur",
+    "title": "Accès propriétaire",
+    "signedInLede": "Ce navigateur est connecté en tant que propriétaire.",
+    "lede": "Saisissez la clé propriétaire pour lever la limite quotidienne sur ce navigateur.",
+    "keyLabel": "Clé propriétaire",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "signedIn": "Connecté : aucune limite quotidienne sur ce navigateur pendant 30 jours.",
+    "signedOut": "Déconnecté.",
+    "invalid": "Cette clé n'est pas valide."
+  },
+  "docs": {
+    "kicker": "Documentation",
+    "title": "Comment DevPulse est construit",
+    "lede": "Les choix techniques et leurs raisons, la sécurité, l'automatisation, le déploiement, et l'usage responsable d'un agent de développement IA. Une synthèse publique ; le repository contient tous les détails.",
+    "onThisPage": "Sur cette page",
+    "diagramLabel": "Schéma d'architecture",
+    "sections": [
+      {
+        "id": "overview",
+        "title": "Présentation",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "DevPulse analyse les repositories GitHub publics. Sa première analyse, le rapport sur les branches, est disponible sous forme d'application web et d'outil en ligne de commande. Le projet montre aussi comment un petit produit est conçu, sécurisé, testé, automatisé et exploité en production par un seul ingénieur travaillant avec un agent de développement IA."
+          },
+          {
+            "type": "p",
+            "text": "Chaque décision technique fait l'objet d'un [Architecture Decision Record](https://github.com/BrahimNJ/DevPulse/tree/main/docs/decisions) qui présente aussi les alternatives écartées. Cette page les résume ; les records donnent le détail."
+          }
+        ]
+      },
+      {
+        "id": "architecture",
+        "title": "Architecture",
+        "blocks": [
+          {
+            "type": "diagram",
+            "nodes": ["Navigateur", "Cloud Run", "API GitHub"],
+            "detail": "serveur Node.js · build React · API",
+            "arrows": ["HTTPS", "GraphQL · REST"],
+            "side": [
+              "Secret Manager · token et clés",
+              "Firestore · quota quotidien",
+              "Cloud Logging · Monitoring"
+            ]
+          },
+          {
+            "type": "p",
+            "text": "Le code est organisé en couches : la couche **domaine** calcule le rapport à partir de données simples et d'une horloge injectée, la couche **infrastructure** dialogue avec GitHub, et les **interfaces** (API web, application React, CLI) dépendent des deux, jamais l'inverse. C'est pourquoi les règles métier sont testées sans aucun accès réseau."
+          }
+        ]
+      },
+      {
+        "id": "choices",
+        "title": "Choix techniques",
+        "blocks": [
+          {
+            "type": "table",
+            "head": ["Choix", "Pourquoi"],
+            "rows": [
+              [
+                "TypeScript en mode strict",
+                "Les erreurs de type sont détectées avant l'exécution ; le mode strict élimine des familles entières de bugs."
+              ],
+              [
+                "Node.js 24 exécutant TypeScript directement",
+                "Aucune compilation côté serveur : ce qui est testé est exactement ce qui tourne."
+              ],
+              [
+                "La bibliothèque standard de Node d'abord",
+                "Serveur HTTP, tests, compression, cryptographie : moins de dépendances, une surface d'attaque réduite."
+              ],
+              [
+                "React et Vite",
+                "Une interface maintenable avec un build rapide ; du CSS simple avec thèmes clair et sombre."
+              ],
+              [
+                "API GraphQL de GitHub",
+                "100 branches avec leur dernier commit et leur divergence par requête, au lieu d'un appel REST par branch."
+              ],
+              [
+                "Docker, image distroless",
+                "Un seul artefact reproductible ; ni shell ni gestionnaire de paquets en production."
+              ],
+              [
+                "Google Cloud Run",
+                "Des conteneurs mis en veille sans trafic : aucun serveur à maintenir et aucun coût au repos."
+              ],
+              [
+                "Terraform",
+                "Tout le projet cloud est du code, relu en pull request et reproductible."
+              ],
+              [
+                "GitHub Actions",
+                "Contrôles, builds et déploiements vivent à côté du code, épinglés et auditables."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "security",
+        "title": "Sécurité",
+        "blocks": [
+          {
+            "type": "checks",
+            "items": [
+              "**Aucun secret dans le navigateur ni dans le repository.** Le token GitHub est stocké dans Secret Manager et seule l'identité du serveur peut le lire.",
+              "**Aucune clé cloud permanente.** Les déploiements échangent un token d'identité GitHub de courte durée contre des identifiants Google (Workload Identity Federation), et seule la branch main de ce repository est acceptée.",
+              "**Moindre privilège.** Chaque compte de service n'a qu'un rôle : exécuter le serveur, le déployer ou arrêter la facturation. Aucun ne peut faire le travail des autres.",
+              "**En-têtes HTTP stricts.** Content Security Policy sans code inline, HSTS, pas d'intégration dans une iframe, pas de MIME sniffing, pas de referrer, pas de CORS.",
+              "**Validation de l'hôte.** Le serveur ne répond qu'à ses propres noms, ce qui bloque les attaques par DNS rebinding.",
+              "**Conteneur durci.** Utilisateur non root, fichiers en lecture seule, aucun shell, images de base épinglées par digest et scannées à chaque modification.",
+              "**Chaîne d'approvisionnement.** Chaque action de CI est épinglée sur un commit, chaque image est signée avec une attestation de provenance et un inventaire de ses composants, et la détection de secrets s'exécute sur chaque pull request.",
+              "**Confidentialité.** Les adresses des visiteurs ne sont jamais journalisées ni stockées ; le quota quotidien ne conserve qu'une empreinte salée et les repositories analysés, qui expirent après 24 heures puis sont supprimés peu après."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "abuse",
+        "title": "Protection contre les abus",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "Tous les visiteurs partagent un seul token GitHub ; le service le protège donc par couches successives, de la moins coûteuse à la plus stricte :"
+          },
+          {
+            "type": "steps",
+            "items": [
+              "Un cache de 10 minutes : un repository populaire ne coûte qu'un appel, quel que soit le nombre de visiteurs.",
+              "Les requêtes simultanées sur un même repository partagent un seul appel.",
+              "Une limite de requêtes par minute et par client.",
+              "Trois analyses par visiteur et par 24 heures, comptées côté serveur : recharger la page ou ouvrir une fenêtre privée ne les remet pas à zéro. Rouvrir un repository déjà analysé est gratuit.",
+              "Une réserve : sous un seuil de sécurité du quota GitHub restant, les nouveaux rapports sont refusés.",
+              "Un délai maximal, pour qu'un repository gigantesque ne puisse pas bloquer le serveur."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "github",
+        "title": "Travailler avec GitHub",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "Chaque modification, même minime, suit le même chemin :"
+          },
+          {
+            "type": "steps",
+            "items": [
+              "Une issue décrit le problème.",
+              "Une branch nommée d'après le type de modification est créée depuis main.",
+              "Les commits suivent Conventional Commits et expliquent le pourquoi, un sujet chacun.",
+              "Une pull request suit un modèle et est relue ; personne ne push directement sur main.",
+              "release-please lit les commits, rédige le changelog et propose la version suivante."
+            ]
+          },
+          {
+            "type": "p",
+            "text": "Des Git hooks formatent et vérifient les fichiers indexés et les messages de commit avant que quoi que ce soit ne quitte la machine ; la CI relance les mêmes contrôles sur GitHub."
+          }
+        ]
+      },
+      {
+        "id": "delivery",
+        "title": "Automatisation et livraison",
+        "blocks": [
+          {
+            "type": "table",
+            "head": ["Quand", "Ce qui s'exécute"],
+            "rows": [
+              [
+                "À chaque pull request",
+                "Formatage, lint, types, tests, messages de commit, audit des dépendances, détection de secrets, build et scan de vulnérabilités de l'image, validation de l'infrastructure."
+              ],
+              [
+                "À chaque merge sur main",
+                "L'image est construite une seule fois, signée, publiée, déployée sur un staging privé et soumise à un smoke test."
+              ],
+              [
+                "À chaque release",
+                "Après approbation du mainteneur, la même image est déployée en production sans trafic, vérifiée, puis activée ; si la vérification échoue, le trafic revient automatiquement à la version précédente."
+              ],
+              [
+                "Chaque semaine",
+                "Dependabot propose les mises à jour des dépendances, des actions et des images de base."
+              ]
+            ]
+          },
+          {
+            "type": "p",
+            "text": "Construire une seule fois puis promouvoir la même image garantit que la production exécute exactement ce qui a été testé en staging."
+          }
+        ]
+      },
+      {
+        "id": "deployment",
+        "title": "Déploiement et coûts",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "Le service tourne sur Cloud Run en Europe, mis en veille quand personne ne l'utilise et dimensionné pour rester dans l'offre gratuite de Google Cloud. L'infrastructure est décrite en Terraform : services, registry, identités, secrets, base de données, monitoring et budget."
+          },
+          {
+            "type": "checks",
+            "items": [
+              "Une sonde de disponibilité alerte le mainteneur par e-mail si la production ne répond plus.",
+              "Les logs sont structurés : on peut les filtrer par statut, latence et utilisation du cache.",
+              "Un budget mensuel envoie un e-mail à 10 %, 50 % et 100 %, et une petite fonction détache la facturation du projet quand le budget est atteint : un arrêt net des dépenses, vérifié de bout en bout en production sans avoir été déclenché."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "claude",
+        "title": "Travailler avec Claude Code",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "Le projet est développé avec Claude Code, un agent de développement IA, configuré dans le repository pour que son comportement soit partagé, relu et encadré plutôt qu'improvisé."
+          },
+          {
+            "type": "table",
+            "head": ["Mécanisme", "Rôle"],
+            "rows": [
+              [
+                "Instructions du projet",
+                "Des règles courtes chargées à chaque session : périmètre strict, workflow, limites absolues comme ne jamais commiter de secret."
+              ],
+              [
+                "Skills",
+                "Des workflows réutilisables sous forme de commandes : créer une issue, démarrer le travail, vérifier, commiter, ouvrir une pull request."
+              ],
+              [
+                "Subagents",
+                "Des spécialistes avec leur propre contexte et un minimum d'outils : un relecteur de code, un explorateur, un rédacteur de records de décision."
+              ],
+              [
+                "Hooks",
+                "Des contrôles appliqués par l'outil lui-même : les fichiers protégés ne peuvent pas être modifiés, les fichiers modifiés sont formatés."
+              ],
+              [
+                "Humain dans la boucle",
+                "Les plans sont validés avant toute modification, et les changements cloud comme les releases de production sont appliqués par le mainteneur."
+              ]
+            ]
+          },
+          {
+            "type": "p",
+            "text": "Chaque pull request est relue par un subagent de review avant son ouverture ; ses constats et les corrections qui en découlent sont consignés dans chaque pull request."
+          }
+        ]
+      },
+      {
+        "id": "tokens",
+        "title": "Optimisation des tokens",
+        "blocks": [
+          {
+            "type": "h3",
+            "text": "Claude"
+          },
+          {
+            "type": "checks",
+            "items": [
+              "Les instructions chargées à chaque requête restent courtes et renvoient vers les documents au lieu de les recopier.",
+              "Les recherches larges et les reviews tournent dans des subagents : leur sortie ne remplit jamais le contexte principal.",
+              "Les modèles moins coûteux font le travail mécanique ; le modèle le plus puissant est réservé à la conception et à la review.",
+              "Les fichiers sont lus par extraits, et ce sont les hooks et les contrôles qualité qui vérifient, pas des échanges supplémentaires.",
+              "Les tâches sans rapport démarrent d'un contexte vidé ; les longues sessions sont résumées avec un objectif précis."
+            ]
+          },
+          {
+            "type": "h3",
+            "text": "API GitHub"
+          },
+          {
+            "type": "checks",
+            "items": [
+              "Une seule requête GraphQL renvoie 100 branches avec leur dernier commit et leur divergence.",
+              "La protection provient d'une seule liste REST filtrée, au lieu d'un appel par branch.",
+              "Les résultats sont mis en cache 10 minutes et partagés entre visiteurs simultanés.",
+              "Le quota restant est lu dans chaque réponse, et une réserve n'est jamais consommée.",
+              "Chaque visiteur dispose d'un quota quotidien ; les repositories déjà analysés sont gratuits."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "decisions",
+        "title": "Records de décision",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "Les records expliquent le contexte, la décision, les alternatives et les conséquences de chaque choix structurant : langage et outillage, workflow avec l'IA, releases, ligne de commande, dashboard, déploiement public et quota des visiteurs."
+          },
+          {
+            "type": "button",
+            "text": "Lire les records de décision",
+            "href": "https://github.com/BrahimNJ/DevPulse/tree/main/docs/decisions"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 import { useState, type JSX, type SyntheticEvent } from 'react';
 
-import { signInAsOwner, signOut } from './api.ts';
+import { ApiError, signInAsOwner, signOut } from './api.ts';
+import { useI18n } from './I18nProvider.tsx';
 import { KeyIcon } from './icons.tsx';
 import { Layout } from './Layout.tsx';
 import { useQuota } from './quota.ts';
@@ -10,6 +11,8 @@ import { useQuota } from './quota.ts';
  * key sets a signed cookie that lifts the daily allowance on this browser.
  */
 export function Owner(): JSX.Element {
+  const { t } = useI18n();
+  const copy = t.owner;
   const { quota, refresh } = useQuota();
   const [key, setKey] = useState('');
   const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
@@ -25,10 +28,8 @@ export function Owner(): JSX.Element {
           refresh();
         },
         (error: unknown) => {
-          setMessage({
-            tone: 'error',
-            text: error instanceof Error ? error.message : String(error),
-          });
+          const invalid = error instanceof ApiError && error.status === 401;
+          setMessage({ tone: 'error', text: invalid ? copy.invalid : t.app.errors.generic });
         },
       )
       .finally(() => {
@@ -38,49 +39,47 @@ export function Owner(): JSX.Element {
 
   function onSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>): void {
     event.preventDefault();
-    run(signInAsOwner(key), 'Signed in: no daily limit on this browser for 30 days.');
+    run(signInAsOwner(key), copy.signedIn);
   }
+
+  const signedIn = quota?.owner === true;
 
   return (
     <Layout page="owner" quota={quota}>
       <section className="app-hero">
         <div className="container narrow">
-          <span className="kicker">Maintainer</span>
-          <h1>Owner access</h1>
-          <p className="lede">
-            {quota?.owner === true
-              ? 'This browser is signed in as the owner.'
-              : 'Enter the owner key to lift the daily allowance on this browser.'}
-          </p>
-          {quota?.owner === true ? (
+          <span className="kicker">{copy.kicker}</span>
+          <h1>{copy.title}</h1>
+          <p className="lede">{signedIn ? copy.signedInLede : copy.lede}</p>
+          {signedIn ? (
             <button
               type="button"
               className="button button-ghost"
               disabled={busy}
               onClick={() => {
-                run(signOut(), 'Signed out.');
+                run(signOut(), copy.signedOut);
               }}
             >
-              Sign out
+              {copy.signOut}
             </button>
           ) : (
             <form className="analyse-form" onSubmit={onSubmit}>
               <label className="input-with-icon">
                 <KeyIcon />
-                <span className="visually-hidden">Owner key</span>
+                <span className="visually-hidden">{copy.keyLabel}</span>
                 <input
                   type="password"
                   value={key}
                   onChange={(event) => {
                     setKey(event.target.value);
                   }}
-                  placeholder="Owner key"
+                  placeholder={copy.keyLabel}
                   autoComplete="current-password"
                   required
                 />
               </label>
               <button type="submit" className="button button-primary" disabled={busy}>
-                Sign in
+                {copy.signIn}
               </button>
             </form>
           )}

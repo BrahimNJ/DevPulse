@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 
 import { App } from './App.tsx';
 import { Docs } from './Docs.tsx';
+import { I18nProvider } from './I18nProvider.tsx';
 import { Landing } from './Landing.tsx';
 import { Owner } from './Owner.tsx';
 
@@ -12,16 +13,16 @@ if (root === null) {
 }
 
 // Four pages do not justify a router dependency: the path picks the page.
-const PAGES: Readonly<Record<string, { title: string; render: () => JSX.Element }>> = {
-  '/app': { title: 'DevPulse · Analyse a repository', render: (): JSX.Element => <App /> },
-  '/docs': { title: 'DevPulse · Engineering documentation', render: (): JSX.Element => <Docs /> },
-  '/owner': { title: 'DevPulse · Owner access', render: (): JSX.Element => <Owner /> },
+const PAGES: Readonly<Record<string, () => JSX.Element>> = {
+  '/app': () => <App />,
+  '/docs': () => <Docs />,
+  '/owner': () => <Owner />,
 };
-const path = window.location.pathname.replace(/\/+$/, '');
-const page = PAGES[path] ?? {
-  title: 'DevPulse · Branch health for GitHub repositories',
-  render: (): JSX.Element => <Landing />,
-};
-document.title = page.title;
+const render =
+  PAGES[window.location.pathname.replace(/\/+$/, '')] ?? ((): JSX.Element => <Landing />);
 
-createRoot(root).render(<StrictMode>{page.render()}</StrictMode>);
+createRoot(root).render(
+  <StrictMode>
+    <I18nProvider>{render()}</I18nProvider>
+  </StrictMode>,
+);

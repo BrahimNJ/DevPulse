@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { fetchQuota, type QuotaResponse, type ReportResult } from './api.ts';
+import { formatNumber, interpolate, plural, type Locale, type Messages } from './i18n.ts';
 
 export interface QuotaState {
   /** Null until the server has answered. */
@@ -31,28 +32,38 @@ export function useQuota(): QuotaState {
   return { quota, update, refresh };
 }
 
-/** "3 of 3 analyses left today", "Unlimited (owner)", or null when there is no allowance. */
-export function describeQuota(quota: QuotaResponse | null): string | null {
+/** "2 of 3 analyses left today", the owner's label, or null when there is no allowance. */
+export function describeQuota(
+  quota: QuotaResponse | null,
+  t: Messages,
+  locale: Locale,
+): string | null {
   if (quota === null) {
     return null;
   }
   if (quota.owner) {
-    return 'Unlimited · owner';
+    return t.quota.owner;
   }
   if (quota.limit === null || quota.remaining === null) {
     return null;
   }
-  return `${String(quota.remaining)} of ${String(quota.limit)} analyses left today`;
+  return plural(t.quota.left, quota.remaining, locale, {
+    remaining: formatNumber(quota.remaining, locale),
+    limit: formatNumber(quota.limit, locale),
+  });
 }
 
 /** "in 14 h 12 min" until `iso`, for the reset of the allowance. */
-export function timeUntil(iso: string | null, now: Date = new Date()): string {
+export function timeUntil(iso: string | null, t: Messages, now: Date = new Date()): string {
   if (iso === null) {
-    return 'within 24 hours';
+    return t.quota.within;
   }
   const minutes = Math.max(1, Math.round((new Date(iso).getTime() - now.getTime()) / 60_000));
   const hours = Math.floor(minutes / 60);
   return hours === 0
-    ? `in ${String(minutes)} min`
-    : `in ${String(hours)} h ${String(minutes % 60).padStart(2, '0')} min`;
+    ? interpolate(t.quota.inMinutes, { minutes })
+    : interpolate(t.quota.inHours, {
+        hours,
+        minutes: String(minutes % 60).padStart(2, '0'),
+      });
 }

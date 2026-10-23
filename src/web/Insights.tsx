@@ -2,6 +2,8 @@ import type { JSX } from 'react';
 
 import type { BranchReportResponse } from './api.ts';
 import { percentage } from './format.ts';
+import { interpolate } from './i18n.ts';
+import { useI18n } from './I18nProvider.tsx';
 import { buildInsights } from './report-insights.ts';
 
 /**
@@ -9,20 +11,25 @@ import { buildInsights } from './report-insights.ts';
  * the repository is active, how much is protected, and which branch drifted the most.
  */
 export function Insights({ report }: { readonly report: BranchReportResponse }): JSX.Element {
-  const insights = buildInsights(report);
-  const staleShare =
-    report.totals.branches === 0 ? 0 : report.totals.stale / report.totals.branches;
+  const { t, locale } = useI18n();
+  const insights = buildInsights(report, t, locale);
+  const { stale, branches } = report.totals;
+  const activeShare = branches === 0 ? 1 : 1 - stale / branches;
   return (
     <section className="insights" aria-labelledby="insights-title">
       <div className="insights-header">
-        <h2 id="insights-title">Insights</h2>
+        <h2 id="insights-title">{t.insights.title}</h2>
         <div
           className="share-bar"
-          aria-label={`${percentage(report.totals.stale, report.totals.branches)} of branches are stale`}
+          role="img"
+          aria-label={interpolate(t.insights.staleShare, {
+            share: percentage(stale, branches, locale),
+          })}
         >
+          {/* React sets styles through the CSSOM, which the strict CSP allows. */}
           <span
             className="share-active"
-            style={{ width: `${String(Math.round((1 - staleShare) * 100))}%` }}
+            style={{ width: `${String(Math.round(activeShare * 100))}%` }}
           />
         </div>
       </div>

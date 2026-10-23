@@ -1,6 +1,6 @@
 # 0008. Limit analyses per visitor and give the maintainer unlimited access
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-10-22
 
 ## Context

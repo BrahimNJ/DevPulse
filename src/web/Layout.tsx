@@ -1,19 +1,21 @@
 import { useEffect, type JSX, type ReactNode } from 'react';
 
+import type { QuotaResponse } from './api.ts';
+import { interpolate, LOCALES, type Locale, type Messages } from './i18n.ts';
+import { useI18n } from './I18nProvider.tsx';
 import { GitHubIcon, Logo } from './icons.tsx';
 import { describeQuota } from './quota.ts';
-import type { QuotaResponse } from './api.ts';
 
 export type Page = 'home' | 'app' | 'docs' | 'owner';
 
 const NAVIGATION: readonly {
   readonly page: Page;
   readonly href: string;
-  readonly label: string;
+  readonly label: (t: Messages) => string;
 }[] = [
-  { page: 'home', href: '/', label: 'Product' },
-  { page: 'app', href: '/app', label: 'Analyse' },
-  { page: 'docs', href: '/docs', label: 'Docs' },
+  { page: 'home', href: '/', label: (t) => t.nav.product },
+  { page: 'app', href: '/app', label: (t) => t.nav.analyse },
+  { page: 'docs', href: '/docs', label: (t) => t.nav.docs },
 ];
 
 export const REPOSITORY_URL = 'https://github.com/BrahimNJ/DevPulse';
@@ -27,7 +29,12 @@ export function Layout({
   readonly quota: QuotaResponse | null;
   readonly children: ReactNode;
 }): JSX.Element {
-  const allowance = describeQuota(quota);
+  const { t, locale } = useI18n();
+  const allowance = describeQuota(quota, t, locale);
+
+  useEffect(() => {
+    document.title = t.meta.titles[page];
+  }, [t, page]);
 
   // Pages render in the browser, after it has tried to scroll to a #section link.
   useEffect(() => {
@@ -40,17 +47,17 @@ export function Layout({
   return (
     <div className="site">
       <a className="skip-link" href="#content">
-        Skip to content
+        {t.nav.skip}
       </a>
       <header className="site-header">
         <div className="container header-inner">
-          <a className="brand" href="/" aria-label="DevPulse home">
+          <a className="brand" href="/" aria-label={t.nav.home}>
             <Logo size={30} />
             <span className="brand-name">
               Dev<span className="brand-accent">Pulse</span>
             </span>
           </a>
-          <nav className="site-nav" aria-label="Main">
+          <nav className="site-nav" aria-label={t.nav.main}>
             {NAVIGATION.map((item) => (
               <a
                 key={item.page}
@@ -58,7 +65,7 @@ export function Layout({
                 className="nav-link"
                 aria-current={item.page === page ? 'page' : undefined}
               >
-                {item.label}
+                {item.label(t)}
               </a>
             ))}
           </nav>
@@ -69,14 +76,15 @@ export function Layout({
                 title={
                   quota?.limit === null || quota?.limit === undefined
                     ? undefined
-                    : `Each visitor may analyse ${String(quota.limit)} repositories a day`
+                    : interpolate(t.quota.tooltip, { limit: quota.limit })
                 }
               >
                 <span className="quota-dot" aria-hidden="true" />
                 {allowance}
               </span>
             )}
-            <a className="icon-link" href={REPOSITORY_URL} aria-label="Source code on GitHub">
+            <LanguageSwitch />
+            <a className="icon-link" href={REPOSITORY_URL} aria-label={t.nav.source}>
               <GitHubIcon />
             </a>
           </div>
@@ -94,41 +102,65 @@ export function Layout({
                 Dev<span className="brand-accent">Pulse</span>
               </span>
             </a>
-            <p>
-              Branch health for public GitHub repositories. An open-source portfolio project,
-              designed, secured and shipped end to end.
-            </p>
+            <p>{t.footer.tagline}</p>
           </div>
           <FooterColumn
-            title="Product"
+            title={t.footer.product}
             links={[
-              ['Overview', '/'],
-              ['Analyse a repository', '/app'],
-              ['Roadmap', '/#roadmap'],
+              [t.footer.overview, '/'],
+              [t.footer.analyse, '/app'],
+              [t.footer.roadmap, '/#roadmap'],
             ]}
           />
           <FooterColumn
-            title="Engineering"
+            title={t.footer.engineering}
             links={[
-              ['Documentation', '/docs'],
-              ['Security', '/docs#security'],
-              ['Delivery pipeline', '/docs#delivery'],
+              [t.footer.documentation, '/docs'],
+              [t.footer.security, '/docs#security'],
+              [t.footer.delivery, '/docs#delivery'],
             ]}
           />
           <FooterColumn
-            title="Source"
+            title={t.footer.source}
             links={[
-              ['Repository', REPOSITORY_URL],
-              ['Decision records', `${REPOSITORY_URL}/tree/main/docs/decisions`],
-              ['Releases', `${REPOSITORY_URL}/releases`],
+              [t.footer.repository, REPOSITORY_URL],
+              [t.footer.decisions, `${REPOSITORY_URL}/tree/main/docs/decisions`],
+              [t.footer.releases, `${REPOSITORY_URL}/releases`],
             ]}
           />
         </div>
         <div className="container footer-bottom">
-          <span>Data from the GitHub GraphQL and REST APIs.</span>
+          <span>{t.footer.data}</span>
           <span className="mono">TypeScript · React · Node.js · Cloud Run · Terraform</span>
         </div>
       </footer>
+    </div>
+  );
+}
+
+/**
+ * FR | EN. The visible code is the accessible name (WCAG 2.5.3, label in name); the
+ * full language name, in that language, is the tooltip.
+ */
+function LanguageSwitch(): JSX.Element {
+  const { t, locale, setLocale } = useI18n();
+  const options: readonly Locale[] = ['fr', 'en'];
+  return (
+    <div className="language-switch" role="group" aria-label={t.nav.language}>
+      {options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          lang={option}
+          aria-pressed={option === locale}
+          title={LOCALES[option].label}
+          onClick={() => {
+            setLocale(option);
+          }}
+        >
+          {option.toUpperCase()}
+        </button>
+      ))}
     </div>
   );
 }

@@ -2,6 +2,8 @@ import type { JSX } from 'react';
 
 import type { BranchReportResponse } from './api.ts';
 import { formatAge, median, percentage } from './format.ts';
+import { formatNumber, interpolate } from './i18n.ts';
+import { useI18n } from './I18nProvider.tsx';
 
 interface Tile {
   readonly label: string;
@@ -10,28 +12,32 @@ interface Tile {
 }
 
 export function Summary({ report }: { readonly report: BranchReportResponse }): JSX.Element {
+  const { t, locale } = useI18n();
+  const copy = t.summary;
   const { totals } = report;
   const medianAge = median(report.branches.map((branch) => branch.ageDays));
   const tiles: readonly Tile[] = [
     {
-      label: 'Branches',
-      value: totals.branches.toLocaleString('en-GB'),
-      detail: `default ${report.defaultBranch ?? 'none'}`,
+      label: copy.branches,
+      value: formatNumber(totals.branches, locale),
+      detail: interpolate(copy.defaultBranch, { name: report.defaultBranch ?? copy.none }),
     },
     {
-      label: 'Protected',
-      value: totals.protected.toLocaleString('en-GB'),
-      detail: `${percentage(totals.protected, totals.branches)} of branches`,
+      label: copy.protected,
+      value: formatNumber(totals.protected, locale),
+      detail: interpolate(copy.protectedShare, {
+        share: percentage(totals.protected, totals.branches, locale),
+      }),
     },
     {
-      label: 'Stale',
-      value: totals.stale.toLocaleString('en-GB'),
-      detail: `no commit for ${String(report.staleDays)}+ days`,
+      label: copy.stale,
+      value: formatNumber(totals.stale, locale),
+      detail: interpolate(copy.staleDetail, { days: formatNumber(report.staleDays, locale) }),
     },
     {
-      label: 'Median age',
-      value: medianAge === null ? '–' : formatAge(medianAge),
-      detail: 'since the last commit',
+      label: copy.medianAge,
+      value: medianAge === null ? '–' : formatAge(medianAge, locale, t.time.today),
+      detail: copy.medianDetail,
     },
   ];
 

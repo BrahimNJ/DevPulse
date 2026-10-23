@@ -3,14 +3,22 @@ import type { ApiErrorResponse, BranchReportResponse, QuotaResponse } from '../s
 export type { BranchReportResponse, QuotaResponse };
 export type BranchRow = BranchReportResponse['branches'][number];
 
-/** A failed API call; `status` lets the interface explain a quota refusal. */
+/**
+ * A failed API call. The status and the allowance headers let the interface explain
+ * the failure in the visitor's language rather than show the server's English text.
+ */
 export class ApiError extends Error {
   readonly status: number;
+  /** The daily allowance is used up, as opposed to the per-minute rate limit. */
+  readonly quotaExceeded: boolean;
+  readonly resetsAt: string | null;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, headers?: Headers) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.quotaExceeded = headers?.get('x-quota-remaining') === '0';
+    this.resetsAt = headers?.get('x-quota-reset') ?? null;
   }
 }
 
@@ -77,7 +85,7 @@ async function readJson<T>(response: Response): Promise<T> {
       body !== null && typeof body === 'object' && 'error' in body
         ? (body as ApiErrorResponse).error
         : `Request failed with status ${String(response.status)}.`;
-    throw new ApiError(message, response.status);
+    throw new ApiError(message, response.status, response.headers);
   }
   return body as T;
 }
