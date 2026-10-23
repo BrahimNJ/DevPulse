@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.6.0](https://github.com/BrahimNJ/DevPulse/compare/v0.5.0...v0.6.0) (2026-10-23)
+
+
+### Features
+
+* limit visitors to three analyses a day, redesign the site and add public docs ([cd0748c](https://github.com/BrahimNJ/DevPulse/commit/cd0748c09ab10f854c47f9e8395f31f151773922))
+* **server:** charge visitors only for reports that are delivered ([97f24fa](https://github.com/BrahimNJ/DevPulse/commit/97f24fae0e3c54d8741c3e998afae1b495ede468)), closes [#38](https://github.com/BrahimNJ/DevPulse/issues/38)
+* **server:** limit visitors to three analyses a day ([07751cf](https://github.com/BrahimNJ/DevPulse/commit/07751cf4d1434aded6aefea2c7834693f0ea270a)), closes [#38](https://github.com/BrahimNJ/DevPulse/issues/38)
+* **web:** redesign the site, add public docs and the daily allowance ([7689f46](https://github.com/BrahimNJ/DevPulse/commit/7689f46281b15fa380b0f61c55567f371b967d67)), closes [#38](https://github.com/BrahimNJ/DevPulse/issues/38)
+
+
+### Bug Fixes
+
+* **server:** address review of the allowance and its store ([725c18c](https://github.com/BrahimNJ/DevPulse/commit/725c18c146a6b662da00be8fba921022e1ab9268)), closes [#38](https://github.com/BrahimNJ/DevPulse/issues/38)
+* **web:** address review of the docs and owner pages ([e9c2092](https://github.com/BrahimNJ/DevPulse/commit/e9c2092d384cab9c51425040568b15eefa7e6382)), closes [#38](https://github.com/BrahimNJ/DevPulse/issues/38)
+
+
+### Performance
+
+* **server:** serve static files compressed ([6165ee0](https://github.com/BrahimNJ/DevPulse/commit/6165ee0a58e69545ef4cb889b266a493431f75f5)), closes [#38](https://github.com/BrahimNJ/DevPulse/issues/38)
+
 ## [0.5.0](https://github.com/BrahimNJ/DevPulse/compare/v0.4.0...v0.5.0) (2026-10-22)
 
 
