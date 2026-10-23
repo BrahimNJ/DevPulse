@@ -80,6 +80,8 @@ describe('FirestoreEventStore', () => {
           },
         },
       },
+      // A document without the fields every event has is skipped.
+      { document: { fields: { report: { stringValue: 'branches' } } } },
       { readTime: '2026-10-23T12:00:00Z' },
     ]);
 

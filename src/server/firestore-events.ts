@@ -68,9 +68,11 @@ export class FirestoreEventStore implements EventStore {
     });
     await assertOk(response);
     const results = (await response.json()) as readonly { document?: { fields?: Fields } }[];
-    return results.flatMap((result) =>
-      result.document?.fields === undefined ? [] : [fromFields(result.document.fields)],
-    );
+    return results.flatMap((result) => {
+      const event =
+        result.document?.fields === undefined ? null : fromFields(result.document.fields);
+      return event === null ? [] : [event];
+    });
   }
 
   async #call(url: string, body: unknown): Promise<Response> {
@@ -101,15 +103,22 @@ function toFields(event: AnalysisEvent): Record<string, Value> {
   };
 }
 
-function fromFields(fields: Fields): AnalysisEvent {
+/** An event, or null for a document missing what every event has: skipped, not miscounted. */
+function fromFields(fields: Fields): AnalysisEvent | null {
+  const at = text(fields['at'], 'timestampValue');
+  const outcome = text(fields['outcome'], 'stringValue');
+  const visitor = text(fields['visitor'], 'stringValue');
+  if (at === null || outcome === null || visitor === null) {
+    return null;
+  }
   return {
-    at: new Date(text(fields['at'], 'timestampValue') ?? 0),
+    at: new Date(at),
     report: (text(fields['report'], 'stringValue') ?? 'branches') as ReportKind,
     repository: text(fields['repository'], 'stringValue'),
-    visitor: text(fields['visitor'], 'stringValue') ?? '',
+    visitor,
     owner: flag(fields['owner']) ?? false,
     status: Number(text(fields['status'], 'integerValue') ?? 0),
-    outcome: (text(fields['outcome'], 'stringValue') ?? 'error') as Outcome,
+    outcome: outcome as Outcome,
     durationMs: Number(text(fields['durationMs'], 'integerValue') ?? 0),
     cacheHit: flag(fields['cacheHit']),
     device: (text(fields['device'], 'stringValue') ?? 'desktop') as Device,

@@ -1,6 +1,6 @@
 /**
- * Usage statistics for the maintainer (ADR 0011). Each analysis is recorded as an
- * anonymous event: the salted visitor hash of ADR 0008, never the address, kept 30 days.
+ * Usage statistics for the maintainer (ADR 0011). Each analysis is recorded as a
+ * pseudonymous event: the salted visitor hash of ADR 0008, never the address, kept 30 days.
  */
 
 export type ReportKind = 'branches' | 'delivery';
@@ -42,11 +42,20 @@ export interface EventStore {
   recent(since: Date, limit: number): Promise<AnalysisEvent[]>;
 }
 
+/** Events in memory, for local runs: only the newest `maxEvents` are kept. */
 export class MemoryEventStore implements EventStore {
   readonly #events: AnalysisEvent[] = [];
+  readonly #maxEvents: number;
+
+  constructor(maxEvents = 10_000) {
+    this.#maxEvents = maxEvents;
+  }
 
   add(event: AnalysisEvent): Promise<void> {
     this.#events.push(event);
+    if (this.#events.length > this.#maxEvents) {
+      this.#events.shift();
+    }
     return Promise.resolve();
   }
 

@@ -323,4 +323,32 @@ describe('createApp', () => {
       assert.deepEqual(warnings, ['Could not record an analysis: Firestore is down']);
     });
   });
+
+  it('stops waiting for a store that hangs', async () => {
+    const warnings: string[] = [];
+    const analytics: Analytics = {
+      events: {
+        add: () => new Promise<void>(() => undefined),
+        recent: () => Promise.resolve([]),
+      },
+      githubQuota: () => null,
+      warn: (message) => warnings.push(message),
+    };
+    await withServer(createApp(options({ analytics })), async (send) => {
+      const started = Date.now();
+      assert.equal((await send('/api/branches?repo=acme/app')).status, 200);
+      assert.ok(Date.now() - started < 2500);
+      assert.deepEqual(warnings, ['Could not record an analysis: timed out after 1000 ms']);
+    });
+  });
+
+  it('does not record requests the rate limit refuses', async () => {
+    const events = new MemoryEventStore();
+    const analytics: Analytics = { events, githubQuota: () => null, warn: () => undefined };
+    await withServer(createApp(options({ analytics, limitPerMinute: 1 })), async (send) => {
+      await send('/api/branches?repo=acme/app');
+      assert.equal((await send('/api/branches?repo=acme/app')).status, 429);
+    });
+    assert.equal((await events.recent(new Date(0), 10)).length, 1);
+  });
 });

@@ -54,8 +54,7 @@ async function delivery(call: ApiCall): Promise<void> {
 }
 
 /**
- * Serves a report and records the analysis for the owner's statistics (ADR 0011),
- * including those the rate limit refused.
+ * Serves a report and records the analysis for the owner's statistics (ADR 0011).
  */
 async function analysis(call: ApiCall, report: ReportKind, handle: ReportHandler): Promise<void> {
   const { request, response, options, context, visitor } = call;
@@ -84,8 +83,8 @@ async function analysis(call: ApiCall, report: ReportKind, handle: ReportHandler
     durationMs: options.clock() - started,
     cacheHit: result.cacheHit ?? null,
   });
+  // A refused request is not recorded: a flood must not turn into Firestore writes.
   if (!withinRateLimit(call)) {
-    await recordAnalysis(options.analytics, record({ status: 429 }));
     return;
   }
   const result = await handle(searchParams, options.api, visitor);
