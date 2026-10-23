@@ -50,9 +50,10 @@ const PULL_REQUEST_FIELDS = `
 `;
 
 /**
- * The 100 most recently updated merged pull requests, which are the most recently
- * merged ones, read from the repository itself: unlike search, it works for every
- * repository.
+ * The 100 most recently updated merged pull requests, read from the repository itself:
+ * unlike search, it works for every repository. GitHub cannot order pull requests by
+ * merge date; a recent merge is almost always a recent update, so this approximates the
+ * latest merges, though a late comment on an older one can bring it in.
  */
 const SAMPLE_QUERY = `
   query ($owner: String!, $name: String!) {
@@ -68,11 +69,11 @@ const SAMPLE_QUERY = `
 `;
 
 /**
- * Reads the delivery history of a repository over the last 90 days: the 100 most
- * recently merged pull requests with their first reviews, the releases, and counts by
- * search. Two GraphQL requests run in parallel and cost 1 point together; searching by
- * date keeps the sample unbiased, where the 100 latest pull requests of a busy
- * repository would only cover a few days.
+ * Reads the delivery history of a repository over the last 90 days: a sample of recently
+ * merged pull requests with their first reviews, the releases, and counts by search.
+ * Two GraphQL requests run in parallel and cost 1 point each (measured with
+ * `rateLimit(dryRun: true)`). The counts search by date, so they cover the whole window
+ * even when the sample of a busy repository covers only a few days.
  *
  * The repository name is safe inside a search query: `parseRepository` only lets
  * letters, digits, `.`, `_` and `-` through, so no search qualifier can be injected.
@@ -148,9 +149,10 @@ function countQuery(repository: string, now: Date): string {
     reverts: `${repository} is:merged merged:>=${since} Revert in:title`,
   };
   for (let week = 0; week < WEEKS; week += 1) {
-    // Week 0 is the last seven days, week 11 twelve weeks ago.
-    const from = isoDate(now, 7 * (week + 1));
-    const to = isoDate(now, 7 * week + 1);
+    // Week 0 is the last seven days including today, week 11 twelve weeks ago; search
+    // date ranges include both ends.
+    const from = isoDate(now, 7 * week + 6);
+    const to = isoDate(now, 7 * week);
     searches[`week${String(week)}`] = `${repository} is:merged merged:${from}..${to}`;
   }
   const aliases = Object.entries(searches)
@@ -222,7 +224,10 @@ function toRelease(node: SampleData['repository']['releases']['nodes'][number]):
       ];
 }
 
-/** GitHub names the pull request that reverts another one "Revert "<title>"". */
+/**
+ * A title containing the word "revert", as `Revert in:title` matches in search, so both
+ * paths count the same pull requests. GitHub names a revert "Revert "<title>"".
+ */
 function isRevert(title: string): boolean {
-  return title.toLowerCase().startsWith('revert ');
+  return /\brevert\b/i.test(title);
 }

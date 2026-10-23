@@ -727,7 +727,7 @@
               ],
               [
                 "Revert rate",
-                "Merged pull requests whose title starts with \"Revert\": a proxy of the change failure rate."
+                "Merged pull requests whose title contains the word \"Revert\": a proxy of the change failure rate."
               ],
               ["First review", "Opening to the first review by someone other than the author."],
               [

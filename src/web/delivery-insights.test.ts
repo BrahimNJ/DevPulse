@@ -63,7 +63,7 @@ describe('delivery insights', () => {
       reviewers: null,
       throughput: null,
       revertRate: null,
-      bands: { leadTime: null, releaseFrequency: 'low', changeFailure: null },
+      bands: { leadTime: null, releaseFrequency: null, changeFailure: null },
     };
     assert.deepEqual(buildDeliveryInsights(report, en, 'en'), []);
   });

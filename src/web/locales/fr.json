@@ -727,7 +727,7 @@
               ],
               [
                 "Taux de revert",
-                "Pull requests mergées dont le titre commence par « Revert » : une approximation du taux d'échec des changements."
+                "Pull requests mergées dont le titre contient le mot « Revert » : une approximation du taux d'échec des changements."
               ],
               [
                 "Première review",

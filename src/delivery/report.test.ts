@@ -200,7 +200,7 @@ describe('buildDeliveryReport', () => {
     assert.equal(report.reviewers, null);
     assert.equal(report.revertRate, null);
     assert.equal(report.bands.leadTime, null);
-    assert.equal(report.bands.releaseFrequency, 'low');
+    assert.equal(report.bands.releaseFrequency, null);
     assert.equal(report.releases.daysSinceLast, null);
   });
 });

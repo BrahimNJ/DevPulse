@@ -129,7 +129,7 @@ describe('fetchDeliveryData', () => {
     );
     assert.match(
       countQuery,
-      /week0: search\(query: "repo:acme\/app is:pr is:merged merged:2026-10-16\.\.2026-10-22"/,
+      /week0: search\(query: "repo:acme\/app is:pr is:merged merged:2026-10-17\.\.2026-10-23"/,
     );
     assert.match(
       countQuery,

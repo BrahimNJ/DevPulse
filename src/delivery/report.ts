@@ -100,7 +100,7 @@ export interface DeliveryReport {
   readonly botShare: number;
   readonly bands: {
     readonly leadTime: Band | null;
-    readonly releaseFrequency: Band;
+    readonly releaseFrequency: Band | null;
     readonly changeFailure: Band | null;
   };
 }
@@ -269,12 +269,13 @@ function bands(
   now: Date,
 ): DeliveryReport['bands'] {
   const median = distribution(humans.map(leadHours))?.medianHours;
-  const perMonth = releases(data.releases, data.windowDays, now).perMonth;
+  const { perMonth, daysSinceLast } = releases(data.releases, data.windowDays, now);
   const revertRate = data.mergedCount === 0 ? null : data.revertCount / data.mergedCount;
   return {
     leadTime: median === undefined ? null : band(median, [24, 24 * 7, 24 * 30]),
-    // Releases per month: daily (30), weekly (30 / 7), monthly (1).
-    releaseFrequency: band(-perMonth, [-30, -30 / 7, -1]),
+    // Releases per month: daily (30), weekly (30 / 7), monthly (1). A repository that
+    // never published a GitHub Release may still ship, through tags: unknown, not low.
+    releaseFrequency: daysSinceLast === null ? null : band(-perMonth, [-30, -30 / 7, -1]),
     changeFailure: revertRate === null ? null : band(revertRate, [0.05, 0.1, 0.15]),
   };
 }
