@@ -27,7 +27,12 @@ export function formatAge(days: number, locale: Locale, today: string): string {
   return unit(days / 365, 'year', locale, 1);
 }
 
-function unit(value: number, name: 'day' | 'month' | 'year', locale: Locale, digits = 0): string {
+function unit(
+  value: number,
+  name: 'minute' | 'hour' | 'day' | 'month' | 'year',
+  locale: Locale,
+  digits = 0,
+): string {
   return (
     new Intl.NumberFormat(LOCALES[locale].tag, {
       style: 'unit',
@@ -71,4 +76,21 @@ export function formatDivergence(
   }
   const number = new Intl.NumberFormat(LOCALES[locale].tag);
   return `+${number.format(divergence.ahead)} / −${number.format(divergence.behind)}`;
+}
+
+/** "45 minutes", "6 hours", "3.8 days": the unit that keeps the number readable. */
+export function formatDuration(hours: number, locale: Locale): string {
+  if (hours < 1) {
+    return unit(Math.max(1, Math.round(hours * 60)), 'minute', locale);
+  }
+  if (hours < 48) {
+    return oneDecimal(hours, 'hour', locale);
+  }
+  return oneDecimal(hours / 24, 'day', locale);
+}
+
+/** "3.8 days" but "4 days": a decimal only when it says something. */
+function oneDecimal(value: number, name: 'hour' | 'day', locale: Locale): string {
+  const rounded = value < 10 ? Math.round(value * 10) / 10 : Math.round(value);
+  return unit(rounded, name, locale, Number.isInteger(rounded) ? 0 : 1);
 }

@@ -1,4 +1,5 @@
 import type { BranchReport } from '../branches/report.ts';
+import type { DeliveryReport } from '../delivery/report.ts';
 
 /** A value after `JSON.stringify` and `JSON.parse`: dates become ISO 8601 strings. */
 export type Serialized<T> = T extends Date
@@ -11,6 +12,9 @@ export type Serialized<T> = T extends Date
 
 /** Body of a successful `GET /api/branches` response. */
 export type BranchReportResponse = Serialized<BranchReport>;
+
+/** Body of a successful `GET /api/delivery` response. */
+export type DeliveryReportResponse = Serialized<DeliveryReport>;
 
 /** Body of every failed API response. */
 export interface ApiErrorResponse {

@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { formatAge, formatDate, formatDivergence, median, percentage } from './format.ts';
+import {
+  formatAge,
+  formatDate,
+  formatDivergence,
+  formatDuration,
+  median,
+  percentage,
+} from './format.ts';
 
 describe('web formatting', () => {
   it('formats ages from days to years, in each language', () => {
@@ -40,5 +47,14 @@ describe('web formatting', () => {
     assert.equal(percentage(1, 3, 'en'), '33%');
     assert.equal(percentage(1, 3, 'fr'), '33\u00a0%');
     assert.equal(percentage(0, 0, 'en'), '0%');
+  });
+
+  it('formats durations in the unit a reader expects', () => {
+    assert.equal(formatDuration(0.5, 'en'), '30\u00a0minutes');
+    assert.equal(formatDuration(5.25, 'en'), '5.3\u00a0hours');
+    assert.equal(formatDuration(91, 'en'), '3.8\u00a0days');
+    assert.equal(formatDuration(458, 'en'), '19\u00a0days');
+    assert.equal(formatDuration(91, 'fr'), '3,8\u00a0jours');
+    assert.equal(formatDuration(1, 'fr'), '1\u00a0heure');
   });
 });

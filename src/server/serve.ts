@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { performance } from 'node:perf_hooks';
 
 import type { RepositoryBranches } from '../branches/report.ts';
+import type { DeliveryData } from '../delivery/report.ts';
 import { GitHubClient } from '../github/client.ts';
 import { createApp, type RequestLog, type UiHandler } from './app.ts';
 import { TtlCache } from './cache.ts';
@@ -11,7 +12,7 @@ import { metadataAccessToken } from './google-auth.ts';
 import { OwnerAccess } from './owner.ts';
 import { MemoryQuotaStore, VisitorQuota } from './quota.ts';
 import { RateLimiter } from './rate-limit.ts';
-import { createBranchLoader } from './source.ts';
+import { createBranchLoader, createDeliveryLoader } from './source.ts';
 
 // Quota protection (ADR 0007): the token allows 5,000 points per hour.
 const CACHE_TTL_MS = 10 * 60_000;
@@ -48,21 +49,29 @@ export async function serve(options: ServeOptions): Promise<void> {
   }
 
   const now = (): Date => new Date();
+  // One client for every report, so the quota guard sees all GitHub usage.
+  const client = new GitHubClient({ token, fetch: globalThis.fetch });
+  const protection = { client, now, quotaReserve: QUOTA_RESERVE, timeoutMs: REPORT_TIMEOUT_MS };
   const loadBranches = createBranchLoader({
-    client: new GitHubClient({ token, fetch: globalThis.fetch }),
+    ...protection,
     cache: new TtlCache<RepositoryBranches>({
       ttlMs: CACHE_TTL_MS,
       maxEntries: CACHE_MAX_ENTRIES,
       now: Date.now,
     }),
-    now,
-    quotaReserve: QUOTA_RESERVE,
-    timeoutMs: REPORT_TIMEOUT_MS,
+  });
+  const loadDelivery = createDeliveryLoader({
+    ...protection,
+    cache: new TtlCache<DeliveryData>({
+      ttlMs: CACHE_TTL_MS,
+      maxEntries: CACHE_MAX_ENTRIES,
+      now: Date.now,
+    }),
   });
   const server = createServer(
     createApp({
       config,
-      api: { loadBranches, now, ...visitorQuota(config.visitors, now) },
+      api: { loadBranches, loadDelivery, now, ...visitorQuota(config.visitors, now) },
       limiter: new RateLimiter({
         limitPerMinute: config.rateLimitPerMinute,
         maxClients: RATE_LIMIT_MAX_CLIENTS,

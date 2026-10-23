@@ -6,8 +6,9 @@ document only records the structure they fit into.
 
 ## Current State
 
-DevPulse is a command-line tool that analyses public GitHub repositories. Its first
-feature reports branch statistics (#12). The repository also contains standards,
+DevPulse analyses public GitHub repositories, as a command-line tool and a web
+dashboard. Its first feature reports branch statistics (#12); the second reports
+delivery health (#49), in the dashboard and API only. The repository also contains standards,
 documentation, quality tooling, CI/CD, and agent configuration.
 
 Decided, see [decision records](decisions/):
@@ -25,6 +26,8 @@ Decided, see [decision records](decisions/):
 - A daily allowance of three analyses per visitor in Firestore, maintainer access
   through a signed cookie, and a private staging service (ADR 0008).
 - The web interface in French by default and in English, from two JSON files (ADR 0009).
+- Delivery health: DORA-style proxies from public GitHub data, the sample and search
+  counts it reads, and the example shown before a first analysis (ADR 0010).
 
 Undecided:
 

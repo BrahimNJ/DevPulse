@@ -25,7 +25,8 @@ export type FeatureIcon =
   | 'compare'
   | 'download';
 
-export type GroupId = 'branches' | 'activity' | 'contributors' | 'collaboration' | 'insights';
+export type GroupId =
+  'branches' | 'collaboration' | 'activity' | 'contributors' | 'security' | 'insights';
 
 export type FeatureId =
   | 'branch-overview'
@@ -38,10 +39,14 @@ export type FeatureId =
   | 'top-contributors'
   | 'bus-factor'
   | 'new-returning'
+  | 'dora-metrics'
   | 'time-to-merge'
   | 'review-latency'
   | 'ageing-pull-requests'
+  | 'review-load'
   | 'issue-response'
+  | 'dependency-vulnerabilities'
+  | 'openssf-scorecard'
   | 'health-score'
   | 'repository-comparison'
   | 'report-export';
@@ -69,6 +74,17 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
     ],
   },
   {
+    id: 'collaboration',
+    features: [
+      { id: 'dora-metrics', icon: 'gauge', status: 'available' },
+      { id: 'time-to-merge', icon: 'merge', status: 'available' },
+      { id: 'review-latency', icon: 'eye', status: 'available' },
+      { id: 'review-load', icon: 'users', status: 'available' },
+      { id: 'ageing-pull-requests', icon: 'hourglass', status: 'available' },
+      { id: 'issue-response', icon: 'message', status: 'planned' },
+    ],
+  },
+  {
     id: 'activity',
     features: [
       { id: 'commit-heatmap', icon: 'calendar', status: 'planned' },
@@ -84,12 +100,10 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
     ],
   },
   {
-    id: 'collaboration',
+    id: 'security',
     features: [
-      { id: 'time-to-merge', icon: 'merge', status: 'planned' },
-      { id: 'review-latency', icon: 'eye', status: 'planned' },
-      { id: 'ageing-pull-requests', icon: 'hourglass', status: 'planned' },
-      { id: 'issue-response', icon: 'message', status: 'planned' },
+      { id: 'dependency-vulnerabilities', icon: 'shield', status: 'planned' },
+      { id: 'openssf-scorecard', icon: 'lock', status: 'planned' },
     ],
   },
   {

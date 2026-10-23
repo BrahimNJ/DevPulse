@@ -8,8 +8,9 @@ re-derive the rules from memory.
 
 ## Current State
 
-The only defined functionality is the branch report, as the `branches` command and the
-local dashboard (ADRs 0005 and 0006). Verify the
+The defined functionality is the branch report, as the `branches` command and the
+local dashboard (ADRs 0005 and 0006), and delivery health, available only in the
+dashboard and through `GET /api/delivery` (no CLI command). Verify the
 repository state with `ls` and
 `git status` before assuming that a language, tool, or command exists.
 

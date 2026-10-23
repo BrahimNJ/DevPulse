@@ -11,7 +11,10 @@ import {
 } from './api.ts';
 import { TtlCache } from './cache.ts';
 import { MemoryQuotaStore, VisitorQuota } from './quota.ts';
-import { createBranchLoader, ServiceError } from './source.ts';
+import { createBranchLoader, ServiceError, type DeliveryLoader } from './source.ts';
+
+/** For tests that never ask for a delivery report. */
+const NO_DELIVERY: DeliveryLoader = () => Promise.reject(new Error('Unexpected delivery load'));
 
 const NOW = new Date('2026-10-20T00:00:00Z');
 const VISITOR: Visitor = { id: 'visitor', owner: false };
@@ -39,7 +42,7 @@ function dependencies(responses: readonly Response[]): ApiDependencies {
     quotaReserve: 0,
     timeoutMs: 1000,
   });
-  return { loadBranches, now: () => NOW };
+  return { loadBranches, loadDelivery: NO_DELIVERY, now: () => NOW };
 }
 
 const DEFAULT_BRANCH = { data: { repository: { defaultBranchRef: { name: 'main' } } } };
@@ -129,6 +132,7 @@ describe('handleBranchesRequest', () => {
 
   it('passes a protective refusal on with its retry delay', async () => {
     const response = await ask(new URLSearchParams({ repo: 'acme/app' }), {
+      loadDelivery: NO_DELIVERY,
       loadBranches: () => Promise.reject(new ServiceError(503, 'Budget used.', 120)),
       now: () => NOW,
     });
@@ -147,6 +151,7 @@ describe('daily allowance', () => {
   function withQuota(load: ApiDependencies['loadBranches']): ApiDependencies {
     return {
       loadBranches: load,
+      loadDelivery: NO_DELIVERY,
       now: () => NOW,
       quota: new VisitorQuota({
         store: new MemoryQuotaStore(),
@@ -232,11 +237,17 @@ describe('daily allowance', () => {
   });
 
   it('reports no allowance when it is disabled, as in local development', async () => {
-    assert.deepEqual(await handleQuotaRequest({ loadBranches: found, now: () => NOW }, VISITOR), {
-      owner: false,
-      limit: null,
-      remaining: null,
-      resetsAt: null,
-    });
+    assert.deepEqual(
+      await handleQuotaRequest(
+        { loadBranches: found, loadDelivery: NO_DELIVERY, now: () => NOW },
+        VISITOR,
+      ),
+      {
+        owner: false,
+        limit: null,
+        remaining: null,
+        resetsAt: null,
+      },
+    );
   });
 });

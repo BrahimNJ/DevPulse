@@ -4,8 +4,8 @@
 
 ## Project
 
-DevPulse analyses public GitHub repositories. The only feature so far is the branch
-report, available as a CLI and as a local React dashboard. Stack: TypeScript (strict)
+DevPulse analyses public GitHub repositories. Two features: the branch report (CLI and
+React dashboard) and delivery health, DORA-style metrics (dashboard and API only, no CLI). Stack: TypeScript (strict)
 run natively by Node.js 24 LTS, npm, `node:test`, React and Vite for `src/web`. See
 `docs/decisions/`; ADRs 0005 and 0006 define the source layout.
 

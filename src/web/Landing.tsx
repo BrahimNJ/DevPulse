@@ -30,9 +30,9 @@ const PILLAR_ICONS = [
   <CloudIcon key="cloud" />,
 ];
 const ROADMAP_GROUPS: readonly (readonly FeatureGroup['id'][])[] = [
-  ['branches'],
+  ['branches', 'collaboration'],
   ['activity', 'contributors'],
-  ['collaboration', 'insights'],
+  ['security', 'insights'],
 ];
 const EXAMPLES = ['nodejs/node', 'facebook/react', 'vitejs/vite'] as const;
 

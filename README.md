@@ -3,7 +3,7 @@
 # DevPulse
 
 **Analytics for public GitHub repositories.**
-Type a repository, see the health of every branch: activity, authors, protection and abandoned work.
+Type a repository, see the health of every branch and how fast it ships: activity, authors, protection, abandoned work, lead time and releases.
 
 [![CI](https://github.com/BrahimNJ/DevPulse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/BrahimNJ/DevPulse/actions/workflows/ci.yml)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org)
@@ -45,7 +45,7 @@ on **production-grade engineering practices** rather than on volume of code:
 
 ## Features
 
-### Available today: branch health
+### Available today: branch and delivery health
 
 <img src="docs/assets/dashboard.png" alt="DevPulse report for nodejs/node: 55 branches, 44 protected, 37 stale, plain-language insights and a filterable branch table" width="900" />
 
@@ -59,11 +59,18 @@ on **production-grade engineering practices** rather than on volume of code:
 | **Accurate protection** | Classic protection rules _and_ rulesets, visible without admin rights                             |
 | **Filters**             | All, active, stale or protected branches, and search by name                                      |
 | **Shareable views**     | The URL holds the query, so `?repo=nodejs/node` reopens the same report                           |
-| **Command line**        | The same report in a terminal, as an aligned table or as JSON for scripting                       |
+| **Command line**        | The branch report in a terminal, as an aligned table or as JSON for scripting                     |
+| **Delivery health**     | DORA-style metrics over 90 days (below); a Delivery tab beside Branches, web and API only         |
 | **Clear failures**      | Missing repository, invalid token, rate limits and network errors each get a precise message      |
 | **Fair use**            | Three analyses per visitor a day, counted server-side; re-opening a repository is free            |
 | **Public docs**         | A Docs page explains every technical choice, the security model and the delivery pipeline         |
 | **French and English**  | French by default with an EN / FR switch; all copy lives in two JSON files kept in sync by a test |
+
+Delivery health samples up to 100 merged pull requests and the releases of the last
+90 days. It reports lead time, time to first review, weekly throughput, release
+frequency, revert rate (a proxy for change failure rate), abandoned and stale pull
+requests, size buckets and reviewer concentration, with DORA bands where they apply.
+It shares the daily allowance with the branch report for the same repository.
 
 ### Planned
 
@@ -91,13 +98,16 @@ flowchart LR
     end
     subgraph Domain
         B[Branch report<br/>src/branches]
+        D[Delivery health<br/>src/delivery]
     end
     W -->|GET /api/branches| S
+    W -->|GET /api/delivery| S
     S --> G
     C --> G
     S --> B
+    S --> D
     C --> B
-    G -->|GraphQL: branches + last commits<br/>REST: protection| GH[(GitHub API)]
+    G -->|GraphQL: branches, merged PRs, releases<br/>REST: protection| GH[(GitHub API)]
 ```
 
 Design choices worth noting, each recorded in an ADR:
@@ -240,6 +250,7 @@ The full command reference is in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 DevPulse/
 ├── src/
 │   ├── branches/         Domain: branch report, input validation
+│   ├── delivery/         Domain: delivery health metrics
 │   ├── github/           Infrastructure: GitHub GraphQL and REST client
 │   ├── cli/              Interface: command-line tool
 │   ├── server/           Interface: local HTTP API, shared response contract
@@ -263,6 +274,7 @@ DevPulse/
 | 1. Engineering foundation  | Standards, toolchain, CI/CD, release automation, AI agent configuration | ✅ Done |
 | 2. Branch statistics       | GitHub client, branch report, CLI, test runner (ADR 0005)               | ✅ Done |
 | 3. Web dashboard           | Landing page, React app and local API (ADR 0006)                        | ✅ Done |
+| 3b. Delivery health        | DORA-style metrics from merged pull requests and releases (web and API) | ✅ Done |
 | 4. Activity, contributors  | Commit heatmap, trends, contributor insights                            | Planned |
 | 5. Pull requests, insights | Review flow, issue response, health score, comparison, export           | Planned |
 | 6. Performance             | Faster reports for repositories with thousands of branches              | Planned |
