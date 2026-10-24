@@ -5,6 +5,7 @@ import { API_ROUTES } from './api-routes.ts';
 import { clientIp } from './client-ip.ts';
 import type { ServerConfig } from './config.ts';
 import { isAllowedHost } from './host.ts';
+import type { Analytics } from './admin.ts';
 import type { OwnerAccess } from './owner.ts';
 import type { RateLimiter } from './rate-limit.ts';
 import { sendJson } from './respond.ts';
@@ -50,6 +51,8 @@ export interface AppOptions {
     /** Maintainer access; null when no owner key is configured. */
     readonly owner: OwnerAccess | null;
   };
+  /** Usage statistics for the owner (ADR 0011); absent, nothing is recorded. */
+  readonly analytics?: Analytics;
   readonly ui: UiHandler;
   /** Sent with every response. */
   readonly headers: Readonly<Record<string, string>>;

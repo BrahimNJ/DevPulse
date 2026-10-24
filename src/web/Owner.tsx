@@ -4,11 +4,13 @@ import { ApiError, signInAsOwner, signOut } from './api.ts';
 import { useI18n } from './I18nProvider.tsx';
 import { KeyIcon } from './icons.tsx';
 import { Layout } from './Layout.tsx';
+import { OwnerStats } from './OwnerStats.tsx';
 import { useQuota } from './quota.ts';
 
 /**
  * The maintainer's sign-in (ADR 0008). Not linked from anywhere: submitting the owner
- * key sets a signed cookie that lifts the daily allowance on this browser.
+ * key sets a signed cookie that lifts the daily allowance on this browser and shows the
+ * usage statistics (ADR 0011).
  */
 export function Owner(): JSX.Element {
   const { t } = useI18n();
@@ -93,6 +95,7 @@ export function Owner(): JSX.Element {
           )}
         </div>
       </section>
+      {signedIn && <OwnerStats />}
     </Layout>
   );
 }

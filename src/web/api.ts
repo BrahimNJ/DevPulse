@@ -1,11 +1,12 @@
 import type {
+  AdminStatsResponse,
   ApiErrorResponse,
   BranchReportResponse,
   DeliveryReportResponse,
   QuotaResponse,
 } from '../server/contract.ts';
 
-export type { BranchReportResponse, DeliveryReportResponse, QuotaResponse };
+export type { AdminStatsResponse, BranchReportResponse, DeliveryReportResponse, QuotaResponse };
 export type BranchRow = BranchReportResponse['branches'][number];
 
 /**
@@ -60,6 +61,18 @@ export async function fetchDeliveryReport(
   const response = await fetch(`/api/delivery?${query.toString()}`, { signal });
   const body = await readJson<DeliveryReportResponse>(response);
   return { report: body, quota: quotaFromHeaders(response.headers) };
+}
+
+/** The owner's usage statistics over 7 or 30 days (ADR 0011). */
+export async function fetchAdminStats(
+  days: 7 | 30,
+  signal?: AbortSignal,
+): Promise<AdminStatsResponse> {
+  const response = await fetch(
+    `/api/admin/stats?days=${String(days)}`,
+    signal === undefined ? {} : { signal },
+  );
+  return readJson<AdminStatsResponse>(response);
 }
 
 export async function fetchQuota(signal?: AbortSignal): Promise<QuotaResponse> {

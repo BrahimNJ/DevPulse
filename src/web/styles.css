@@ -1967,6 +1967,133 @@ a.hbar-label:hover {
   font-size: 0.85rem;
 }
 
+/* --------------------------------------------------------- owner stats */
+
+.owner-stats {
+  padding-top: 32px;
+}
+
+.stats-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-bottom: 18px;
+}
+
+.stats-header h2 {
+  margin-bottom: 4px;
+  font-size: 1.4rem;
+}
+
+.stats-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+.stats .notice {
+  margin-top: 0;
+}
+
+.bar-failed {
+  fill: var(--warn);
+}
+
+.legend {
+  justify-content: flex-start;
+  gap: 18px;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.swatch-ok {
+  background: var(--brand);
+}
+
+.swatch-failed {
+  background: var(--warn);
+}
+
+.hbar-warn {
+  background: var(--warn);
+}
+
+.outcome-list li {
+  grid-template-columns: minmax(96px, 180px) minmax(0, 1fr) auto;
+}
+
+/* A reason is read whole, even on a phone. */
+.outcome-list .hbar-label {
+  white-space: normal;
+}
+
+.outcome-hint {
+  grid-column: 1 / -1;
+  margin-top: -4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.stats-table th {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stats-table th.numeric,
+.stats-table td.numeric {
+  text-align: right;
+}
+
+.stats-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.stats-table a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+.stats-table a:hover {
+  text-decoration: underline;
+}
+
 /* ---------------------------------------------------------------- docs */
 
 .docs-layout {

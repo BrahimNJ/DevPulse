@@ -26,3 +26,13 @@ resource "google_project_iam_member" "runtime_uses_firestore" {
   role    = "roles/datastore.user"
   member  = google_service_account.runtime.member
 }
+
+# Deletes an analysis event 30 days after it happened (ADR 0011): the owner's statistics
+# never hold more than a month of anonymous usage.
+resource "google_firestore_field" "event_expiry" {
+  database   = google_firestore_database.default.name
+  collection = "events"
+  field      = "expireAt"
+
+  ttl_config {}
+}
