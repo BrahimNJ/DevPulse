@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.0](https://github.com/BrahimNJ/DevPulse/compare/v0.8.1...v0.9.0) (2026-10-24)
+
+
+### Features
+
+* owner usage statistics behind the owner key ([9bbef61](https://github.com/BrahimNJ/DevPulse/commit/9bbef61be50e98cc509cd71688c8ff935daa30cf))
+* **server:** record analyses and serve owner statistics ([283ffe7](https://github.com/BrahimNJ/DevPulse/commit/283ffe7cd1ef378b3c739d0164ff0eb0cd2613ed)), closes [#54](https://github.com/BrahimNJ/DevPulse/issues/54)
+* **web:** show usage statistics on the owner page ([9a2302b](https://github.com/BrahimNJ/DevPulse/commit/9a2302b0138bc61e3f0231c0370fd7a63c085b1c)), closes [#54](https://github.com/BrahimNJ/DevPulse/issues/54)
+
+
+### Bug Fixes
+
+* **server:** bound the cost and delay of owner statistics ([3aad0f5](https://github.com/BrahimNJ/DevPulse/commit/3aad0f57924c85b1ff2d587ed96211807a6a94c6)), closes [#54](https://github.com/BrahimNJ/DevPulse/issues/54)
+* **web:** keep the newest statistics view and say pseudonymous ([a778fa3](https://github.com/BrahimNJ/DevPulse/commit/a778fa39014619854cf1f49742534f3cfaa4469a)), closes [#54](https://github.com/BrahimNJ/DevPulse/issues/54)
+
 ## [0.8.1](https://github.com/BrahimNJ/DevPulse/compare/v0.8.0...v0.8.1) (2026-10-23)
 
 
