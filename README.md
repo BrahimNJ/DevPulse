@@ -201,7 +201,7 @@ Details in the [Claude Code guide](docs/ai/CLAUDE_CODE.md).
 | Concern            | Tools                                                                             |
 | ------------------ | --------------------------------------------------------------------------------- |
 | Language & runtime | TypeScript (strict), Node.js 24 LTS, npm                                          |
-| Front end          | React 19, Vite 8, plain CSS with light and dark themes                            |
+| Front end          | React 19, Vite 8, plain CSS, dark only; Motion, Lucide icons (ADR 0012)           |
 | Back end           | `node:http`, native `fetch`, GitHub GraphQL and REST APIs                         |
 | Testing            | `node:test`, `node:assert`, injected fakes instead of network mocks               |
 | Code quality       | ESLint with `typescript-eslint` strict type-checked rules, Prettier, markdownlint |

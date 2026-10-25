@@ -620,7 +620,7 @@
               ],
               [
                 "React et Vite",
-                "Une interface maintenable avec un build rapide ; du CSS simple avec thèmes clair et sombre."
+                "Une interface maintenable avec un build rapide ; du CSS simple sur un thème sombre, animé avec Motion."
               ],
               [
                 "API GraphQL de GitHub",
