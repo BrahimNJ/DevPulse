@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.10.0](https://github.com/BrahimNJ/DevPulse/compare/v0.9.0...v0.10.0) (2026-10-25)
+
+
+### Features
+
+* **web:** add motion foundation, lucide icons, fonts and a new mark ([ec760be](https://github.com/BrahimNJ/DevPulse/commit/ec760be0a2292dde814a4eb4a4973e4f273cfeda)), closes [#57](https://github.com/BrahimNJ/DevPulse/issues/57)
+* **web:** animate the analysis workspace and its charts ([4c61675](https://github.com/BrahimNJ/DevPulse/commit/4c616752727b0e4a82a22722c0d685e2b84f5c73)), closes [#57](https://github.com/BrahimNJ/DevPulse/issues/57)
+* **web:** animate the landing page ([7133e22](https://github.com/BrahimNJ/DevPulse/commit/7133e2212ef339cc6dfbced844ae2ef9f4eb5359)), closes [#57](https://github.com/BrahimNJ/DevPulse/issues/57)
+* **web:** dark visual identity with motion, icons and bundled fonts ([d93728d](https://github.com/BrahimNJ/DevPulse/commit/d93728dca5bc30598ada37f5f6e10d6fc7451cfc))
+* **web:** restyle the interface as a dark night palette ([5fa627e](https://github.com/BrahimNJ/DevPulse/commit/5fa627e0aec0fca1ad06a352a42301243380147c)), closes [#57](https://github.com/BrahimNJ/DevPulse/issues/57)
+
+
+### Bug Fixes
+
+* **web:** keep the page visible without the motion engine ([0db458b](https://github.com/BrahimNJ/DevPulse/commit/0db458badcfe0157675d33b69de46fd16cb83cee)), closes [#57](https://github.com/BrahimNJ/DevPulse/issues/57)
+
 ## [0.9.0](https://github.com/BrahimNJ/DevPulse/compare/v0.8.1...v0.9.0) (2026-10-24)
 
 
