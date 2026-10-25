@@ -1,3 +1,4 @@
+import { m } from 'motion/react';
 import type { JSX } from 'react';
 
 import type { DeliveryReportResponse } from './api.ts';
@@ -5,6 +6,7 @@ import { buildDeliveryInsights, signedPercentage, sizeRatio } from './delivery-i
 import { formatDuration, percentage } from './format.ts';
 import { formatNumber, interpolate, plural } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
+import { EASE_OUT } from './motion.tsx';
 
 type Band = 'elite' | 'high' | 'medium' | 'low';
 
@@ -109,7 +111,7 @@ function Indicators({ report }: { readonly report: DeliveryReportResponse }): JS
   return (
     <ul className="kpis">
       {cards.map((card) => (
-        <li key={card.label} className="kpi">
+        <li key={card.label} className="kpi spot">
           <span className="kpi-label">{card.label}</span>
           <span className="kpi-value">{card.value}</span>
           <span className="kpi-detail">{card.detail}</span>
@@ -155,13 +157,16 @@ function Throughput({ report }: { readonly report: DeliveryReportResponse }): JS
           const recent = index >= throughput.weekly.length - 4;
           return (
             <g key={index}>
-              <rect
+              <m.rect
                 className={recent ? 'bar bar-recent' : 'bar'}
                 x={index * slot + slot * 0.18}
                 y={CHART_HEIGHT - height}
                 width={slot * 0.64}
                 height={Math.max(1, height)}
                 rx={3}
+                initial={{ scaleY: 0 }}
+                animate={{ scaleY: 1 }}
+                transition={{ duration: 0.6, ease: EASE_OUT, delay: index * 0.035 }}
               />
               <text className="bar-value" x={index * slot + slot / 2} y={CHART_HEIGHT - height - 4}>
                 {formatNumber(count, locale)}
@@ -200,10 +205,7 @@ function Sizes({ report }: { readonly report: DeliveryReportResponse }): JSX.Ele
           <li key={size.bucket}>
             <span className="hbar-label mono">{size.bucket}</span>
             <span className="hbar-track">
-              <span
-                className="hbar-fill"
-                style={{ width: `${String(((size.medianHours ?? 0) / max) * 100)}%` }}
-              />
+              <GrowBar className="hbar-fill" share={(size.medianHours ?? 0) / max} />
             </span>
             <span className="hbar-value">
               {size.medianHours === null ? copy.none : formatDuration(size.medianHours, locale)}
@@ -242,10 +244,7 @@ function Reviewers({ report }: { readonly report: DeliveryReportResponse }): JSX
               {reviewer.login}
             </a>
             <span className="hbar-track">
-              <span
-                className="hbar-fill hbar-alt"
-                style={{ width: `${String((reviewer.share / max) * 100)}%` }}
-              />
+              <GrowBar className="hbar-fill hbar-alt" share={reviewer.share / max} />
             </span>
             <span className="hbar-value">{percentage(reviewer.share, 1, locale)}</span>
           </li>
@@ -316,6 +315,24 @@ function DeliveryInsights({ report }: { readonly report: DeliveryReportResponse 
   );
 }
 
+/** A horizontal bar that fills to its share, from 0 to 1, when it appears. */
+export function GrowBar({
+  className,
+  share,
+}: {
+  readonly className: string;
+  readonly share: number;
+}): JSX.Element {
+  return (
+    <m.span
+      className={className}
+      initial={{ width: 0 }}
+      animate={{ width: `${String(share * 100)}%` }}
+      transition={{ duration: 0.8, ease: EASE_OUT }}
+    />
+  );
+}
+
 function Panel({
   title,
   subtitle,
@@ -326,7 +343,7 @@ function Panel({
   readonly children: JSX.Element | (JSX.Element | false)[] | JSX.Element[];
 }): JSX.Element {
   return (
-    <section className="panel">
+    <section className="panel spot">
       <header className="panel-header">
         <h3>{title}</h3>
         {subtitle !== undefined && <span className="muted">{subtitle}</span>}

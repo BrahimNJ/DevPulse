@@ -1,10 +1,14 @@
+import { m } from 'motion/react';
 import { useCallback, useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
 
 import { fetchAdminStats, type AdminStatsResponse } from './api.ts';
 import { percentage } from './format.ts';
 import { formatNumber, interpolate, LOCALES, plural, type Locale, type Messages } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
+import { GrowBar } from './Delivery.tsx';
 import { AlertIcon } from './icons.tsx';
+import { Loading } from './Loading.tsx';
+import { EASE_OUT } from './motion.tsx';
 
 type Days = 7 | 30;
 type Stats = AdminStatsResponse;
@@ -102,12 +106,7 @@ export function OwnerStats(): JSX.Element {
             </button>
           </div>
         </header>
-        {load.kind === 'loading' && (
-          <div className="loading" role="status">
-            <span className="spinner" aria-hidden="true" />
-            <span>{copy.loading}</span>
-          </div>
-        )}
+        {load.kind === 'loading' && <Loading label={copy.loading} />}
         {load.kind === 'error' && (
           <p className="notice notice-error" role="alert">
             <AlertIcon />
@@ -211,7 +210,7 @@ function Indicators({ stats, t, locale }: ViewProps): JSX.Element {
   return (
     <ul className="kpis">
       {cards.map((card) => (
-        <li key={card.label} className="kpi">
+        <li key={card.label} className="kpi spot">
           <span className="kpi-label">{card.label}</span>
           <span className="kpi-value">{card.value}</span>
           <span className="kpi-detail">{card.detail}</span>
@@ -248,7 +247,13 @@ function PerDay({ stats, t, locale }: ViewProps): JSX.Element {
           const x = index * slot + slot * 0.15;
           const width = slot * 0.7;
           return (
-            <g key={day.date}>
+            <m.g
+              key={day.date}
+              className="bar-stack"
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              transition={{ duration: 0.6, ease: EASE_OUT, delay: index * 0.02 }}
+            >
               <rect
                 className="bar bar-recent"
                 x={x}
@@ -263,7 +268,7 @@ function PerDay({ stats, t, locale }: ViewProps): JSX.Element {
                 width={width}
                 height={failed}
               />
-            </g>
+            </m.g>
           );
         })}
         <text className="axis-label" x={0} y={CHART_HEIGHT + 18}>
@@ -300,10 +305,7 @@ function Outcomes({ stats, t, locale }: ViewProps): JSX.Element {
             <li key={item.outcome}>
               <span className="hbar-label">{copy.labels[item.outcome]}</span>
               <span className="hbar-track">
-                <span
-                  className="hbar-fill hbar-warn"
-                  style={{ width: `${String((item.count / max) * 100)}%` }}
-                />
+                <GrowBar className="hbar-fill hbar-warn" share={item.count / max} />
               </span>
               <span className="hbar-value">{formatNumber(item.count, locale)}</span>
               <small className="outcome-hint">{copy.hints[item.outcome]}</small>
@@ -421,7 +423,7 @@ function Panel({
   readonly children: ReactNode;
 }): JSX.Element {
   return (
-    <section className="panel">
+    <section className="panel spot">
       <header className="panel-header">
         <h3>{title}</h3>
       </header>

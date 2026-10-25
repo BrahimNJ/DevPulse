@@ -1,5 +1,7 @@
+import { AnimatePresence, m } from 'motion/react';
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type JSX,
@@ -25,6 +27,8 @@ import { useI18n } from './I18nProvider.tsx';
 import { AlertIcon, ArrowIcon, ClockIcon, GitHubIcon, SearchIcon } from './icons.tsx';
 import { Insights } from './Insights.tsx';
 import { Layout } from './Layout.tsx';
+import { Loading } from './Loading.tsx';
+import { EASE_OUT } from './motion.tsx';
 import { describeQuota, timeUntil, useQuota } from './quota.ts';
 import { readRecent, rememberRecent } from './recent.ts';
 import { Summary } from './Summary.tsx';
@@ -192,25 +196,32 @@ export function App(): JSX.Element {
             demo={isDemo}
           />
           <Tabs tab={tab} onSelect={selectTab} />
-          <div
-            role="tabpanel"
-            id={`panel-${tab}`}
-            aria-labelledby={`tab-${tab}`}
-            className="tab-panel"
-          >
-            {tab === 'branches' ? (
-              <BranchesPanel
-                load={isDemo ? demo(DEMO_BRANCH_REPORT) : branches}
-                repository={repository.trim()}
-                limit={quota?.limit ?? null}
-              />
-            ) : (
-              <DeliveryPanel
-                load={isDemo ? demo(DEMO_DELIVERY_REPORT) : delivery}
-                limit={quota?.limit ?? null}
-              />
-            )}
-          </div>
+          <AnimatePresence mode="wait" initial={false}>
+            <m.div
+              key={tab}
+              role="tabpanel"
+              id={`panel-${tab}`}
+              aria-labelledby={`tab-${tab}`}
+              className="tab-panel"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.28, ease: EASE_OUT }}
+            >
+              {tab === 'branches' ? (
+                <BranchesPanel
+                  load={isDemo ? demo(DEMO_BRANCH_REPORT) : branches}
+                  repository={repository.trim()}
+                  limit={quota?.limit ?? null}
+                />
+              ) : (
+                <DeliveryPanel
+                  load={isDemo ? demo(DEMO_DELIVERY_REPORT) : delivery}
+                  limit={quota?.limit ?? null}
+                />
+              )}
+            </m.div>
+          </AnimatePresence>
         </section>
       </div>
     </Layout>
@@ -441,7 +452,11 @@ function tabForKey(key: string, index: number): Tab | null {
   return target === undefined ? null : (TABS[target % TABS.length] ?? null);
 }
 
-/** WAI-ARIA tabs: arrow keys, Home and End move between them, as in any desktop tool. */
+/**
+ * WAI-ARIA tabs: arrow keys, Home and End move between them, as in any desktop tool. An
+ * indicator glides under the selected tab, measured from it, so it follows the text in
+ * either language.
+ */
 function Tabs({
   tab,
   onSelect,
@@ -450,6 +465,23 @@ function Tabs({
   readonly onSelect: (tab: Tab) => void;
 }): JSX.Element {
   const { t } = useI18n();
+  const list = useRef<HTMLDivElement>(null);
+  const [indicator, setIndicator] = useState<{ x: number; width: number } | null>(null);
+
+  useLayoutEffect(() => {
+    function measure(): void {
+      const selected = list.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+      if (selected !== null && selected !== undefined) {
+        setIndicator({ x: selected.offsetLeft, width: selected.offsetWidth });
+      }
+    }
+    measure();
+    window.addEventListener('resize', measure);
+    return (): void => {
+      window.removeEventListener('resize', measure);
+    };
+  }, [tab, t]);
+
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
     const next = tabForKey(event.key, TABS.indexOf(tab));
     if (next === null) {
@@ -460,7 +492,22 @@ function Tabs({
     document.getElementById(`tab-${next}`)?.focus();
   }
   return (
-    <div className="tabs" role="tablist" aria-label={t.workspace.tabsLabel} onKeyDown={onKeyDown}>
+    <div
+      ref={list}
+      className="tabs"
+      role="tablist"
+      aria-label={t.workspace.tabsLabel}
+      onKeyDown={onKeyDown}
+    >
+      {indicator !== null && (
+        <m.span
+          className="tab-indicator"
+          aria-hidden="true"
+          initial={false}
+          animate={{ x: indicator.x, width: indicator.width }}
+          transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+        />
+      )}
       {TABS.map((item) => (
         <button
           key={item}
@@ -536,12 +583,7 @@ function LoadView<T>({
   switch (load.kind) {
     case 'idle':
     case 'loading':
-      return (
-        <div className="loading" role="status">
-          <span className="spinner" aria-hidden="true" />
-          <span>{loading}</span>
-        </div>
-      );
+      return <Loading label={loading} />;
     case 'error': {
       const quotaExceeded = load.error instanceof ApiError && load.error.status === 429;
       return (

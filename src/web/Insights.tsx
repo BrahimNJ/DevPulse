@@ -1,9 +1,11 @@
+import { m } from 'motion/react';
 import type { JSX } from 'react';
 
 import type { BranchReportResponse } from './api.ts';
 import { percentage } from './format.ts';
 import { interpolate } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
+import { EASE_OUT } from './motion.tsx';
 import { buildInsights } from './report-insights.ts';
 
 /**
@@ -26,10 +28,12 @@ export function Insights({ report }: { readonly report: BranchReportResponse }):
             share: percentage(stale, branches, locale),
           })}
         >
-          {/* React sets styles through the CSSOM, which the strict CSP allows. */}
-          <span
+          {/* Motion sets the width through the CSSOM, which the strict CSP allows. */}
+          <m.span
             className="share-active"
-            style={{ width: `${String(Math.round(activeShare * 100))}%` }}
+            initial={{ width: 0 }}
+            animate={{ width: `${String(Math.round(activeShare * 100))}%` }}
+            transition={{ duration: 1, ease: EASE_OUT }}
           />
         </div>
       </div>
