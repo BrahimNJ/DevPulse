@@ -43,8 +43,8 @@ policy of ADR 0007 (`default-src 'self'`, no inline script or style) must stay a
 ## Consequences
 
 - Four runtime dependencies: `motion`, `lucide-react`, `@fontsource-variable/inter` and
-  `@fontsource-variable/space-grotesk`. The initial script grows from 104.8 to 126.6 kB
-  gzipped, plus 14.4 kB of motion features fetched after the first render; the
+  `@fontsource-variable/space-grotesk`. The initial script grows from 104.8 to 124.9 kB
+  gzipped, plus 14.5 kB of motion features fetched after the first render; the
   stylesheet from 7.2 to 9.1 kB. Browsers download only the font subsets a page uses.
 - Under reduced motion nothing moves, draws or counts: transforms are left out, the
   heartbeat is drawn whole and CSS animations are removed; content may still fade in.
