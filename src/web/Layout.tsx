@@ -1,9 +1,11 @@
+import { m } from 'motion/react';
 import { useEffect, type JSX, type ReactNode } from 'react';
 
 import type { QuotaResponse } from './api.ts';
 import { interpolate, LOCALES, type Locale, type Messages } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
 import { GitHubIcon, Logo } from './icons.tsx';
+import { EASE_OUT } from './motion.tsx';
 import { describeQuota } from './quota.ts';
 
 export type Page = 'home' | 'app' | 'docs' | 'owner';
@@ -43,8 +45,11 @@ export function Layout({
     }
   }, []);
 
+  useSpotlight();
+
   return (
     <div className="site">
+      <Backdrop />
       <a className="skip-link" href="#content">
         {t.nav.skip}
       </a>
@@ -78,7 +83,14 @@ export function Layout({
         </div>
       </header>
 
-      <main id="content">{children}</main>
+      <m.main
+        id="content"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, ease: EASE_OUT }}
+      >
+        {children}
+      </m.main>
 
       <footer className="site-footer">
         <div className="container footer-grid">
@@ -123,6 +135,45 @@ export function Layout({
       </footer>
     </div>
   );
+}
+
+/**
+ * The night sky behind every page: a faint grid and two slow glows. Pure CSS, fixed
+ * behind the content, and still under reduced motion.
+ */
+function Backdrop(): JSX.Element {
+  return (
+    <div className="backdrop" aria-hidden="true">
+      <span className="orb orb-blue" />
+      <span className="orb orb-mint" />
+    </div>
+  );
+}
+
+/**
+ * Cards marked `.spot` light their border under the pointer. One listener for the page
+ * writes the pointer position as custom properties through the CSSOM, which the strict
+ * content security policy allows; the stylesheet draws the light.
+ */
+function useSpotlight(): void {
+  useEffect(() => {
+    function onPointerMove(event: PointerEvent): void {
+      if (!(event.target instanceof Element)) {
+        return;
+      }
+      const card = event.target.closest<HTMLElement>('.spot');
+      if (card === null) {
+        return;
+      }
+      const box = card.getBoundingClientRect();
+      card.style.setProperty('--spot-x', `${String(event.clientX - box.left)}px`);
+      card.style.setProperty('--spot-y', `${String(event.clientY - box.top)}px`);
+    }
+    document.addEventListener('pointermove', onPointerMove, { passive: true });
+    return (): void => {
+      document.removeEventListener('pointermove', onPointerMove);
+    };
+  }, []);
 }
 
 /** The visitor's daily allowance; nothing when there is none. */
