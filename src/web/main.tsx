@@ -1,3 +1,5 @@
+import '@fontsource-variable/inter';
+import '@fontsource-variable/space-grotesk';
 import { StrictMode, type JSX } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -5,6 +7,7 @@ import { App } from './App.tsx';
 import { Docs } from './Docs.tsx';
 import { I18nProvider } from './I18nProvider.tsx';
 import { Landing } from './Landing.tsx';
+import { MotionProvider } from './motion.tsx';
 import { Owner } from './Owner.tsx';
 
 const root = document.getElementById('root');
@@ -23,6 +26,8 @@ const render =
 
 createRoot(root).render(
   <StrictMode>
-    <I18nProvider>{render()}</I18nProvider>
+    <I18nProvider>
+      <MotionProvider>{render()}</MotionProvider>
+    </I18nProvider>
   </StrictMode>,
 );
