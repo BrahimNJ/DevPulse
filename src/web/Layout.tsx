@@ -43,8 +43,11 @@ export function Layout({
     }
   }, []);
 
+  useSpotlight();
+
   return (
     <div className="site">
+      <Backdrop />
       <a className="skip-link" href="#content">
         {t.nav.skip}
       </a>
@@ -78,6 +81,7 @@ export function Layout({
         </div>
       </header>
 
+      {/* The page fade is CSS, so the content never waits for the animation engine. */}
       <main id="content">{children}</main>
 
       <footer className="site-footer">
@@ -123,6 +127,45 @@ export function Layout({
       </footer>
     </div>
   );
+}
+
+/**
+ * The night sky behind every page: a faint grid and two slow glows. Pure CSS, fixed
+ * behind the content; the glows stop drifting under reduced motion.
+ */
+function Backdrop(): JSX.Element {
+  return (
+    <div className="backdrop" aria-hidden="true">
+      <span className="orb orb-blue" />
+      <span className="orb orb-mint" />
+    </div>
+  );
+}
+
+/**
+ * Cards marked `.spot` light their border under the pointer. One listener for the page
+ * writes the pointer position as custom properties through the CSSOM, which the strict
+ * content security policy allows; the stylesheet draws the light.
+ */
+function useSpotlight(): void {
+  useEffect(() => {
+    function onPointerMove(event: PointerEvent): void {
+      if (!(event.target instanceof Element)) {
+        return;
+      }
+      const card = event.target.closest<HTMLElement>('.spot');
+      if (card === null) {
+        return;
+      }
+      const box = card.getBoundingClientRect();
+      card.style.setProperty('--spot-x', `${String(event.clientX - box.left)}px`);
+      card.style.setProperty('--spot-y', `${String(event.clientY - box.top)}px`);
+    }
+    document.addEventListener('pointermove', onPointerMove, { passive: true });
+    return (): void => {
+      document.removeEventListener('pointermove', onPointerMove);
+    };
+  }, []);
 }
 
 /** The visitor's daily allowance; nothing when there is none. */

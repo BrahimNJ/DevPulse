@@ -4,10 +4,13 @@ import type { BranchReportResponse } from './api.ts';
 import { formatAge, median, percentage } from './format.ts';
 import { formatNumber, interpolate } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
+import { CountUp } from './motion.tsx';
 
 interface Tile {
   readonly label: string;
   readonly value: string;
+  /** A count to animate, when the value is a plain number. */
+  readonly count?: number;
   readonly detail: string;
 }
 
@@ -20,11 +23,13 @@ export function Summary({ report }: { readonly report: BranchReportResponse }): 
     {
       label: copy.branches,
       value: formatNumber(totals.branches, locale),
+      count: totals.branches,
       detail: interpolate(copy.defaultBranch, { name: report.defaultBranch ?? copy.none }),
     },
     {
       label: copy.protected,
       value: formatNumber(totals.protected, locale),
+      count: totals.protected,
       detail: interpolate(copy.protectedShare, {
         share: percentage(totals.protected, totals.branches, locale),
       }),
@@ -32,6 +37,7 @@ export function Summary({ report }: { readonly report: BranchReportResponse }): 
     {
       label: copy.stale,
       value: formatNumber(totals.stale, locale),
+      count: totals.stale,
       detail: interpolate(copy.staleDetail, { days: formatNumber(report.staleDays, locale) }),
     },
     {
@@ -48,9 +54,15 @@ export function Summary({ report }: { readonly report: BranchReportResponse }): 
       </h2>
       <ul className="tiles">
         {tiles.map((tile) => (
-          <li key={tile.label} className="tile">
+          <li key={tile.label} className="tile spot">
             <span className="tile-label">{tile.label}</span>
-            <span className="tile-value">{tile.value}</span>
+            <span className="tile-value">
+              {tile.count === undefined ? (
+                tile.value
+              ) : (
+                <CountUp value={tile.count} format={(value) => formatNumber(value, locale)} />
+              )}
+            </span>
             <span className="tile-detail">{tile.detail}</span>
           </li>
         ))}

@@ -4,6 +4,7 @@ import type { BranchReportResponse } from './api.ts';
 import { percentage } from './format.ts';
 import { interpolate } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
+import { GrowBar } from './motion.tsx';
 import { buildInsights } from './report-insights.ts';
 
 /**
@@ -26,11 +27,8 @@ export function Insights({ report }: { readonly report: BranchReportResponse }):
             share: percentage(stale, branches, locale),
           })}
         >
-          {/* React sets styles through the CSSOM, which the strict CSP allows. */}
-          <span
-            className="share-active"
-            style={{ width: `${String(Math.round(activeShare * 100))}%` }}
-          />
+          {/* React and Motion set styles through the CSSOM, which the strict CSP allows. */}
+          <GrowBar className="share-active" share={Math.round(activeShare * 100) / 100} />
         </div>
       </div>
       <ul className="insight-list">
