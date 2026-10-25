@@ -5,10 +5,9 @@ import { fetchAdminStats, type AdminStatsResponse } from './api.ts';
 import { percentage } from './format.ts';
 import { formatNumber, interpolate, LOCALES, plural, type Locale, type Messages } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
-import { GrowBar } from './Delivery.tsx';
 import { AlertIcon } from './icons.tsx';
 import { Loading } from './Loading.tsx';
-import { EASE_OUT } from './motion.tsx';
+import { EASE_OUT, GrowBar } from './motion.tsx';
 
 type Days = 7 | 30;
 type Stats = AdminStatsResponse;

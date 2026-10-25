@@ -176,9 +176,39 @@ code,
   min-height: 100vh;
 }
 
-/* Short pages keep the footer at the bottom of the window. */
+/* Short pages keep the footer at the bottom of the window. The page fades in through
+   CSS, so its content never waits for the animation engine. */
 #content {
   flex: 1;
+  animation: page-in 0.5s var(--ease) both;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/*
+ * Without the animation engine (motion.tsx sets data-motion="off" when it fails or is
+ * slow), every animated element is shown in its final state: inline styles from Motion
+ * yield to these rules.
+ */
+[data-motion='off'] [style*='opacity'] {
+  opacity: 1 !important;
+}
+
+[data-motion='off'] [style*='transform'] {
+  transform: none !important;
+}
+
+[data-motion='off'] .hero-signal-line {
+  stroke-dasharray: none !important;
+}
+
+/* Bars hold their final width and fill through a transform (GrowBar in motion.tsx). */
+.grow-bar {
+  transform-origin: left center;
 }
 
 /* The sky behind every page: a grid that fades out, and two glows that drift. */
@@ -645,15 +675,20 @@ code,
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* The line keeps its width at any page width; the run keeps pathLength dashes, which a
+   non-scaling stroke would measure in screen pixels instead. */
+.hero-signal-line {
   vector-effect: non-scaling-stroke;
 }
 
 .hero-signal-run {
-  stroke: #b8f7dc;
+  stroke: var(--brand-2);
   stroke-width: 2.5;
   stroke-dasharray: 60 940;
   stroke-dashoffset: 1000;
-  filter: drop-shadow(0 0 6px #5ef0b0);
+  filter: drop-shadow(0 0 6px var(--brand-2));
   animation: signal-run 6s 2.6s linear infinite;
   opacity: 0;
 }

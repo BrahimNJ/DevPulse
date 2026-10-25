@@ -9,9 +9,34 @@ import {
 } from 'motion/react';
 import { useLayoutEffect, useRef, type JSX, type ReactNode } from 'react';
 
+/** How long the page waits for the animation engine before showing everything still. */
+const FEATURES_TIMEOUT_MS = 3000;
+
+/**
+ * Elements start in their `initial` state (often transparent) until the engine arrives.
+ * If it fails or is slow, `data-motion="off"` lets the stylesheet force every element
+ * into its final state, so the page is never left blank.
+ */
+function motionOff(): void {
+  document.documentElement.dataset['motion'] = 'off';
+}
+
 /** `domAnimation`, fetched as its own chunk once the page has rendered. */
-const loadFeatures = (): Promise<FeatureBundle> =>
-  import('./motion-features.ts').then((module) => module.default);
+function loadFeatures(): Promise<FeatureBundle> {
+  const timer = window.setTimeout(motionOff, FEATURES_TIMEOUT_MS);
+  return import('./motion-features.ts').then(
+    (module) => {
+      window.clearTimeout(timer);
+      return module.default;
+    },
+    () => {
+      window.clearTimeout(timer);
+      motionOff();
+      // Never resolves: without the engine nothing animates, and the stylesheet shows all.
+      return new Promise<FeatureBundle>(() => undefined);
+    },
+  );
+}
 
 /**
  * Motion for the whole interface (ADR 0012). `domAnimation` covers animations, gestures
@@ -105,6 +130,31 @@ export function RevealItem({
   );
 }
 
+/**
+ * A bar that fills to its share, from 0 to 1, when it appears. The width is the final
+ * one and the fill is a transform, so the bar is right without the engine and appears
+ * at once under reduced motion, where Motion leaves transforms out.
+ */
+export function GrowBar({
+  className,
+  share,
+  delay = 0,
+}: {
+  readonly className: string;
+  readonly share: number;
+  readonly delay?: number;
+}): JSX.Element {
+  return (
+    <m.span
+      className={`${className} grow-bar`}
+      style={{ width: `${String(share * 100)}%` }}
+      initial={{ scaleX: 0 }}
+      animate={{ scaleX: 1 }}
+      transition={{ duration: 0.8, ease: EASE_OUT, delay }}
+    />
+  );
+}
+
 const COUNT_MS = 1100;
 
 function easeOutQuart(progress: number): number {
@@ -125,9 +175,11 @@ export function CountUp({
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.6 });
   const reduced = useReducedMotion() === true;
-  const animated = !reduced && value > 0;
+  // Once counted, a figure only changes text: a new language does not count again.
+  const counted = useRef(false);
+  const animated = !reduced && value > 0 && !counted.current;
   // Callers pass a new function on every render; only a new text (value or language)
-  // restarts the count.
+  // runs the effect again.
   const formatRef = useRef(format);
   formatRef.current = format;
   const text = format(value);
@@ -148,6 +200,7 @@ export function CountUp({
       return;
     }
     // A frame loop rather than Motion's `animate`, which would pull its engine in early.
+    counted.current = true;
     const start = performance.now();
     let frame = requestAnimationFrame(function step(now: number): void {
       const progress = Math.min(1, (now - start) / COUNT_MS);

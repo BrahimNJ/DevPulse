@@ -6,7 +6,7 @@ import { buildDeliveryInsights, signedPercentage, sizeRatio } from './delivery-i
 import { formatDuration, percentage } from './format.ts';
 import { formatNumber, interpolate, plural } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
-import { EASE_OUT } from './motion.tsx';
+import { EASE_OUT, GrowBar } from './motion.tsx';
 
 type Band = 'elite' | 'high' | 'medium' | 'low';
 
@@ -312,24 +312,6 @@ function DeliveryInsights({ report }: { readonly report: DeliveryReportResponse 
         ))}
       </ul>
     </section>
-  );
-}
-
-/** A horizontal bar that fills to its share, from 0 to 1, when it appears. */
-export function GrowBar({
-  className,
-  share,
-}: {
-  readonly className: string;
-  readonly share: number;
-}): JSX.Element {
-  return (
-    <m.span
-      className={className}
-      initial={{ width: 0 }}
-      animate={{ width: `${String(share * 100)}%` }}
-      transition={{ duration: 0.8, ease: EASE_OUT }}
-    />
   );
 }
 

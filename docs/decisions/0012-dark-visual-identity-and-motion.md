@@ -46,7 +46,9 @@ policy of ADR 0007 (`default-src 'self'`, no inline script or style) must stay a
   `@fontsource-variable/space-grotesk`. The initial script grows from 104.8 to 126.6 kB
   gzipped, plus 14.4 kB of motion features fetched after the first render; the
   stylesheet from 7.2 to 9.1 kB. Browsers download only the font subsets a page uses.
-- Every animation has a static equivalent under reduced motion; tests do not depend on
-  motion.
+- Under reduced motion nothing moves, draws or counts: transforms are left out, the
+  heartbeat is drawn whole and CSS animations are removed; content may still fade in.
+  If the motion features fail to load or take more than three seconds, the page shows
+  every element in its final state. Tests do not depend on motion.
 - Visitors who prefer a light page no longer have one.
 - Extends ADR 0006; leaves ADR 0007's policy unchanged.

@@ -1,4 +1,4 @@
-import { AnimatePresence, m } from 'motion/react';
+import { m } from 'motion/react';
 import {
   useEffect,
   useLayoutEffect,
@@ -196,32 +196,31 @@ export function App(): JSX.Element {
             demo={isDemo}
           />
           <Tabs tab={tab} onSelect={selectTab} />
-          <AnimatePresence mode="wait" initial={false}>
-            <m.div
-              key={tab}
-              role="tabpanel"
-              id={`panel-${tab}`}
-              aria-labelledby={`tab-${tab}`}
-              className="tab-panel"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.28, ease: EASE_OUT }}
-            >
-              {tab === 'branches' ? (
-                <BranchesPanel
-                  load={isDemo ? demo(DEMO_BRANCH_REPORT) : branches}
-                  repository={repository.trim()}
-                  limit={quota?.limit ?? null}
-                />
-              ) : (
-                <DeliveryPanel
-                  load={isDemo ? demo(DEMO_DELIVERY_REPORT) : delivery}
-                  limit={quota?.limit ?? null}
-                />
-              )}
-            </m.div>
-          </AnimatePresence>
+          {/* A new panel per tab, so it fades in; the old one leaves at once, so the
+              tab's aria-controls always names a panel in the page. */}
+          <m.div
+            key={tab}
+            role="tabpanel"
+            id={`panel-${tab}`}
+            aria-labelledby={`tab-${tab}`}
+            className="tab-panel"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, ease: EASE_OUT }}
+          >
+            {tab === 'branches' ? (
+              <BranchesPanel
+                load={isDemo ? demo(DEMO_BRANCH_REPORT) : branches}
+                repository={repository.trim()}
+                limit={quota?.limit ?? null}
+              />
+            ) : (
+              <DeliveryPanel
+                load={isDemo ? demo(DEMO_DELIVERY_REPORT) : delivery}
+                limit={quota?.limit ?? null}
+              />
+            )}
+          </m.div>
         </section>
       </div>
     </Layout>
@@ -455,7 +454,7 @@ function tabForKey(key: string, index: number): Tab | null {
 /**
  * WAI-ARIA tabs: arrow keys, Home and End move between them, as in any desktop tool. An
  * indicator glides under the selected tab, measured from it, so it follows the text in
- * either language.
+ * either language and once the web fonts replace the fallback.
  */
 function Tabs({
   tab,
@@ -476,9 +475,17 @@ function Tabs({
       }
     }
     measure();
-    window.addEventListener('resize', measure);
+    // Any change of size, from the window, a font swap or a language, moves the tabs.
+    const observer = new ResizeObserver(measure);
+    const node = list.current;
+    if (node !== null) {
+      observer.observe(node);
+      node.querySelectorAll('[role="tab"]').forEach((button) => {
+        observer.observe(button);
+      });
+    }
     return (): void => {
-      window.removeEventListener('resize', measure);
+      observer.disconnect();
     };
   }, [tab, t]);
 

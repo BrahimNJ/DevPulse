@@ -1,4 +1,4 @@
-import { m, type Variants } from 'motion/react';
+import { m, useReducedMotion, type Variants } from 'motion/react';
 import { useId, useState, type JSX, type SyntheticEvent } from 'react';
 
 import { countByStatus, FEATURE_GROUPS, type Feature, type FeatureGroup } from './features.ts';
@@ -18,7 +18,7 @@ import {
   UserIcon,
 } from './icons.tsx';
 import { Layout, REPOSITORY_URL } from './Layout.tsx';
-import { CountUp, EASE_OUT, Reveal, RevealItem, RevealList } from './motion.tsx';
+import { CountUp, EASE_OUT, GrowBar, Reveal, RevealItem, RevealList } from './motion.tsx';
 import { useQuota } from './quota.ts';
 
 const AUDIENCE_ICONS = [
@@ -129,10 +129,12 @@ const SIGNAL =
 
 /**
  * The heartbeat behind the hero: drawn once on load, then a short pulse of light runs
- * along it. Decorative, and still under reduced motion (the run is a CSS animation).
+ * along it. Decorative; under reduced motion the line is drawn whole and the pulse,
+ * a CSS animation, is removed.
  */
 function HeroSignal(): JSX.Element {
   const gradient = `${useId()}-signal`;
+  const reduced = useReducedMotion() === true;
   return (
     <svg
       className="hero-signal"
@@ -152,7 +154,7 @@ function HeroSignal(): JSX.Element {
         className="hero-signal-line"
         d={SIGNAL}
         stroke={`url(#${gradient})`}
-        initial={{ pathLength: 0 }}
+        initial={reduced ? false : { pathLength: 0 }}
         animate={{ pathLength: 1 }}
         transition={{ duration: 2.4, ease: [0.65, 0, 0.35, 1], delay: 0.2 }}
       />
@@ -230,12 +232,7 @@ function HeroPreview(): JSX.Element {
         ))}
       </svg>
       <div className="meter" aria-hidden="true">
-        <m.span
-          className="meter-fill"
-          initial={{ width: 0 }}
-          animate={{ width: '33%' }}
-          transition={{ duration: 1.1, ease: EASE_OUT, delay: 0.9 }}
-        />
+        <GrowBar className="meter-fill" share={0.33} delay={0.9} />
       </div>
       <table className="preview-table">
         <thead>

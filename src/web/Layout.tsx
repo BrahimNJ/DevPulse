@@ -1,11 +1,9 @@
-import { m } from 'motion/react';
 import { useEffect, type JSX, type ReactNode } from 'react';
 
 import type { QuotaResponse } from './api.ts';
 import { interpolate, LOCALES, type Locale, type Messages } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
 import { GitHubIcon, Logo } from './icons.tsx';
-import { EASE_OUT } from './motion.tsx';
 import { describeQuota } from './quota.ts';
 
 export type Page = 'home' | 'app' | 'docs' | 'owner';
@@ -83,14 +81,8 @@ export function Layout({
         </div>
       </header>
 
-      <m.main
-        id="content"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, ease: EASE_OUT }}
-      >
-        {children}
-      </m.main>
+      {/* The page fade is CSS, so the content never waits for the animation engine. */}
+      <main id="content">{children}</main>
 
       <footer className="site-footer">
         <div className="container footer-grid">
@@ -139,7 +131,7 @@ export function Layout({
 
 /**
  * The night sky behind every page: a faint grid and two slow glows. Pure CSS, fixed
- * behind the content, and still under reduced motion.
+ * behind the content; the glows stop drifting under reduced motion.
  */
 function Backdrop(): JSX.Element {
   return (
