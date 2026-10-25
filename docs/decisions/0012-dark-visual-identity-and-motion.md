@@ -17,9 +17,11 @@ policy of ADR 0007 (`default-src 'self'`, no inline script or style) must stay a
   glows), navy surfaces with hairline borders, an electric blue accent, and mint, amber
   and coral for status. Text contrast is at least WCAG AA. The light theme is removed.
 - **Motion:** `motion` (formerly Framer Motion) for the sliding tab indicator, reveals
-  on scroll, bars and lines drawn on arrival, counted figures and page fades. It is
-  loaded through `LazyMotion` with the `domAnimation` features, and `MotionConfig`
-  follows the visitor's `prefers-reduced-motion`. It writes styles through the CSSOM
+  on scroll, bars and lines drawn on arrival and page fades. It is loaded through
+  `LazyMotion`, whose `domAnimation` features come as a separate chunk after the first
+  render, and `MotionConfig` follows the visitor's `prefers-reduced-motion`. Counted
+  figures use a frame loop rather than Motion's `animate`, which would bring the engine
+  into the initial bundle. It writes styles through the CSSOM
   and the Web Animations API, which the policy allows.
 - **Icons:** `lucide-react`, imported icon by icon so that only the icons used are
   bundled. The DevPulse mark stays a hand-drawn SVG.
@@ -41,8 +43,9 @@ policy of ADR 0007 (`default-src 'self'`, no inline script or style) must stay a
 ## Consequences
 
 - Four runtime dependencies: `motion`, `lucide-react`, `@fontsource-variable/inter` and
-  `@fontsource-variable/space-grotesk`. The bundle grows by the measured amount in the
-  pull request.
+  `@fontsource-variable/space-grotesk`. The initial script grows from 104.8 to 126.6 kB
+  gzipped, plus 14.4 kB of motion features fetched after the first render; the
+  stylesheet from 7.2 to 9.1 kB. Browsers download only the font subsets a page uses.
 - Every animation has a static equivalent under reduced motion; tests do not depend on
   motion.
 - Visitors who prefer a light page no longer have one.
