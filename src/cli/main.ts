@@ -49,10 +49,14 @@ async function execute(environment: Environment): Promise<number> {
 
   const client = new GitHubClient({ token, fetch: environment.fetch });
   const repository = await fetchRepositoryBranches(client, command.owner, command.name);
-  const report = buildBranchReport(repository, {
+  const full = buildBranchReport(repository, {
     now: environment.now(),
     staleDays: command.staleDays,
   });
+  // The totals describe the whole repository, even when only stale branches are listed.
+  const report = command.staleOnly
+    ? { ...full, branches: full.branches.filter((branch) => branch.isStale) }
+    : full;
 
   environment.stdout(command.json ? formatJson(report) : formatTable(report));
   return 0;

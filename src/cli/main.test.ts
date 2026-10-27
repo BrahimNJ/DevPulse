@@ -89,6 +89,23 @@ describe('run', () => {
     );
   });
 
+  it('lists only the stale branches with --stale-only', async () => {
+    const { environment: env, output } = environment(['branches', 'acme/app', '--stale-only']);
+
+    assert.equal(await run(env), 0);
+    assert.equal(
+      output.stdout,
+      [
+        'acme/app: 2 branches, default main',
+        'Protected: 1. Stale (no commit for 90+ days): 1.',
+        '',
+        'BRANCH          LAST COMMIT  AGE   AHEAD/BEHIND  AUTHOR   FLAGS',
+        'old-experiment  2025-01-01   657d  +12/-48       Someone  stale',
+        '',
+      ].join('\n'),
+    );
+  });
+
   it('prints the report as JSON', async () => {
     const { environment: env, output } = environment(['branches', 'acme/app', '--json']);
 
