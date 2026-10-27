@@ -119,6 +119,26 @@ describe('run', () => {
     assert.deepEqual(report.branches[1]?.divergence, { ahead: 12, behind: 48 });
   });
 
+  it('keeps the repository totals in JSON with --stale-only', async () => {
+    const { environment: env, output } = environment([
+      'branches',
+      'acme/app',
+      '--stale-only',
+      '--json',
+    ]);
+
+    assert.equal(await run(env), 0);
+    const report = JSON.parse(output.stdout) as {
+      totals: unknown;
+      branches: { name: string }[];
+    };
+    assert.deepEqual(report.totals, { branches: 2, protected: 1, stale: 1 });
+    assert.deepEqual(
+      report.branches.map((branch) => branch.name),
+      ['old-experiment'],
+    );
+  });
+
   it('fails without a token and explains how to provide one', async () => {
     const { environment: env, output } = environment(['branches', 'acme/app'], {});
 
