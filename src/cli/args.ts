@@ -10,6 +10,7 @@ Show branch statistics for a public GitHub repository.
 
 Options:
   --stale-days <n>  Days without a commit before a branch is stale (default: 90)
+  --stale-only      List only the stale branches
   --json            Print the report as JSON
   -h, --help        Show this help
 
@@ -25,6 +26,7 @@ export type Command =
       readonly owner: string;
       readonly name: string;
       readonly staleDays: number;
+      readonly staleOnly: boolean;
       readonly json: boolean;
     };
 
@@ -62,6 +64,7 @@ export function parseCommand(argv: readonly string[]): Command {
     owner: ref.owner,
     name: ref.name,
     staleDays: staleDaysOption(values['stale-days']),
+    staleOnly: values['stale-only'] === true,
     json: values.json === true,
   };
 }
@@ -69,6 +72,7 @@ export function parseCommand(argv: readonly string[]): Command {
 interface ParsedArgs {
   readonly values: {
     readonly 'stale-days'?: string | undefined;
+    readonly 'stale-only'?: boolean | undefined;
     readonly json?: boolean | undefined;
     readonly help?: boolean | undefined;
   };
@@ -83,6 +87,7 @@ function parseOrThrow(argv: readonly string[]): ParsedArgs {
       strict: true,
       options: {
         'stale-days': { type: 'string' },
+        'stale-only': { type: 'boolean' },
         json: { type: 'boolean' },
         help: { type: 'boolean', short: 'h' },
       },

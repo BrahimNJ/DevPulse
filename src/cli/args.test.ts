@@ -10,6 +10,7 @@ describe('parseCommand', () => {
       owner: 'nodejs',
       name: 'node',
       staleDays: DEFAULT_STALE_DAYS,
+      staleOnly: false,
       json: false,
     });
   });
@@ -20,8 +21,14 @@ describe('parseCommand', () => {
       owner: 'acme',
       name: 'my.repo',
       staleDays: 30,
+      staleOnly: false,
       json: true,
     });
+  });
+
+  it('parses --stale-only', () => {
+    const command = parseCommand(['branches', 'acme/app', '--stale-only']);
+    assert.equal(command.kind === 'branches' && command.staleOnly, true);
   });
 
   it('accepts repository names that start with a dot', () => {
