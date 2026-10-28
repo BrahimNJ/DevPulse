@@ -230,6 +230,7 @@ The same report in a terminal:
 ```sh
 GITHUB_TOKEN=$(gh auth token) npm run devpulse -- branches nodejs/node
 GITHUB_TOKEN=$(gh auth token) npm run devpulse -- branches nodejs/node --stale-days 180 --json
+GITHUB_TOKEN=$(gh auth token) npm run devpulse -- branches nodejs/node --stale-only
 ```
 
 | Command             | Description                             |
