@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.11.0](https://github.com/BrahimNJ/DevPulse/compare/v0.10.0...v0.11.0) (2026-10-28)
+
+
+### Features
+
+* **cli:** accept a --stale-only option ([810457c](https://github.com/BrahimNJ/DevPulse/commit/810457ccb289f469855e320b49fdada7b9d2f1b1)), closes [#65](https://github.com/BrahimNJ/DevPulse/issues/65)
+* **cli:** list only stale branches with --stale-only ([34e4262](https://github.com/BrahimNJ/DevPulse/commit/34e4262539ceaf532d18548cd38be06ce56243e1)), closes [#65](https://github.com/BrahimNJ/DevPulse/issues/65)
+* **cli:** show only stale branches with --stale-only ([39facbf](https://github.com/BrahimNJ/DevPulse/commit/39facbfa330ddd91ab28f3902257385f42c60c5e))
+
 ## [0.10.0](https://github.com/BrahimNJ/DevPulse/compare/v0.9.0...v0.10.0) (2026-10-25)
 
 
