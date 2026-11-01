@@ -2,6 +2,7 @@ import {
   LazyMotion,
   m,
   MotionConfig,
+  stagger,
   useInView,
   useReducedMotion,
   type FeatureBundle,
@@ -62,7 +63,7 @@ const REVEAL: Variants = {
 
 const STAGGER: Variants = {
   hidden: {},
-  shown: { transition: { staggerChildren: 0.08 } },
+  shown: { transition: { delayChildren: stagger(0.08) } },
 };
 
 /** A block that rises into place the first time it scrolls into view. */
