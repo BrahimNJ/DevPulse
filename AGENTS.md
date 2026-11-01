@@ -10,9 +10,9 @@ re-derive the rules from memory.
 
 The defined functionality is the branch report, as the `branches` command and the
 local dashboard (ADRs 0005 and 0006), delivery health and activity, available only in
-the dashboard and through `GET /api/delivery` and `GET /api/activity` (no CLI command). Verify the
-repository state with `ls` and
-`git status` before assuming that a language, tool, or command exists.
+the dashboard and through `GET /api/delivery` and `GET /api/activity` (no CLI
+command). Verify the repository state with `ls` and `git status` before assuming
+that a language, tool, or command exists.
 
 ## Scope Discipline
 
