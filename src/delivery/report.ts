@@ -81,6 +81,8 @@ export interface DeliveryReport {
     readonly perMonth: number;
     readonly medianIntervalDays: number | null;
     readonly daysSinceLast: number | null;
+    /** Stable releases read, most recent first: the Activity tab marks them on its chart. */
+    readonly recent: readonly { readonly tag: string; readonly publishedAt: Date }[];
   };
   /** Reverts among merged pull requests; a proxy of the change failure rate. */
   readonly revertRate: number | null;
@@ -213,6 +215,9 @@ function releases(
             0.5,
           ),
     daysSinceLast: latest === undefined ? null : Math.floor((now.getTime() - latest) / DAY_MS),
+    recent: stable
+      .map((release) => ({ tag: release.tag, publishedAt: release.publishedAt }))
+      .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime()),
   };
 }
 

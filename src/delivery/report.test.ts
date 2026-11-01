@@ -142,6 +142,10 @@ describe('buildDeliveryReport', () => {
     assert.equal(report.releases.perMonth, 1);
     assert.equal(report.releases.medianIntervalDays, 21);
     assert.equal(report.releases.daysSinceLast, 3);
+    assert.deepEqual(
+      report.releases.recent.map((release) => release.tag),
+      ['v2.2.0', 'v2.1.0', 'v2.0.0', 'v1.0.0'],
+    );
     // Three releases in 90 days is one a month: the medium band starts there.
     assert.equal(report.bands.releaseFrequency, 'medium');
   });

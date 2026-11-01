@@ -1,4 +1,5 @@
 import type {
+  ActivityReportResponse,
   AdminStatsResponse,
   ApiErrorResponse,
   BranchReportResponse,
@@ -6,7 +7,13 @@ import type {
   QuotaResponse,
 } from '../server/contract.ts';
 
-export type { AdminStatsResponse, BranchReportResponse, DeliveryReportResponse, QuotaResponse };
+export type {
+  ActivityReportResponse,
+  AdminStatsResponse,
+  BranchReportResponse,
+  DeliveryReportResponse,
+  QuotaResponse,
+};
 export type BranchRow = BranchReportResponse['branches'][number];
 
 /**
@@ -18,13 +25,21 @@ export class ApiError extends Error {
   /** The daily allowance is used up, as opposed to the per-minute rate limit. */
   readonly quotaExceeded: boolean;
   readonly resetsAt: string | null;
+  /** What the server says beyond the status, such as statistics still being computed. */
+  readonly code: ApiErrorResponse['code'] | null;
 
-  constructor(message: string, status: number, headers?: Headers) {
+  constructor(
+    message: string,
+    status: number,
+    headers?: Headers,
+    code: ApiErrorResponse['code'] | null = null,
+  ) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.quotaExceeded = headers?.get('x-quota-remaining') === '0';
     this.resetsAt = headers?.get('x-quota-reset') ?? null;
+    this.code = code;
   }
 }
 
@@ -60,6 +75,22 @@ export async function fetchDeliveryReport(
   const query = new URLSearchParams({ repo: repository });
   const response = await fetch(`/api/delivery?${query.toString()}`, { signal });
   const body = await readJson<DeliveryReportResponse>(response);
+  return { report: body, quota: quotaFromHeaders(response.headers) };
+}
+
+export interface ActivityResult {
+  readonly report: ActivityReportResponse;
+  readonly quota: ReportResult['quota'];
+}
+
+/** The activity report; it shares the allowance of the branch report too. */
+export async function fetchActivityReport(
+  repository: string,
+  signal: AbortSignal,
+): Promise<ActivityResult> {
+  const query = new URLSearchParams({ repo: repository });
+  const response = await fetch(`/api/activity?${query.toString()}`, { signal });
+  const body = await readJson<ActivityReportResponse>(response);
   return { report: body, quota: quotaFromHeaders(response.headers) };
 }
 
@@ -115,11 +146,19 @@ async function readJson<T>(response: Response): Promise<T> {
     // An HTML error page from a proxy is reported by its status below.
   }
   if (!response.ok || body === null) {
-    const message =
-      body !== null && typeof body === 'object' && 'error' in body
-        ? (body as ApiErrorResponse).error
-        : `Request failed with status ${String(response.status)}.`;
-    throw new ApiError(message, response.status, response.headers);
+    const error = errorBody(body);
+    throw new ApiError(
+      error?.error ?? `Request failed with status ${String(response.status)}.`,
+      response.status,
+      response.headers,
+      error?.code ?? null,
+    );
   }
   return body as T;
+}
+
+function errorBody(body: unknown): ApiErrorResponse | null {
+  return body !== null && typeof body === 'object' && 'error' in body
+    ? (body as ApiErrorResponse)
+    : null;
 }

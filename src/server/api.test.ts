@@ -3,7 +3,9 @@ import { describe, it } from 'node:test';
 
 import type { RepositoryBranches } from '../branches/report.ts';
 import { GitHubClient, GitHubError } from '../github/client.ts';
+import { StatisticsPendingError } from '../github/activity.ts';
 import {
+  handleActivityRequest,
   handleBranchesRequest,
   handleQuotaRequest,
   type ApiDependencies,
@@ -11,10 +13,16 @@ import {
 } from './api.ts';
 import { TtlCache } from './cache.ts';
 import { MemoryQuotaStore, VisitorQuota } from './quota.ts';
-import { createBranchLoader, ServiceError, type DeliveryLoader } from './source.ts';
+import {
+  createBranchLoader,
+  ServiceError,
+  type ActivityLoader,
+  type DeliveryLoader,
+} from './source.ts';
 
-/** For tests that never ask for a delivery report. */
+/** For tests that never ask for a delivery or activity report. */
 const NO_DELIVERY: DeliveryLoader = () => Promise.reject(new Error('Unexpected delivery load'));
+const NO_ACTIVITY: ActivityLoader = () => Promise.reject(new Error('Unexpected activity load'));
 
 const NOW = new Date('2026-10-20T00:00:00Z');
 const VISITOR: Visitor = { id: 'visitor', owner: false };
@@ -42,7 +50,7 @@ function dependencies(responses: readonly Response[]): ApiDependencies {
     quotaReserve: 0,
     timeoutMs: 1000,
   });
-  return { loadBranches, loadDelivery: NO_DELIVERY, now: () => NOW };
+  return { loadBranches, loadDelivery: NO_DELIVERY, loadActivity: NO_ACTIVITY, now: () => NOW };
 }
 
 const DEFAULT_BRANCH = { data: { repository: { defaultBranchRef: { name: 'main' } } } };
@@ -133,6 +141,7 @@ describe('handleBranchesRequest', () => {
   it('passes a protective refusal on with its retry delay', async () => {
     const response = await ask(new URLSearchParams({ repo: 'acme/app' }), {
       loadDelivery: NO_DELIVERY,
+      loadActivity: NO_ACTIVITY,
       loadBranches: () => Promise.reject(new ServiceError(503, 'Budget used.', 120)),
       now: () => NOW,
     });
@@ -152,6 +161,7 @@ describe('daily allowance', () => {
     return {
       loadBranches: load,
       loadDelivery: NO_DELIVERY,
+      loadActivity: NO_ACTIVITY,
       now: () => NOW,
       quota: new VisitorQuota({
         store: new MemoryQuotaStore(),
@@ -239,7 +249,12 @@ describe('daily allowance', () => {
   it('reports no allowance when it is disabled, as in local development', async () => {
     assert.deepEqual(
       await handleQuotaRequest(
-        { loadBranches: found, loadDelivery: NO_DELIVERY, now: () => NOW },
+        {
+          loadBranches: found,
+          loadDelivery: NO_DELIVERY,
+          loadActivity: NO_ACTIVITY,
+          now: () => NOW,
+        },
         VISITOR,
       ),
       {
@@ -249,5 +264,66 @@ describe('daily allowance', () => {
         resetsAt: null,
       },
     );
+  });
+});
+
+describe('GET /api/activity', () => {
+  const EMPTY_ACTIVITY = {
+    owner: 'acme',
+    name: 'app',
+    weeks: [],
+    contributors: [],
+    truncated: false,
+    punchCard: [],
+  };
+
+  function withActivity(load: ActivityLoader): ApiDependencies {
+    return {
+      loadBranches: () => Promise.reject(new Error('Unexpected branch load')),
+      loadDelivery: NO_DELIVERY,
+      loadActivity: load,
+      now: () => NOW,
+      quota: new VisitorQuota({
+        store: new MemoryQuotaStore(),
+        limit: 1,
+        windowMs: 86_400_000,
+        now: () => NOW,
+      }),
+    };
+  }
+
+  it('builds the activity report of a repository', async () => {
+    const response = await handleActivityRequest(
+      new URLSearchParams({ repo: 'acme/app' }),
+      withActivity(() => Promise.resolve({ activity: EMPTY_ACTIVITY, cacheHit: false })),
+      VISITOR,
+    );
+
+    assert.equal(response.status, 200);
+    assert.equal((response.body as { repository: string }).repository, 'acme/app');
+  });
+
+  it('asks to retry soon while GitHub computes, without charging the visitor', async () => {
+    const deps = withActivity(() => Promise.reject(new StatisticsPendingError()));
+    const response = await handleActivityRequest(
+      new URLSearchParams({ repo: 'acme/app' }),
+      deps,
+      VISITOR,
+    );
+
+    assert.equal(response.status, 503);
+    assert.equal((response.body as { code?: string }).code, 'statistics-pending');
+    assert.equal(response.headers?.['retry-after'], '10');
+    assert.equal((await deps.quota?.status(VISITOR.id))?.remaining, 1);
+  });
+
+  it('rejects a name that is not owner/repository', async () => {
+    const response = await handleActivityRequest(
+      new URLSearchParams({ repo: 'nope' }),
+      withActivity(() => Promise.reject(new Error('Unexpected activity load'))),
+      VISITOR,
+    );
+
+    assert.equal(response.status, 400);
   });
 });

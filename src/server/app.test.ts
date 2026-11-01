@@ -10,8 +10,9 @@ import { withServer } from './http-test.ts';
 import { OwnerAccess } from './owner.ts';
 import { MemoryQuotaStore, VisitorQuota } from './quota.ts';
 import { RateLimiter } from './rate-limit.ts';
+import type { ActivityData } from '../activity/report.ts';
 import type { DeliveryData } from '../delivery/report.ts';
-import type { BranchLoader, DeliveryLoader } from './source.ts';
+import type { ActivityLoader, BranchLoader, DeliveryLoader } from './source.ts';
 
 const NOW = new Date('2026-10-20T00:00:00Z');
 
@@ -27,6 +28,15 @@ const DELIVERY: DeliveryData = {
   revertCount: 0,
   weeklyMerged: [],
   releases: [],
+};
+
+const ACTIVITY: ActivityData = {
+  owner: 'acme',
+  name: 'app',
+  weeks: [],
+  contributors: [],
+  truncated: false,
+  punchCard: [],
 };
 
 const OWNER_KEY = 'an-owner-key-for-the-tests';
@@ -52,6 +62,8 @@ function options(
         ((): ReturnType<BranchLoader> => Promise.resolve({ branches: EMPTY, cacheHit: true })),
       loadDelivery: (): ReturnType<DeliveryLoader> =>
         Promise.resolve({ delivery: DELIVERY, cacheHit: false }),
+      loadActivity: (): ReturnType<ActivityLoader> =>
+        Promise.resolve({ activity: ACTIVITY, cacheHit: false }),
       now: () => NOW,
       ...(overrides.quota === undefined
         ? {}
@@ -177,6 +189,18 @@ describe('createApp', () => {
     });
   });
 
+  it('serves an activity report that shares the allowance of the repository', async () => {
+    await withServer(createApp(options({ quota: 1 })), async (send) => {
+      await send('/api/branches?repo=acme/app');
+      const activity = await send('/api/activity?repo=acme/app');
+
+      assert.equal(activity.status, 200);
+      assert.equal(activity.headers['x-quota-remaining'], '0');
+      assert.equal((JSON.parse(activity.body) as { repository: string }).repository, 'acme/app');
+      assert.equal((await send('/api/activity?repo=acme/other')).status, 429);
+    });
+  });
+
   it('reports the allowance and lets the owner sign in and out', async () => {
     await withServer(createApp(options({ quota: 1 })), async (send) => {
       const post = (key: string, origin = 'http://devpulse.test'): ReturnType<typeof send> =>
@@ -265,6 +289,7 @@ describe('createApp', () => {
       };
       await send('/api/branches?repo=Acme/App', visitor);
       await send('/api/delivery?repo=acme/app', visitor);
+      await send('/api/activity?repo=acme/app', visitor);
       await send('/api/branches?repo=acme/other', visitor);
       await send('/api/branches?repo=not-a-repository', visitor);
 
@@ -290,8 +315,9 @@ describe('createApp', () => {
         succeeded: 1,
         failed: 2,
         deliveryOpened: 1,
+        activityOpened: 1,
         repositories: 2,
-        cacheHitRate: 0.5,
+        cacheHitRate: 1 / 3,
         medianMs: 0,
         p90Ms: 0,
         allowanceReached: 1,

@@ -10,17 +10,25 @@ import {
   type SyntheticEvent,
 } from 'react';
 
+import { ActivityView } from './Activity.tsx';
 import {
   ApiError,
+  fetchActivityReport,
   fetchBranchReport,
   fetchDeliveryReport,
+  type ActivityReportResponse,
   type BranchReportResponse,
   type DeliveryReportResponse,
   type QuotaResponse,
 } from './api.ts';
 import { BranchTable } from './BranchTable.tsx';
 import { DeliveryView } from './Delivery.tsx';
-import { DEMO_BRANCH_REPORT, DEMO_DELIVERY_REPORT, DEMO_REPOSITORY } from './demo.ts';
+import {
+  DEMO_ACTIVITY_REPORT,
+  DEMO_BRANCH_REPORT,
+  DEMO_DELIVERY_REPORT,
+  DEMO_REPOSITORY,
+} from './demo.ts';
 import { formatDate } from './format.ts';
 import { formatNumber, interpolate, type Messages } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
@@ -39,11 +47,13 @@ type Load<T> =
   | { readonly kind: 'error'; readonly error: unknown }
   | { readonly kind: 'ready'; readonly report: T };
 
-type Tab = 'branches' | 'delivery';
+type Tab = 'branches' | 'delivery' | 'activity';
 
 const STALE_OPTIONS = [30, 90, 180, 365] as const;
 const EXAMPLES = ['nodejs/node', 'facebook/react', 'kubernetes/kubernetes'] as const;
-const TABS: readonly Tab[] = ['branches', 'delivery'];
+const TABS: readonly Tab[] = ['branches', 'delivery', 'activity'];
+/** One automatic retry while GitHub computes the activity statistics. */
+const PENDING_RETRY_MS = 10_000;
 
 function initialQuery(): { repository: string; staleDays: number; tab: Tab } {
   const params = new URLSearchParams(window.location.search);
@@ -51,7 +61,7 @@ function initialQuery(): { repository: string; staleDays: number; tab: Tab } {
   return {
     repository: params.get('repo') ?? '',
     staleDays: STALE_OPTIONS.some((option) => option === staleDays) ? staleDays : 90,
-    tab: params.get('tab') === 'delivery' ? 'delivery' : 'branches',
+    tab: TABS.find((tab) => tab === params.get('tab')) ?? 'branches',
   };
 }
 
@@ -70,6 +80,9 @@ function storage(): Storage | undefined {
 function describeError(error: unknown, t: Messages, limit: number | null): string {
   if (!(error instanceof ApiError)) {
     return t.app.errors.generic;
+  }
+  if (error.code === 'statistics-pending') {
+    return t.app.errors.statisticsPending;
   }
   if (error.status === 429) {
     return error.quotaExceeded
@@ -93,8 +106,10 @@ export function App(): JSX.Element {
   const [tab, setTab] = useState<Tab>(initial.tab);
   const [branches, setBranches] = useState<Load<BranchReportResponse>>({ kind: 'idle' });
   const [delivery, setDelivery] = useState<Load<DeliveryReportResponse>>({ kind: 'idle' });
+  const [activity, setActivity] = useState<Load<ActivityReportResponse>>({ kind: 'idle' });
   const [recent, setRecent] = useState(() => readRecent(storage()));
   const inFlight = useRef<AbortController | null>(null);
+  const activityRetry = useRef<(() => void) | null>(null);
   const { quota, update, refresh } = useQuota();
 
   function analyse(target: string, days: number, nextTab: Tab = tab): void {
@@ -109,6 +124,7 @@ export function App(): JSX.Element {
     writeUrl(trimmed, days, nextTab);
     setBranches({ kind: 'loading' });
     setDelivery({ kind: 'loading' });
+    setActivity({ kind: 'loading' });
 
     const settle =
       <T,>(set: (load: Load<T>) => void) =>
@@ -130,7 +146,36 @@ export function App(): JSX.Element {
         set({ kind: 'error', error });
       };
 
-    // The branch report reserves the repository in the allowance; delivery then reuses it.
+    const loadActivity = (retry: boolean): void => {
+      fetchActivityReport(trimmed, controller.signal).then(
+        settle(setActivity),
+        (error: unknown) => {
+          const pending = error instanceof ApiError && error.code === 'statistics-pending';
+          if (retry && pending && !controller.signal.aborted) {
+            // A new analysis or leaving the page aborts the controller, and the retry with it.
+            const timer = window.setTimeout(() => {
+              loadActivity(false);
+            }, PENDING_RETRY_MS);
+            controller.signal.addEventListener(
+              'abort',
+              () => {
+                window.clearTimeout(timer);
+              },
+              { once: true },
+            );
+            return;
+          }
+          fail(setActivity)(error);
+        },
+      );
+    };
+    activityRetry.current = (): void => {
+      setActivity({ kind: 'loading' });
+      loadActivity(false);
+    };
+
+    // The branch report reserves the repository in the allowance; the other reports
+    // then reuse it, so they start only once it has answered.
     fetchBranchReport(trimmed, days, controller.signal).then(
       (result) => {
         settle(setBranches)(result);
@@ -142,10 +187,12 @@ export function App(): JSX.Element {
           settle(setDelivery),
           fail(setDelivery),
         );
+        loadActivity(true);
       },
       (error: unknown) => {
         fail(setBranches)(error);
         fail(setDelivery)(error);
+        fail(setActivity)(error);
       },
     );
   }
@@ -208,18 +255,13 @@ export function App(): JSX.Element {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28, ease: EASE_OUT }}
           >
-            {tab === 'branches' ? (
-              <BranchesPanel
-                load={isDemo ? demo(DEMO_BRANCH_REPORT) : branches}
-                repository={repository.trim()}
-                limit={quota?.limit ?? null}
-              />
-            ) : (
-              <DeliveryPanel
-                load={isDemo ? demo(DEMO_DELIVERY_REPORT) : delivery}
-                limit={quota?.limit ?? null}
-              />
-            )}
+            <ReportPanel
+              tab={tab}
+              loads={isDemo ? DEMO_LOADS : { branches, delivery, activity }}
+              repository={repository.trim()}
+              limit={quota?.limit ?? null}
+              onRetry={() => activityRetry.current?.()}
+            />
           </m.div>
         </section>
       </div>
@@ -234,6 +276,49 @@ function headingOf(load: Load<BranchReportResponse>, typed: string): string {
 
 function demo<T>(report: T): Load<T> {
   return { kind: 'ready', report };
+}
+
+interface Loads {
+  readonly branches: Load<BranchReportResponse>;
+  readonly delivery: Load<DeliveryReportResponse>;
+  readonly activity: Load<ActivityReportResponse>;
+}
+
+/** The example reports shown before a first analysis. */
+const DEMO_LOADS: Loads = {
+  branches: demo(DEMO_BRANCH_REPORT),
+  delivery: demo(DEMO_DELIVERY_REPORT),
+  activity: demo(DEMO_ACTIVITY_REPORT),
+};
+
+function ReportPanel({
+  tab,
+  loads,
+  repository,
+  limit,
+  onRetry,
+}: {
+  readonly tab: Tab;
+  readonly loads: Loads;
+  readonly repository: string;
+  readonly limit: number | null;
+  readonly onRetry: () => void;
+}): JSX.Element {
+  switch (tab) {
+    case 'branches':
+      return <BranchesPanel load={loads.branches} repository={repository} limit={limit} />;
+    case 'delivery':
+      return <DeliveryPanel load={loads.delivery} limit={limit} />;
+    case 'activity':
+      return (
+        <ActivityPanel
+          load={loads.activity}
+          delivery={loads.delivery}
+          limit={limit}
+          onRetry={onRetry}
+        />
+      );
+  }
 }
 
 function Sidebar({
@@ -530,7 +615,7 @@ function Tabs({
           }}
         >
           {t.workspace.tabs[item]}
-          {item === 'delivery' && <span className="tab-new">{t.workspace.tabs.new}</span>}
+          {item === 'activity' && <span className="tab-new">{t.workspace.tabs.new}</span>}
         </button>
       ))}
     </div>
@@ -571,6 +656,42 @@ function DeliveryPanel({
   return (
     <LoadView load={load} limit={limit} loading={t.delivery.loading}>
       {(report) => <DeliveryView report={report} />}
+    </LoadView>
+  );
+}
+
+function ActivityPanel({
+  load,
+  delivery,
+  limit,
+  onRetry,
+}: {
+  readonly load: Load<ActivityReportResponse>;
+  readonly delivery: Load<DeliveryReportResponse>;
+  readonly limit: number | null;
+  readonly onRetry: () => void;
+}): JSX.Element {
+  const { t } = useI18n();
+  if (
+    load.kind === 'error' &&
+    load.error instanceof ApiError &&
+    load.error.code === 'statistics-pending'
+  ) {
+    return (
+      <p className="notice notice-info" role="status">
+        <ClockIcon />
+        {t.activity.pending}{' '}
+        <button type="button" className="link-button" onClick={onRetry}>
+          {t.activity.pendingRetry}
+        </button>
+      </p>
+    );
+  }
+  // Releases come from the delivery report; the chart simply has no markers until then.
+  const releases = delivery.kind === 'ready' ? delivery.report.releases.recent : [];
+  return (
+    <LoadView load={load} limit={limit} loading={t.activity.loading}>
+      {(report) => <ActivityView report={report} releases={releases} />}
     </LoadView>
   );
 }

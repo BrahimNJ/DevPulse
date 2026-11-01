@@ -1,6 +1,8 @@
+import type { ActivityData } from '../activity/report.ts';
 import type { RepositoryRef } from '../branches/input.ts';
 import type { RepositoryBranches } from '../branches/report.ts';
 import type { DeliveryData } from '../delivery/report.ts';
+import { fetchActivityData } from '../github/activity.ts';
 import { fetchRepositoryBranches } from '../github/branches.ts';
 import { fetchDeliveryData } from '../github/delivery.ts';
 import type { GitHubClient } from '../github/client.ts';
@@ -44,6 +46,13 @@ export interface LoadedDelivery {
 
 export type DeliveryLoader = (repository: RepositoryRef) => Promise<LoadedDelivery>;
 
+export interface LoadedActivity {
+  readonly activity: ActivityData;
+  readonly cacheHit: boolean;
+}
+
+export type ActivityLoader = (repository: RepositoryRef) => Promise<LoadedActivity>;
+
 /**
  * Reads repository data through the cache, so that anonymous visitors share one
  * GitHub token without exhausting it (ADR 0007). A load that times out keeps running
@@ -83,6 +92,20 @@ export function createDeliveryLoader(options: LoaderOptions<DeliveryData>): Deli
   return async (repository) => {
     const { value, cacheHit } = await loader(repository);
     return { delivery: value, cacheHit };
+  };
+}
+
+/**
+ * Statistics GitHub computes on demand, cached like the other reports. While GitHub is
+ * still computing them the load fails, so that state is never cached.
+ */
+export function createActivityLoader(options: LoaderOptions<ActivityData>): ActivityLoader {
+  const loader = createCachedLoader(options, (repository) =>
+    fetchActivityData(options.client, repository.owner, repository.name),
+  );
+  return async (repository) => {
+    const { value, cacheHit } = await loader(repository);
+    return { activity: value, cacheHit };
   };
 }
 

@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { handleStatsRequest, recordAnalysis, type AnalysisRecord } from './admin.ts';
 import type { ReportKind } from './analytics.ts';
 import {
+  handleActivityRequest,
   handleBranchesRequest,
   handleDeliveryRequest,
   handleQuotaRequest,
@@ -34,6 +35,7 @@ const NO_STORE = { 'cache-control': 'no-store' };
 export const API_ROUTES: ReadonlyMap<string, ApiRoute> = new Map([
   ['/api/branches', branches],
   ['/api/delivery', delivery],
+  ['/api/activity', activity],
   ['/api/quota', quota],
   ['/api/owner', owner],
   ['/api/admin/stats', stats],
@@ -53,6 +55,10 @@ async function delivery(call: ApiCall): Promise<void> {
   await analysis(call, 'delivery', handleDeliveryRequest);
 }
 
+async function activity(call: ApiCall): Promise<void> {
+  await analysis(call, 'activity', handleActivityRequest);
+}
+
 /**
  * Serves a report and records the analysis for the owner's statistics (ADR 0011).
  */
@@ -64,7 +70,7 @@ async function analysis(call: ApiCall, report: ReportKind, handle: ReportHandler
   const started = options.clock();
   const { searchParams } = new URL(request.url ?? '/', 'http://localhost');
   const record = (
-    result: Pick<ApiResponse, 'status' | 'headers' | 'cacheHit'>,
+    result: Pick<ApiResponse, 'status' | 'headers' | 'cacheHit' | 'body'>,
   ): AnalysisRecord => ({
     report,
     query: searchParams,
@@ -80,6 +86,8 @@ async function analysis(call: ApiCall, report: ReportKind, handle: ReportHandler
     at: options.api.now(),
     status: result.status,
     allowanceHeaders: result.headers?.['x-quota-limit'] !== undefined,
+    // `statistics-pending` is the only error code the API sends.
+    pending: 'code' in result.body,
     durationMs: options.clock() - started,
     cacheHit: result.cacheHit ?? null,
   });

@@ -39,6 +39,7 @@ describe('analytics', () => {
     assert.equal(outcomeOf(429, false), 'rate-limited');
     assert.equal(outcomeOf(504, false), 'timeout');
     assert.equal(outcomeOf(500, false), 'error');
+    assert.equal(outcomeOf(503, false, true), 'pending');
   });
 
   it('keeps only a coarse device class and the first language', () => {
@@ -58,6 +59,7 @@ describe('analytics', () => {
       event({ durationMs: 900, at: new Date('2026-10-22T09:00:00Z') }),
       event({ durationMs: 100, cacheHit: true }),
       event({ report: 'delivery', durationMs: 5000 }),
+      event({ report: 'activity', durationMs: 4000 }),
       event({ visitor: 'v3', outcome: 'allowance', status: 429, cacheHit: null }),
       event({ visitor: 'me', owner: true, repository: 'mine/own' }),
     ];
@@ -69,8 +71,9 @@ describe('analytics', () => {
       succeeded: 2,
       failed: 2,
       deliveryOpened: 1,
+      activityOpened: 1,
       repositories: 2,
-      cacheHitRate: 0.25,
+      cacheHitRate: 0.2,
       medianMs: 100,
       p90Ms: 900,
       allowanceReached: 1,

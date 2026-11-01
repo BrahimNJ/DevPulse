@@ -1,3 +1,4 @@
+import type { ActivityReport } from '../activity/report.ts';
 import type { BranchReport } from '../branches/report.ts';
 import type { DeliveryReport } from '../delivery/report.ts';
 import type { AdminStats } from './analytics.ts';
@@ -17,12 +18,17 @@ export type BranchReportResponse = Serialized<BranchReport>;
 /** Body of a successful `GET /api/delivery` response. */
 export type DeliveryReportResponse = Serialized<DeliveryReport>;
 
+/** Body of a successful `GET /api/activity` response. */
+export type ActivityReportResponse = Serialized<ActivityReport>;
+
 /** Body of `GET /api/admin/stats`, for the owner only (ADR 0011). */
 export type AdminStatsResponse = AdminStats;
 
 /** Body of every failed API response. */
 export interface ApiErrorResponse {
   readonly error: string;
+  /** Set when the interface should explain more than the status says. */
+  readonly code?: 'statistics-pending';
 }
 
 /** Body of `GET /api/quota`: the visitor's daily allowance (ADR 0008). */
