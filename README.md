@@ -45,7 +45,7 @@ on **production-grade engineering practices** rather than on volume of code:
 
 ## Features
 
-### Available today: branch and delivery health
+### Available today: branches, delivery and activity
 
 <img src="docs/assets/dashboard.png" alt="DevPulse report for nodejs/node: 55 branches, 44 protected, 37 stale, plain-language insights and a filterable branch table" width="900" />
 
@@ -61,6 +61,7 @@ on **production-grade engineering practices** rather than on volume of code:
 | **Shareable views**     | The URL holds the query, so `?repo=nodejs/node` reopens the same report                           |
 | **Command line**        | The branch report in a terminal, as an aligned table or as JSON for scripting                     |
 | **Delivery health**     | DORA-style metrics over 90 days (below); a Delivery tab beside Branches, web and API only         |
+| **Activity**            | A year of commits, concentration and contributor flow (below); an Activity tab, web and API only  |
 | **Clear failures**      | Missing repository, invalid token, rate limits and network errors each get a precise message      |
 | **Fair use**            | Three analyses per visitor a day, counted server-side; re-opening a repository is free            |
 | **Public docs**         | A Docs page explains every technical choice, the security model and the delivery pipeline         |
@@ -72,17 +73,23 @@ frequency, revert rate (a proxy for change failure rate), abandoned and stale pu
 requests, size buckets and reviewer concentration, with DORA bands where they apply.
 It shares the daily allowance with the branch report for the same repository.
 
+Activity reads GitHub's repository statistics: commits per day over 52 weeks, the
+most active contributors and commits by day and hour. It gives a verdict for a window
+of 3, 6 or 12 months, weekly commits with an 8-week median and release markers, a
+commit calendar, how few people make half of the commits, the flow of new, retained,
+returning and lapsed contributors, the rhythm of the project and maintenance signals.
+Every panel says how to read it and what it cannot see; no contributor is ranked.
+
 ### Planned
 
 These analyses are proposals shown on the landing page as **Planned**. Each one is
 specified in an issue before it is built, and the list may change.
 
-| Area                         | Planned analyses                                                         |
-| ---------------------------- | ------------------------------------------------------------------------ |
-| **Activity**                 | Commit heatmap, activity trends                                          |
-| **Contributors**             | Top contributors, bus factor, new versus returning contributors          |
-| **Pull requests and issues** | Time to merge, review latency, ageing pull requests, issue response time |
-| **Insights**                 | Health score, repository comparison, CSV and Markdown export             |
+| Area                         | Planned analyses                                             |
+| ---------------------------- | ------------------------------------------------------------ |
+| **Contributors**             | Top contributors                                             |
+| **Pull requests and issues** | Issue response time                                          |
+| **Insights**                 | Health score, repository comparison, CSV and Markdown export |
 
 ## Architecture
 
@@ -99,15 +106,18 @@ flowchart LR
     subgraph Domain
         B[Branch report<br/>src/branches]
         D[Delivery health<br/>src/delivery]
+        A[Activity<br/>src/activity]
     end
     W -->|GET /api/branches| S
     W -->|GET /api/delivery| S
+    W -->|GET /api/activity| S
     S --> G
     C --> G
     S --> B
     S --> D
+    S --> A
     C --> B
-    G -->|GraphQL: branches, merged PRs, releases<br/>REST: protection| GH[(GitHub API)]
+    G -->|GraphQL: branches, merged PRs, releases<br/>REST: protection, statistics| GH[(GitHub API)]
 ```
 
 Design choices worth noting, each recorded in an ADR:
@@ -251,6 +261,7 @@ The full command reference is in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 DevPulse/
 ├── src/
 │   ├── branches/         Domain: branch report, input validation
+│   ├── activity/         Domain: activity and contributor dynamics
 │   ├── delivery/         Domain: delivery health metrics
 │   ├── github/           Infrastructure: GitHub GraphQL and REST client
 │   ├── cli/              Interface: command-line tool
@@ -276,7 +287,8 @@ DevPulse/
 | 2. Branch statistics       | GitHub client, branch report, CLI, test runner (ADR 0005)               | ✅ Done |
 | 3. Web dashboard           | Landing page, React app and local API (ADR 0006)                        | ✅ Done |
 | 3b. Delivery health        | DORA-style metrics from merged pull requests and releases (web and API) | ✅ Done |
-| 4. Activity, contributors  | Commit heatmap, trends, contributor insights                            | Planned |
+| 3c. Owner statistics       | Pseudonymous usage statistics for the maintainer (ADR 0011)             | ✅ Done |
+| 4. Activity, contributors  | Commit calendar, trends, concentration, contributor flow (ADR 0013)     | ✅ Done |
 | 5. Pull requests, insights | Review flow, issue response, health score, comparison, export           | Planned |
 | 6. Performance             | Faster reports for repositories with thousands of branches              | Planned |
 

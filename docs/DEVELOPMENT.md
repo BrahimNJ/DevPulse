@@ -7,7 +7,8 @@ workflow end to end is in [GIT_WORKFLOW.md](GIT_WORKFLOW.md).
 ## Current State
 
 Repository tooling, CI, release automation, the `branches` command, the local
-dashboard and its delivery health report (`GET /api/delivery`) are in place. Node.js runs the TypeScript sources
+dashboard with its delivery health (`GET /api/delivery`) and activity (`GET /api/activity`)
+reports are in place. Node.js runs the TypeScript sources
 directly, so there is **no build step** for the back end
 ([ADR 0005](decisions/0005-command-line-application-and-tests.md)); Vite serves the
 React dashboard in development mode ([ADR 0006](decisions/0006-local-web-dashboard.md)).

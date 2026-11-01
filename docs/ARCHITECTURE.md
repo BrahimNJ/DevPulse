@@ -29,6 +29,8 @@ Decided, see [decision records](decisions/):
 - Delivery health: DORA-style proxies from public GitHub data, the sample and search
   counts it reads, and the example shown before a first analysis (ADR 0010).
 - Pseudonymous analysis events, kept 30 days, behind the owner statistics (ADR 0011).
+- Activity from GitHub's repository statistics: weekly commits, the most active
+  contributors and the punch card, retried while GitHub computes them (ADR 0013).
 
 Undecided:
 
