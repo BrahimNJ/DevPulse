@@ -22,6 +22,12 @@ export interface Quota {
   readonly resetsAt: Date;
 }
 
+/** A repository statistic: computed, still being computed by GitHub, or empty. */
+export type Statistic<T> =
+  | { readonly state: 'ready'; readonly value: T }
+  | { readonly state: 'pending' }
+  | { readonly state: 'empty' };
+
 interface GraphQLResponse<T> {
   readonly data?: T | null;
   readonly errors?: readonly { readonly type?: string; readonly message: string }[];
@@ -94,6 +100,30 @@ export class GitHubClient {
       url = next === null ? null : this.#sameOrigin(next, url);
     }
     return items;
+  }
+
+  /**
+   * Reads a repository statistic (`/repos/{owner}/{name}/stats/...`). GitHub answers
+   * 202 while it computes one, so it is pending, and 204 for a repository without
+   * commits, so it is empty. A missing repository is reported as `notFoundMessage`.
+   */
+  async restStatistic<T>(path: string, notFoundMessage: string): Promise<Statistic<T>> {
+    let response: Response;
+    try {
+      response = await this.#request(`${this.#baseUrl}${path}`, { method: 'GET' });
+    } catch (error) {
+      if (error instanceof GitHubError && error.status === 404) {
+        throw new GitHubError(notFoundMessage, 404);
+      }
+      throw error;
+    }
+    if (response.status === 202) {
+      return { state: 'pending' };
+    }
+    if (response.status === 204) {
+      return { state: 'empty' };
+    }
+    return { state: 'ready', value: await readJson<T>(response) };
   }
 
   /** The token is sent with every request, so never follow a link to another host. */
