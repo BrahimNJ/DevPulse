@@ -1,4 +1,4 @@
-import { m, useReducedMotion, type Variants } from 'motion/react';
+import { m, stagger, useReducedMotion, type Variants } from 'motion/react';
 import { useId, useState, type JSX, type SyntheticEvent } from 'react';
 
 import { countByStatus, FEATURE_GROUPS, type Feature, type FeatureGroup } from './features.ts';
@@ -41,7 +41,7 @@ const EXAMPLES = ['nodejs/node', 'facebook/react', 'vitejs/vite'] as const;
 /** The hero enters line by line once, on load rather than on scroll. */
 const HERO_LINES: Variants = {
   hidden: {},
-  shown: { transition: { staggerChildren: 0.09, delayChildren: 0.1 } },
+  shown: { transition: { delayChildren: stagger(0.09, { startDelay: 0.1 }) } },
 };
 const HERO_LINE: Variants = {
   hidden: { opacity: 0, y: 22 },
@@ -358,7 +358,7 @@ function FeatureItem({ feature }: { readonly feature: Feature }): JSX.Element {
 
 const TERMINAL: Variants = {
   hidden: {},
-  shown: { transition: { staggerChildren: 0.45, delayChildren: 0.2 } },
+  shown: { transition: { delayChildren: stagger(0.45, { startDelay: 0.2 }) } },
 };
 const TERMINAL_LINE: Variants = {
   hidden: { opacity: 0 },
