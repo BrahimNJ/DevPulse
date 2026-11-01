@@ -8,4 +8,6 @@ export default {
     'header-max-length': [RuleConfigSeverity.Error, 'always', 72],
     'scope-case': [RuleConfigSeverity.Error, 'always', 'kebab-case'],
   },
+  // Dependabot capitalises "Bump" and offers no option to change it.
+  ignores: [(message) => /^(build|ci)(\(deps(-dev)?\))?: Bump /.test(message)],
 };
