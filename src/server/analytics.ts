@@ -14,6 +14,7 @@ export type Outcome =
   | 'rate-limited'
   | 'github'
   | 'unavailable'
+  | 'pending'
   | 'timeout'
   | 'error';
 
@@ -73,7 +74,11 @@ export class MemoryEventStore implements EventStore {
  * The outcome behind a status. A 429 carrying the allowance headers is the daily
  * allowance; without them it is the per-minute rate limit.
  */
-export function outcomeOf(status: number, allowanceHeaders: boolean): Outcome {
+export function outcomeOf(status: number, allowanceHeaders: boolean, pending = false): Outcome {
+  // GitHub still computing statistics is an ordinary first load, not an outage.
+  if (pending) {
+    return 'pending';
+  }
   if (status === 429) {
     return allowanceHeaders ? 'allowance' : 'rate-limited';
   }

@@ -516,6 +516,7 @@
         "rate-limited": "Trop de requêtes",
         "github": "Erreur GitHub",
         "unavailable": "Quota GitHub protégé",
+        "pending": "GitHub calcule encore",
         "timeout": "Trop lente (plus de 30 s)",
         "error": "Erreur serveur"
       },
@@ -526,7 +527,8 @@
         "allowance": "Une vraie demande : envisager une limite quotidienne plus haute.",
         "rate-limited": "Des rafales depuis une même adresse : un script ou un visiteur pressé.",
         "github": "GitHub a répondu une erreur : vérifier sa page de statut.",
-        "unavailable": "Le serveur a gardé les derniers points GitHub en réserve, ou GitHub calculait encore les statistiques d'activité.",
+        "unavailable": "Le serveur a gardé les derniers points GitHub en réserve.",
+        "pending": "Un premier chargement d'activité d'un repository peu consulté : une nouvelle tentative réussit.",
         "timeout": "De très gros repositories : un cache plus long ou une requête plus légère aiderait.",
         "error": "Un bug : les logs du serveur en donnent la cause."
       }

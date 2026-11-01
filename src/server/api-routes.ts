@@ -70,7 +70,7 @@ async function analysis(call: ApiCall, report: ReportKind, handle: ReportHandler
   const started = options.clock();
   const { searchParams } = new URL(request.url ?? '/', 'http://localhost');
   const record = (
-    result: Pick<ApiResponse, 'status' | 'headers' | 'cacheHit'>,
+    result: Pick<ApiResponse, 'status' | 'headers' | 'cacheHit' | 'body'>,
   ): AnalysisRecord => ({
     report,
     query: searchParams,
@@ -86,6 +86,8 @@ async function analysis(call: ApiCall, report: ReportKind, handle: ReportHandler
     at: options.api.now(),
     status: result.status,
     allowanceHeaders: result.headers?.['x-quota-limit'] !== undefined,
+    // `statistics-pending` is the only error code the API sends.
+    pending: 'code' in result.body,
     durationMs: options.clock() - started,
     cacheHit: result.cacheHit ?? null,
   });

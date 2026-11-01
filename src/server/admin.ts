@@ -34,6 +34,8 @@ export interface AnalysisRecord {
   readonly status: number;
   /** Whether the answer carried the daily allowance headers. */
   readonly allowanceHeaders: boolean;
+  /** GitHub was still computing the statistics of the repository. */
+  readonly pending: boolean;
   readonly durationMs: number;
   readonly cacheHit: boolean | null;
 }
@@ -72,7 +74,7 @@ export async function recordAnalysis(
         visitor: record.visitor.id,
         owner: record.visitor.owner,
         status: record.status,
-        outcome: outcomeOf(record.status, record.allowanceHeaders),
+        outcome: outcomeOf(record.status, record.allowanceHeaders, record.pending),
         durationMs: record.durationMs,
         cacheHit: record.cacheHit,
         device: deviceOf(record.headers.userAgent),

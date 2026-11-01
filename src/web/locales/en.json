@@ -516,6 +516,7 @@
         "rate-limited": "Too many requests",
         "github": "GitHub error",
         "unavailable": "GitHub quota protected",
+        "pending": "GitHub still computing",
         "timeout": "Too slow (over 30 s)",
         "error": "Server error"
       },
@@ -526,7 +527,8 @@
         "allowance": "Real demand: consider a higher daily limit.",
         "rate-limited": "Bursts from one address: a script or a quick visitor.",
         "github": "GitHub answered an error: check its status page.",
-        "unavailable": "The server kept the last GitHub points in reserve, or GitHub was still computing activity statistics.",
+        "unavailable": "The server kept the last GitHub points in reserve.",
+        "pending": "A first activity load of a rarely viewed repository: a retry succeeds.",
         "timeout": "Very large repositories: a longer cache or a lighter query would help.",
         "error": "A bug: the server logs give the cause."
       }

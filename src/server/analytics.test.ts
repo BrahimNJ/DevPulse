@@ -39,6 +39,7 @@ describe('analytics', () => {
     assert.equal(outcomeOf(429, false), 'rate-limited');
     assert.equal(outcomeOf(504, false), 'timeout');
     assert.equal(outcomeOf(500, false), 'error');
+    assert.equal(outcomeOf(503, false, true), 'pending');
   });
 
   it('keeps only a coarse device class and the first language', () => {
