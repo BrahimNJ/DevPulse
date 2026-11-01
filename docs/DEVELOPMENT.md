@@ -147,9 +147,15 @@ A change is complete when all of the following hold.
 
 ### At merge
 
-- At least one approving review.
+The `main` ruleset enforces these rules; nobody can bypass them.
+
+- A pull request; no direct push, force push or deletion of `main`.
 - All review comments resolved.
-- `ci-success` and `pr-title` are green.
+- `ci-success` and `pr-title` are green. The branch does not need to be up to date
+  with `main`.
+- Squash merge only; the merged branch is deleted.
+- No approval is required while the project has a single maintainer, because GitHub
+  does not let an author approve their own pull request.
 
 ## CI/CD
 
