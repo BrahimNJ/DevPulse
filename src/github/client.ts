@@ -117,11 +117,10 @@ export class GitHubClient {
       }
       throw error;
     }
-    if (response.status === 202) {
-      return { state: 'pending' };
-    }
-    if (response.status === 204) {
-      return { state: 'empty' };
+    if (response.status === 202 || response.status === 204) {
+      // An unread body can hold the connection; these answers carry nothing useful.
+      await response.body?.cancel();
+      return { state: response.status === 202 ? 'pending' : 'empty' };
     }
     return { state: 'ready', value: await readJson<T>(response) };
   }
