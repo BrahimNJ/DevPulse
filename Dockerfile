@@ -15,7 +15,7 @@ RUN npm run build
 # Runtime stage: distroless Node.js has no shell and no package manager, which leaves
 # little to exploit, and runs as a non-root user. The server imports only the Node.js
 # standard library, so no node_modules is copied; Node.js runs the TypeScript sources.
-FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:78f07ef1b5ea71ad7c055df15d0dd8997f2d288f9158623c4d4ae3d765b7d50d
+FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:b8cec4b2f2126ff7bd034ec9ac207ffb3272667dfdc48376e3b035d3270549ba
 WORKDIR /app
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
