@@ -87,16 +87,16 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
   {
     id: 'activity',
     features: [
-      { id: 'commit-heatmap', icon: 'calendar', status: 'planned' },
-      { id: 'activity-trends', icon: 'activity', status: 'planned' },
+      { id: 'commit-heatmap', icon: 'calendar', status: 'available' },
+      { id: 'activity-trends', icon: 'activity', status: 'available' },
     ],
   },
   {
     id: 'contributors',
     features: [
       { id: 'top-contributors', icon: 'users', status: 'planned' },
-      { id: 'bus-factor', icon: 'shield', status: 'planned' },
-      { id: 'new-returning', icon: 'sparkle', status: 'planned' },
+      { id: 'bus-factor', icon: 'shield', status: 'available' },
+      { id: 'new-returning', icon: 'sparkle', status: 'available' },
     ],
   },
   {

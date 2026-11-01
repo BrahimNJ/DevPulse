@@ -52,7 +52,7 @@
     "titleBefore": "Take the",
     "titleAccent": "pulse",
     "titleAfter": "of any GitHub repository",
-    "lede": "DevPulse turns a public repository into a clear health report: the state of its branches, and how fast and how safely its pull requests reach main, measured against the DORA benchmarks.",
+    "lede": "DevPulse turns a public repository into a clear health report: the state of its branches, how fast and how safely its pull requests reach main, measured against the DORA benchmarks, and who keeps it moving.",
     "placeholder": "owner/repository",
     "repositoryLabel": "Repository",
     "analyse": "Analyse",
@@ -269,7 +269,7 @@
       },
       "activity-trends": {
         "title": "Activity trends",
-        "description": "Weekly commits and active branches, with the change over time."
+        "description": "Weekly commits with an 8-week median, release markers and a verdict."
       },
       "top-contributors": {
         "title": "Top contributors",
@@ -363,7 +363,8 @@
       "503": "DevPulse has used its GitHub budget for now. Try again a little later.",
       "504": "This repository is very large and GitHub is taking time. Try again in a minute: the result will be ready.",
       "tooManyRequests": "Too many requests in a short time. Wait a minute, then try again.",
-      "generic": "Something went wrong. Try again in a moment."
+      "generic": "Something went wrong. Try again in a moment.",
+      "statisticsPending": "GitHub is still computing the statistics of this repository. Try again in a few seconds."
     }
   },
   "summary": {
@@ -493,6 +494,8 @@
       "cacheDetail": "answers without a GitHub call",
       "delivery": "Delivery reports",
       "deliveryDetail": "delivery tabs loaded with a report",
+      "activity": "Activity reports",
+      "activityDetail": "activity tabs loaded with a report",
       "github": "GitHub points left",
       "githubDetail": "of 5,000 an hour, until {time}",
       "githubUnknown": "no GitHub call since the last start"
@@ -523,7 +526,7 @@
         "allowance": "Real demand: consider a higher daily limit.",
         "rate-limited": "Bursts from one address: a script or a quick visitor.",
         "github": "GitHub answered an error: check its status page.",
-        "unavailable": "The server kept the last GitHub points in reserve.",
+        "unavailable": "The server kept the last GitHub points in reserve, or GitHub was still computing activity statistics.",
         "timeout": "Very large repositories: a longer cache or a lighter query would help.",
         "error": "A bug: the server logs give the cause."
       }
@@ -553,7 +556,8 @@
     },
     "reports": {
       "branches": "Branches",
-      "delivery": "Delivery"
+      "delivery": "Delivery",
+      "activity": "Activity"
     }
   },
   "docs": {
@@ -569,7 +573,7 @@
         "blocks": [
           {
             "type": "p",
-            "text": "DevPulse analyses public GitHub repositories. Its first analysis, the branch report, is available as a web application and as a command-line tool. The project is also a showcase of how a small product is designed, secured, tested, automated and run in production by one engineer working with an AI coding agent."
+            "text": "DevPulse analyses public GitHub repositories. The branch report is available as a web application and as a command-line tool; delivery health and activity are available in the web application and through the API. The project is also a showcase of how a small product is designed, secured, tested, automated and run in production by one engineer working with an AI coding agent."
           },
           {
             "type": "p",
@@ -838,6 +842,50 @@
         ]
       },
       {
+        "id": "activity-methodology",
+        "title": "Activity methodology",
+        "blocks": [
+          {
+            "type": "p",
+            "text": "The Activity tab reads three statistics GitHub computes for every repository: weekly commits over the last 52 weeks, the most active contributors with their weekly commits, and commits by day and hour. They cost three GitHub API points and are cached for 10 minutes. GitHub computes them on demand: while it does, DevPulse asks again twice within about 8 seconds, then asks the visitor to try again, and keeps nothing in cache."
+          },
+          {
+            "type": "table",
+            "head": ["Indicator", "How it is measured"],
+            "rows": [
+              [
+                "Verdict",
+                "Commits per week in the second half of the window against the first: 30 % more is growing, 30 % less is slowing, under one a week is quiet, none is dormant. The week in progress is left out."
+              ],
+              [
+                "Weekly commits",
+                "Commits per week with the median of the eight weeks ending with each one; release markers come from the Delivery tab."
+              ],
+              [
+                "Concentration",
+                "The fewest people, bots excluded, whose commits reach half of all commits in the window, and over the whole history."
+              ],
+              [
+                "Contributor flow",
+                "Four blocks of 13 weeks: people with a first commit ever, people also active in the block before, people back after a pause, and people active before but not since."
+              ],
+              [
+                "Rhythm",
+                "Commits by day and hour in the time zone of each commit, with the share at weekends and on weekdays from 9:00 to 18:00."
+              ],
+              [
+                "Maintenance",
+                "The week of the latest commit by a person, the share of commits by bots, and the share of commits attributed to listed contributors."
+              ]
+            ]
+          },
+          {
+            "type": "p",
+            "text": "GitHub counts commits on the default branch without merge commits, and lists only the most active contributors over the whole history: 100, or 500 on some very large repositories. A bot is an account of type Bot or a name ending in [bot]. No contributor is ranked: names appear only in the concentration bar, because commit counts do not measure the value of anyone's work."
+          }
+        ]
+      },
+      {
         "id": "tokens",
         "title": "Token optimisation",
         "blocks": [
@@ -877,7 +925,7 @@
         "blocks": [
           {
             "type": "p",
-            "text": "The records explain the context, the decision, the alternatives and the consequences of every structural choice: language and tooling, the AI workflow, releases, the command line, the dashboard, the public deployment, and the visitor allowance."
+            "text": "The records explain the context, the decision, the alternatives and the consequences of every structural choice: language and tooling, the AI workflow, releases, the command line, the dashboard, the public deployment, the visitor allowance, delivery health, usage statistics, the visual identity and activity."
           },
           {
             "type": "button",
@@ -914,6 +962,10 @@
         "definition": "Merged changes later reverted: a proxy of change failure."
       },
       {
+        "term": "Concentration",
+        "definition": "The fewest people who make half of the commits."
+      },
+      {
         "term": "Stale branch",
         "definition": "No commit for longer than the chosen threshold."
       }
@@ -925,6 +977,7 @@
     "tabs": {
       "branches": "Branches",
       "delivery": "Delivery",
+      "activity": "Activity",
       "new": "New"
     }
   },
@@ -999,6 +1052,152 @@
       "reverts": "Fewer than {rate} of merged changes are reverted."
     },
     "methodology": "Computed from public GitHub data; these are proxies of the DORA metrics, which are normally measured on internal deployments.",
+    "methodologyLink": "Read the methodology"
+  },
+  "activity": {
+    "loading": "Reading a year of commits…",
+    "meta": "Last 52 weeks · {commits} commits · {listed} contributors listed by GitHub",
+    "windowLabel": "Window",
+    "windows": {
+      "3": "3 months",
+      "6": "6 months",
+      "12": "12 months"
+    },
+    "windowHint": "Every chart follows this window, except the rhythm.",
+    "truncated": "GitHub lists only the {count} most active contributors over the whole history: people with fewer commits are not counted in the people figures.",
+    "pending": "GitHub is still computing the statistics of this repository. It usually takes a few seconds.",
+    "pendingRetry": "Try again",
+    "unknown": "n/a",
+    "howTo": "How to read",
+    "blindSpot": "What it cannot see",
+    "verdicts": {
+      "growing": "Growing",
+      "steady": "Steady",
+      "slowing": "Slowing",
+      "quiet": "Quiet",
+      "dormant": "Dormant"
+    },
+    "verdict": {
+      "title": "Verdict",
+      "growing": "{repository} commits more: {change} in the second half of the last {months} months than in the first.",
+      "steady": "{repository} keeps a steady pace: about {perWeek} commits a week over the last {months} months.",
+      "slowing": "{repository} commits less: {change} in the second half of the last {months} months than in the first.",
+      "quiet": "{repository} is quiet: fewer than one commit a week over the last {months} months.",
+      "dormant": "{repository} has no commit on its default branch over the last {months} months.",
+      "commits": "Commits",
+      "perWeek": "Per week",
+      "people": "People active",
+      "bots": "By bots",
+      "howTo": "The second half of the window is compared with the first. A change of 30 % or more is growth or slowing; under one commit a week is quiet.",
+      "blindSpot": "Only commits on the default branch, without merge commits: work in other branches, forks or pull requests not yet merged is not seen."
+    },
+    "trend": {
+      "title": "Weekly commits",
+      "subtitle": "Select a week to see its detail",
+      "median": "8-week median",
+      "release": "Release",
+      "partial": "In progress",
+      "bar": "Week of {date}: {commits} commits",
+      "howTo": "Each bar is a week, the line its 8-week median, so a single busy week does not hide the trend. Ticks above the bars are releases.",
+      "blindSpot": "Commit counts say nothing about the size of a change: one large commit and ten small ones weigh differently here.",
+      "max": "{count} a week at most"
+    },
+    "week": {
+      "title": "Week of {date}",
+      "commits": {
+        "one": "{count} commit",
+        "other": "{count} commits"
+      },
+      "vsMedian": "{change} against the 8-week median",
+      "noMedian": "No 8-week median yet",
+      "days": ["S", "M", "T", "W", "T", "F", "S"],
+      "people": "People active",
+      "newcomers": "First commit ever",
+      "releases": "Releases",
+      "none": "none",
+      "partial": "This week is still in progress."
+    },
+    "heatmap": {
+      "title": "Commit calendar",
+      "subtitle": "Commits per day over 52 weeks",
+      "less": "Less",
+      "more": "More",
+      "cell": "{date}: {commits}",
+      "howTo": "One column per week, Sunday at the top. Darker means more commits; weeks outside the window are faded, the selected week is outlined.",
+      "blindSpot": "Days follow GitHub's weeks in UTC, so a commit late in the evening elsewhere may fall on the next day."
+    },
+    "concentration": {
+      "title": "Concentration",
+      "headline": {
+        "one": "{count} person makes half of the commits",
+        "other": "{count} people make half of the commits"
+      },
+      "none": "No commit by a listed person in this window.",
+      "others": "Others",
+      "window": "Last {months} months",
+      "allTime": "All time",
+      "contributors": {
+        "one": "{count} person active",
+        "other": "{count} people active"
+      },
+      "howTo": "The fewer people make half of the commits, the more the project depends on them: this is what is often called the bus factor. Bots are left out.",
+      "blindSpot": "Commits are not the only work: reviews, issues, releases and design do not appear here."
+    },
+    "flow": {
+      "title": "Contributor flow",
+      "subtitle": "People per 13-week block",
+      "newcomers": "New",
+      "retained": "Retained",
+      "returning": "Returning",
+      "lapsed": "Lapsed",
+      "from": "From {date}",
+      "none": "Not enough history for a flow yet.",
+      "howTo": "Above the line, who committed in the block: new people, people already active in the block before, and people back after a pause. Below, people active before who did not commit in this block.",
+      "blindSpot": "A lapsed person may still review or answer issues; only commits count."
+    },
+    "rhythm": {
+      "title": "Rhythm",
+      "subtitle": "Commits by day and hour",
+      "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      "peak": "Busiest: {day} at {hour}",
+      "weekend": "Weekends",
+      "office": "Weekdays, 9:00 to 18:00",
+      "cell": "{day} {hour}: {commits}",
+      "none": "No commit to place.",
+      "howTo": "Each dot is an hour of the week; the larger, the more commits. Many commits at weekends and in the evening suggest volunteers; office hours suggest paid maintainers.",
+      "blindSpot": "Hours are in the time zone of each commit, and GitHub computes this chart on its own period: it does not follow the window.",
+      "hour": "{hour}:00"
+    },
+    "maintenance": {
+      "title": "Maintenance signals",
+      "lastHuman": "Last commit by a person",
+      "lastAny": "Last commit of any kind",
+      "bots": "Commits by bots",
+      "coverage": "Commits of listed contributors",
+      "listed": "Contributors listed",
+      "weekOf": "week of {date}",
+      "none": "none in the data",
+      "howTo": "A recent commit by a person, not only by bots, shows the project is still looked after. A low share for listed contributors means many occasional ones.",
+      "blindSpot": "Releases, reviews and issue answers are also maintenance; the Delivery tab shows some of them."
+    },
+    "insights": {
+      "concentrated": "Half of the commits over the last {months} months come from {people}: a risk if they step away.",
+      "people": {
+        "one": "{count} person",
+        "other": "{count} people"
+      },
+      "title": "Insights",
+      "spread": "Half of the commits over the last {months} months are spread over {count} people.",
+      "newcomers": {
+        "one": "{count} person made their first commit in the last 13 weeks.",
+        "other": "{count} people made their first commit in the last 13 weeks."
+      },
+      "noNewcomers": "Nobody made a first commit in the last 13 weeks.",
+      "bots": "{share} of attributed commits come from bots: automation does much of the work.",
+      "stale": "No commit by a person since the week of {date}: check whether the project is still maintained.",
+      "volunteers": "{share} of commits land at weekends: much of the work happens outside office hours."
+    },
+    "methodology": "Computed from GitHub's repository statistics: default branch only, merge commits excluded, only the most active contributors.",
     "methodologyLink": "Read the methodology"
   }
 }

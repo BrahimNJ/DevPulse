@@ -198,6 +198,11 @@ function Indicators({ stats, t, locale }: ViewProps): JSX.Element {
       detail: copy.deliveryDetail,
     },
     {
+      label: copy.activity,
+      value: formatNumber(totals.activityOpened, locale),
+      detail: copy.activityDetail,
+    },
+    {
       label: copy.github,
       value: github === null ? none : formatNumber(github.remaining, locale),
       detail:
