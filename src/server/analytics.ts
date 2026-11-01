@@ -3,7 +3,7 @@
  * pseudonymous event: the salted visitor hash of ADR 0008, never the address, kept 30 days.
  */
 
-export type ReportKind = 'branches' | 'delivery';
+export type ReportKind = 'branches' | 'delivery' | 'activity';
 
 /** Why an analysis ended as it did, from the answer the visitor received. */
 export type Outcome =
@@ -116,6 +116,7 @@ export interface AdminStats {
     readonly succeeded: number;
     readonly failed: number;
     readonly deliveryOpened: number;
+    readonly activityOpened: number;
     readonly repositories: number;
     readonly cacheHitRate: number | null;
     readonly medianMs: number | null;
@@ -154,7 +155,7 @@ const LATEST_FAILURES = 15;
 /**
  * Figures over the last `days` days, the maintainer's own analyses left out. An
  * analysis is a branch report, which the interface always requests first; delivery
- * reports are counted apart.
+ * and activity reports are counted apart.
  */
 export function summarise(
   events: readonly AnalysisEvent[],
@@ -182,9 +183,8 @@ export function summarise(
       analyses: analyses.length,
       succeeded: analyses.length - failed.length,
       failed: failed.length,
-      deliveryOpened: visitorEvents.filter(
-        (event) => event.report === 'delivery' && event.outcome === 'ok',
-      ).length,
+      deliveryOpened: opened(visitorEvents, 'delivery'),
+      activityOpened: opened(visitorEvents, 'activity'),
       repositories: distinct(
         analyses.flatMap((event) => (event.repository === null ? [] : [event.repository])),
       ),
@@ -218,6 +218,11 @@ export function summarise(
     languages: tally(analyses, (event) => event.language, { fr: 0, en: 0, other: 0 }),
     github: options.github,
   };
+}
+
+/** Reports of a secondary tab answered with data. */
+function opened(events: readonly AnalysisEvent[], report: ReportKind): number {
+  return events.filter((event) => event.report === report && event.outcome === 'ok').length;
 }
 
 function distinct(values: readonly string[]): number {

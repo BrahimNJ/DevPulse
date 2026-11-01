@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { performance } from 'node:perf_hooks';
 
+import type { ActivityData } from '../activity/report.ts';
 import type { RepositoryBranches } from '../branches/report.ts';
 import type { DeliveryData } from '../delivery/report.ts';
 import { GitHubClient } from '../github/client.ts';
@@ -15,7 +16,7 @@ import { metadataAccessToken } from './google-auth.ts';
 import { OwnerAccess } from './owner.ts';
 import { MemoryQuotaStore, VisitorQuota } from './quota.ts';
 import { RateLimiter } from './rate-limit.ts';
-import { createBranchLoader, createDeliveryLoader } from './source.ts';
+import { createActivityLoader, createBranchLoader, createDeliveryLoader } from './source.ts';
 
 // Quota protection (ADR 0007): the token allows 5,000 points per hour.
 const CACHE_TTL_MS = 10 * 60_000;
@@ -74,10 +75,18 @@ export async function serve(options: ServeOptions): Promise<void> {
       now: Date.now,
     }),
   });
+  const loadActivity = createActivityLoader({
+    ...protection,
+    cache: new TtlCache<ActivityData>({
+      ttlMs: CACHE_TTL_MS,
+      maxEntries: CACHE_MAX_ENTRIES,
+      now: Date.now,
+    }),
+  });
   const server = createServer(
     createApp({
       config,
-      api: { loadBranches, loadDelivery, now, ...visitorQuota(config.visitors, now) },
+      api: { loadBranches, loadDelivery, loadActivity, now, ...visitorQuota(config.visitors, now) },
       limiter: new RateLimiter({
         limitPerMinute: config.rateLimitPerMinute,
         maxClients: RATE_LIMIT_MAX_CLIENTS,

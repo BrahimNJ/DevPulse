@@ -24,6 +24,7 @@ ENV NODE_ENV=production \
 # Only the server layers are copied: the server must never import src/web.
 # src/server/image.test.ts fails when the server imports a directory not listed here.
 COPY package.json ./
+COPY src/activity ./src/activity
 COPY src/branches ./src/branches
 COPY src/delivery ./src/delivery
 COPY src/github ./src/github

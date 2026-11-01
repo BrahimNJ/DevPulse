@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { handleStatsRequest, recordAnalysis, type AnalysisRecord } from './admin.ts';
 import type { ReportKind } from './analytics.ts';
 import {
+  handleActivityRequest,
   handleBranchesRequest,
   handleDeliveryRequest,
   handleQuotaRequest,
@@ -34,6 +35,7 @@ const NO_STORE = { 'cache-control': 'no-store' };
 export const API_ROUTES: ReadonlyMap<string, ApiRoute> = new Map([
   ['/api/branches', branches],
   ['/api/delivery', delivery],
+  ['/api/activity', activity],
   ['/api/quota', quota],
   ['/api/owner', owner],
   ['/api/admin/stats', stats],
@@ -51,6 +53,10 @@ async function branches(call: ApiCall): Promise<void> {
 
 async function delivery(call: ApiCall): Promise<void> {
   await analysis(call, 'delivery', handleDeliveryRequest);
+}
+
+async function activity(call: ApiCall): Promise<void> {
+  await analysis(call, 'activity', handleActivityRequest);
 }
 
 /**

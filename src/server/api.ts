@@ -1,3 +1,4 @@
+import { buildActivityReport, type ActivityReport } from '../activity/report.ts';
 import {
   DEFAULT_STALE_DAYS,
   parseRepository,
@@ -6,14 +7,24 @@ import {
 } from '../branches/input.ts';
 import { buildBranchReport, type BranchReport } from '../branches/report.ts';
 import { buildDeliveryReport, type DeliveryReport } from '../delivery/report.ts';
+import { StatisticsPendingError } from '../github/activity.ts';
 import { GitHubError } from '../github/client.ts';
 import type { ApiErrorResponse, QuotaResponse } from './contract.ts';
 import type { QuotaStatus, VisitorQuota } from './quota.ts';
-import { ServiceError, type BranchLoader, type DeliveryLoader } from './source.ts';
+import {
+  ServiceError,
+  type ActivityLoader,
+  type BranchLoader,
+  type DeliveryLoader,
+} from './source.ts';
+
+/** How soon to ask again while GitHub computes the statistics of a repository. */
+const PENDING_RETRY_SECONDS = 10;
 
 export interface ApiDependencies {
   readonly loadBranches: BranchLoader;
   readonly loadDelivery: DeliveryLoader;
+  readonly loadActivity: ActivityLoader;
   readonly now: () => Date;
   /** The daily allowance; absent when it is disabled, as in local development. */
   readonly quota?: VisitorQuota;
@@ -29,7 +40,7 @@ export interface Visitor {
 
 export interface ApiResponse {
   readonly status: number;
-  readonly body: BranchReport | DeliveryReport | ApiErrorResponse;
+  readonly body: BranchReport | DeliveryReport | ActivityReport | ApiErrorResponse;
   readonly headers?: Readonly<Record<string, string>>;
   /** Whether the repository data came from the cache; absent when none was loaded. */
   readonly cacheHit?: boolean;
@@ -69,6 +80,31 @@ export async function handleDeliveryRequest(
     return {
       status: 200,
       body: buildDeliveryReport(delivery, { now: dependencies.now() }),
+      headers,
+      cacheHit,
+    };
+  });
+}
+
+/**
+ * Handles `GET /api/activity?repo=<owner>/<repo>`, within the same allowance as the
+ * other reports. While GitHub computes the statistics it answers 503 with a short
+ * `retry-after` and the `statistics-pending` code, and the visitor is not charged.
+ */
+export async function handleActivityRequest(
+  query: URLSearchParams,
+  dependencies: ApiDependencies,
+  visitor: Visitor,
+): Promise<ApiResponse> {
+  const repository = parseRepository(query.get('repo') ?? '');
+  if (repository === null) {
+    return failure(400, 'Expected a repository as <owner>/<repo>.');
+  }
+  return withAllowance(repository, dependencies, visitor, async (headers) => {
+    const { activity, cacheHit } = await dependencies.loadActivity(repository);
+    return {
+      status: 200,
+      body: buildActivityReport(activity, { now: dependencies.now() }),
       headers,
       cacheHit,
     };
@@ -199,6 +235,13 @@ function loadFailure(error: unknown): ApiResponse {
           ...failure(error.status, error.message),
           headers: { 'retry-after': String(retryAfterSeconds) },
         };
+  }
+  if (error instanceof StatisticsPendingError) {
+    return {
+      status: 503,
+      body: { error: error.message, code: 'statistics-pending' },
+      headers: { 'retry-after': String(PENDING_RETRY_SECONDS) },
+    };
   }
   if (error instanceof GitHubError) {
     // A missing repository is the caller's problem; anything else is GitHub's.

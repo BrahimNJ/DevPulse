@@ -58,6 +58,7 @@ describe('analytics', () => {
       event({ durationMs: 900, at: new Date('2026-10-22T09:00:00Z') }),
       event({ durationMs: 100, cacheHit: true }),
       event({ report: 'delivery', durationMs: 5000 }),
+      event({ report: 'activity', durationMs: 4000 }),
       event({ visitor: 'v3', outcome: 'allowance', status: 429, cacheHit: null }),
       event({ visitor: 'me', owner: true, repository: 'mine/own' }),
     ];
@@ -69,8 +70,9 @@ describe('analytics', () => {
       succeeded: 2,
       failed: 2,
       deliveryOpened: 1,
+      activityOpened: 1,
       repositories: 2,
-      cacheHitRate: 0.25,
+      cacheHitRate: 0.2,
       medianMs: 100,
       p90Ms: 900,
       allowanceReached: 1,
