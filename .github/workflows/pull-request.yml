@@ -37,7 +37,8 @@ jobs:
             ci
             chore
             revert
-          subjectPattern: ^(?![A-Z]).+[^.]$
+          # Dependabot capitalises "Bump" and offers no option to change it.
+          subjectPattern: ^(?:Bump |(?![A-Z])).+[^.]$
           subjectPatternError: The description must start in lowercase and must not end with a period.
 
   dependency-review:
