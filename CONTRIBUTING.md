@@ -140,7 +140,9 @@ Use [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md).
 
 ### Review expectations
 
-- At least one approving review is required before merge.
+- A review is expected before merge. The ruleset does not require an approval while
+  the project has a single maintainer, because GitHub does not let an author approve
+  their own pull request.
 - Reviewers approve the change, not the person. Comment on correctness, clarity, and
   scope; assume good intent.
 - The pull request author responds to all review comments. Unresolved comments block merge.
@@ -150,8 +152,9 @@ Use [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md).
 
 ### Merge policy
 
-- `main` is merged into only with a passing CI run and an approving review.
-- Prefer squash merge for feature branches so `main` history stays readable.
+- `main` is merged into only through a pull request with `ci-success` and `pr-title`
+  green and every conversation resolved.
+- Squash merge is the only method allowed, so `main` history stays readable.
 - The commit message of a squash merge follows Conventional Commits.
 
 ## 5. Testing Expectations
