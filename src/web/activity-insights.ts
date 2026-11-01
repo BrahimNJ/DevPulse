@@ -82,7 +82,8 @@ const staleRule: Rule = (report, _window, t, locale) => {
   if (last === null) {
     return null;
   }
-  const days = (Date.parse(report.generatedAt) - Date.parse(last)) / DAY_MS;
+  // The latest commit may fall on any day of its week: count from the week's end.
+  const days = (Date.parse(report.generatedAt) - Date.parse(last) - WEEK_MS) / DAY_MS;
   return days > STALE_DAYS
     ? {
         tone: 'warn',

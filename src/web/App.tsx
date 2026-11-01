@@ -152,11 +152,17 @@ export function App(): JSX.Element {
         (error: unknown) => {
           const pending = error instanceof ApiError && error.code === 'statistics-pending';
           if (retry && pending && !controller.signal.aborted) {
-            window.setTimeout(() => {
-              if (!controller.signal.aborted) {
-                loadActivity(false);
-              }
+            // A new analysis or leaving the page aborts the controller, and the retry with it.
+            const timer = window.setTimeout(() => {
+              loadActivity(false);
             }, PENDING_RETRY_MS);
+            controller.signal.addEventListener(
+              'abort',
+              () => {
+                window.clearTimeout(timer);
+              },
+              { once: true },
+            );
             return;
           }
           fail(setActivity)(error);
