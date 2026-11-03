@@ -979,6 +979,9 @@
     "example": "Example",
     "exampleNote": "Illustrative data. Analyse a repository to see real figures.",
     "openOnGitHub": "Open on GitHub",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied",
+    "copyFailed": "Copy it from the address bar",
     "tabsLabel": "Report",
     "tabs": {
       "branches": "Branches",

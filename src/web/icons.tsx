@@ -15,6 +15,7 @@ import {
   GitMerge,
   Hourglass,
   KeyRound,
+  Link,
   Lock,
   MessageSquare,
   Rocket,
@@ -50,6 +51,7 @@ export const SearchIcon = icon(Search);
 export const AlertIcon = icon(TriangleAlert);
 export const ArrowIcon = icon(ArrowRight);
 export const CheckIcon = icon(Check);
+export const LinkIcon = icon(Link);
 export const BookIcon = icon(BookOpen);
 export const KeyIcon = icon(KeyRound);
 export const CloudIcon = icon(Cloud);

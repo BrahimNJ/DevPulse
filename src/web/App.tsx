@@ -32,7 +32,15 @@ import {
 import { formatDate } from './format.ts';
 import { formatNumber, interpolate, type Messages } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
-import { AlertIcon, ArrowIcon, ClockIcon, GitHubIcon, SearchIcon } from './icons.tsx';
+import {
+  AlertIcon,
+  ArrowIcon,
+  CheckIcon,
+  ClockIcon,
+  GitHubIcon,
+  LinkIcon,
+  SearchIcon,
+} from './icons.tsx';
 import { Insights } from './Insights.tsx';
 import { Layout } from './Layout.tsx';
 import { Loading } from './Loading.tsx';
@@ -537,11 +545,62 @@ function WorkspaceHeader({
       </div>
       {/* Only for a report: then the name is the one the server read on GitHub. */}
       {!isDemo && generatedAt !== null && (
-        <a className="button button-ghost button-small" href={`https://github.com/${repository}`}>
-          <GitHubIcon /> {t.workspace.openOnGitHub}
-        </a>
+        <div className="workspace-actions">
+          <CopyLinkButton />
+          <a className="button button-ghost button-small" href={`https://github.com/${repository}`}>
+            <GitHubIcon /> {t.workspace.openOnGitHub}
+          </a>
+        </div>
       )}
     </header>
+  );
+}
+
+/** How long the button says the link was copied before it offers to copy again. */
+const COPIED_MS = 2000;
+
+/** Copies the page address, which already names the repository, the threshold and the tab. */
+function CopyLinkButton(): JSX.Element {
+  const { t } = useI18n();
+  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle');
+
+  useEffect(() => {
+    if (state === 'idle') {
+      return undefined;
+    }
+    const timer = window.setTimeout(() => {
+      setState('idle');
+    }, COPIED_MS);
+    return (): void => {
+      window.clearTimeout(timer);
+    };
+  }, [state]);
+
+  function copy(): void {
+    // The clipboard is missing outside a secure context, and a browser may refuse it:
+    // starting from a promise turns both into a failure.
+    Promise.resolve()
+      .then(() => navigator.clipboard.writeText(window.location.href))
+      .then(
+        () => {
+          setState('copied');
+        },
+        () => {
+          setState('failed');
+        },
+      );
+  }
+
+  const label = {
+    idle: t.workspace.copyLink,
+    copied: t.workspace.linkCopied,
+    failed: t.workspace.copyFailed,
+  }[state];
+  return (
+    <button type="button" className="button button-ghost button-small" onClick={copy}>
+      {state === 'copied' ? <CheckIcon /> : <LinkIcon />}
+      <span aria-live="polite">{label}</span>
+    </button>
   );
 }
 

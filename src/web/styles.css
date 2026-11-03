@@ -1999,6 +1999,12 @@ code,
   gap: 12px;
 }
 
+.workspace-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .repository-heading {
   display: flex;
   flex-wrap: wrap;
