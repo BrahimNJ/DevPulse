@@ -23,17 +23,20 @@ export const REPOSITORY_URL = 'https://github.com/BrahimNJ/DevPulse';
 export function Layout({
   page,
   quota,
+  title,
   children,
 }: {
   readonly page: Page;
   readonly quota: QuotaResponse | null;
+  /** Replaces the page title, for instance with the repository being read. */
+  readonly title?: string | undefined;
   readonly children: ReactNode;
 }): JSX.Element {
   const { t } = useI18n();
 
   useEffect(() => {
-    document.title = t.meta.titles[page];
-  }, [t, page]);
+    document.title = title ?? t.meta.titles[page];
+  }, [t, page, title]);
 
   // Pages render in the browser, after it has tried to scroll to a #section link.
   useEffect(() => {

@@ -228,7 +228,12 @@ export function App(): JSX.Element {
 
   const isDemo = branches.kind === 'idle';
   return (
-    <Layout page="app" quota={quota}>
+    <Layout
+      page="app"
+      quota={quota}
+      // A tab among many then says which repository it holds.
+      title={branches.kind === 'ready' ? `${branches.report.repository} · DevPulse` : undefined}
+    >
       <div className="container workspace">
         <Sidebar
           repository={repository}
