@@ -526,15 +526,16 @@ function WorkspaceHeader({
   );
 }
 
-/** A word from the author when the report is about DevPulse itself. */
+/** A word from the author when the report is about DevPulse or another of their repositories. */
 function PersonalNote({ repository }: { readonly repository: string }): JSX.Element | null {
   const { t } = useI18n();
-  if (relationOf(repository) !== 'self') {
+  const relation = relationOf(repository);
+  if (relation === null) {
     return null;
   }
   return (
     <aside className="personal-note">
-      <p>{t.workspace.selfNote}</p>
+      <p>{relation === 'self' ? t.workspace.selfNote : t.workspace.authorNote}</p>
       <p className="personal-note-signature">{t.workspace.noteSignature}</p>
     </aside>
   );
