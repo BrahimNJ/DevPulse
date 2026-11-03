@@ -816,6 +816,9 @@ code,
 
 .input-with-icon input {
   flex: 1;
+  /* A percentage width keeps the field's natural size out of its row's minimum width,
+     so the key hint never pushes the sidebar wider than its column. */
+  width: 100%;
   min-width: 0;
   border: 0;
   background: none;
