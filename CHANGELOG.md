@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/BrahimNJ/DevPulse/compare/v0.12.0...v0.13.0) (2026-11-03)
+
+
+### Features
+
+* **web:** add personal touches and polish the dashboard ([#81](https://github.com/BrahimNJ/DevPulse/issues/81)) ([e98b9a5](https://github.com/BrahimNJ/DevPulse/commit/e98b9a57243c5caa4f39e8bd0481fe78e9afb672))
+
 ## [0.12.0](https://github.com/BrahimNJ/DevPulse/compare/v0.11.0...v0.12.0) (2026-11-03)
 
 
