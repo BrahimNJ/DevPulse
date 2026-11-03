@@ -39,7 +39,7 @@ import { Loading } from './Loading.tsx';
 import { EASE_OUT } from './motion.tsx';
 import { describeQuota, timeUntil, useQuota } from './quota.ts';
 import { readRecent, rememberRecent } from './recent.ts';
-import { relationOf } from './self.ts';
+import { relationOf, SELF_REPOSITORY } from './self.ts';
 import { Summary } from './Summary.tsx';
 
 type Load<T> =
@@ -51,7 +51,13 @@ type Load<T> =
 type Tab = 'branches' | 'delivery' | 'activity';
 
 const STALE_OPTIONS = [30, 90, 180, 365] as const;
-const EXAMPLES = ['nodejs/node', 'facebook/react', 'kubernetes/kubernetes'] as const;
+// The last one lets a visitor see what DevPulse says about itself.
+const EXAMPLES = [
+  'nodejs/node',
+  'facebook/react',
+  'kubernetes/kubernetes',
+  SELF_REPOSITORY,
+] as const;
 const TABS: readonly Tab[] = ['branches', 'delivery', 'activity'];
 /** One automatic retry while GitHub computes the activity statistics. */
 const PENDING_RETRY_MS = 10_000;
