@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/BrahimNJ/DevPulse/compare/v0.11.0...v0.12.0) (2026-11-03)
+
+
+### Features
+
+* **web:** add personal touches for DevPulse and its author's repositories ([#79](https://github.com/BrahimNJ/DevPulse/issues/79)) ([f8c4199](https://github.com/BrahimNJ/DevPulse/commit/f8c4199652e1f310da44d4bd7ac9305a45c23bba))
+
 ## [0.11.0](https://github.com/BrahimNJ/DevPulse/compare/v0.10.0...v0.11.0) (2026-11-01)
 
 
