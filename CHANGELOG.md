@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/BrahimNJ/DevPulse/compare/v0.13.0...v0.13.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **web:** keep the search field inside the dashboard sidebar ([#83](https://github.com/BrahimNJ/DevPulse/issues/83)) ([10c6921](https://github.com/BrahimNJ/DevPulse/commit/10c69215fed9cf2177532f9dc615eaa919da4373)), closes [#78](https://github.com/BrahimNJ/DevPulse/issues/78)
+
 ## [0.13.0](https://github.com/BrahimNJ/DevPulse/compare/v0.12.0...v0.13.0) (2026-11-03)
 
 
