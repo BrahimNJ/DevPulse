@@ -826,6 +826,31 @@ code,
   color: #6b7299;
 }
 
+/* The `/` shortcut, shown until the field has the focus; touch screens have no key. */
+.key-hint {
+  flex: none;
+  min-width: 22px;
+  padding: 1px 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: center;
+  transition: opacity 0.2s ease;
+}
+
+.input-with-icon:focus-within .key-hint {
+  opacity: 0;
+}
+
+@media (hover: none) {
+  .key-hint {
+    display: none;
+  }
+}
+
 .select-field {
   display: flex;
   align-items: center;

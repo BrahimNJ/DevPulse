@@ -1,5 +1,5 @@
 import { m, stagger, useReducedMotion, type Variants } from 'motion/react';
-import { useId, useState, type JSX, type SyntheticEvent } from 'react';
+import { useId, useRef, useState, type JSX, type SyntheticEvent } from 'react';
 
 import { countByStatus, FEATURE_GROUPS, type Feature, type FeatureGroup } from './features.ts';
 import { formatNumber, interpolate } from './i18n.ts';
@@ -20,6 +20,7 @@ import {
 import { Layout, REPOSITORY_URL } from './Layout.tsx';
 import { CountUp, EASE_OUT, GrowBar, Reveal, RevealItem, RevealList } from './motion.tsx';
 import { useQuota } from './quota.ts';
+import { SEARCH_KEY, useSearchShortcut } from './shortcut.ts';
 
 const AUDIENCE_ICONS = [
   <UserIcon key="user" />,
@@ -67,6 +68,8 @@ function Hero(): JSX.Element {
   const { t } = useI18n();
   const copy = t.home;
   const [repository, setRepository] = useState('');
+  const field = useRef<HTMLInputElement>(null);
+  useSearchShortcut(field);
 
   function onSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>): void {
     event.preventDefault();
@@ -94,6 +97,7 @@ function Hero(): JSX.Element {
               <SearchIcon />
               <span className="visually-hidden">{copy.repositoryLabel}</span>
               <input
+                ref={field}
                 value={repository}
                 onChange={(event) => {
                   setRepository(event.target.value);
@@ -101,7 +105,11 @@ function Hero(): JSX.Element {
                 placeholder={copy.placeholder}
                 spellCheck={false}
                 autoComplete="off"
+                aria-keyshortcuts={SEARCH_KEY}
               />
+              <kbd className="key-hint" aria-hidden="true">
+                {SEARCH_KEY}
+              </kbd>
             </label>
             <button type="submit" className="button button-primary">
               {copy.analyse} <ArrowIcon />

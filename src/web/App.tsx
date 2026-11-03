@@ -40,6 +40,7 @@ import { EASE_OUT } from './motion.tsx';
 import { describeQuota, timeUntil, useQuota } from './quota.ts';
 import { readRecent, rememberRecent } from './recent.ts';
 import { relationOf, SELF_REPOSITORY } from './self.ts';
+import { SEARCH_KEY, useSearchShortcut } from './shortcut.ts';
 import { Summary } from './Summary.tsx';
 
 type Load<T> =
@@ -355,6 +356,8 @@ function Sidebar({
 }): JSX.Element {
   const { t, locale } = useI18n();
   const copy = t.workspace;
+  const field = useRef<HTMLInputElement>(null);
+  useSearchShortcut(field);
 
   function onSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>): void {
     event.preventDefault();
@@ -370,6 +373,7 @@ function Sidebar({
             <SearchIcon />
             <span className="visually-hidden">{t.home.repositoryLabel}</span>
             <input
+              ref={field}
               value={repository}
               onChange={(event) => {
                 onRepository(event.target.value);
@@ -377,7 +381,11 @@ function Sidebar({
               placeholder={t.home.placeholder}
               spellCheck={false}
               autoComplete="off"
+              aria-keyshortcuts={SEARCH_KEY}
             />
+            <kbd className="key-hint" aria-hidden="true">
+              {SEARCH_KEY}
+            </kbd>
           </label>
           <label className="select-field">
             <span>{t.app.staleAfter}</span>
