@@ -982,6 +982,9 @@
     "example": "Exemple",
     "exampleNote": "Données illustratives. Analysez un repository pour voir de vrais chiffres.",
     "openOnGitHub": "Voir sur GitHub",
+    "copyLink": "Copier le lien",
+    "linkCopied": "Lien copié",
+    "copyFailed": "Copiez-le depuis la barre d'adresse",
     "tabsLabel": "Rapport",
     "tabs": {
       "branches": "Branches",
