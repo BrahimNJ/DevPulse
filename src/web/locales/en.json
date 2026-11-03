@@ -338,6 +338,7 @@
     "analysing": "Analysing…",
     "examples": "Examples",
     "loading": "Reading the branches of {repository}…",
+    "loadingSelf": "DevPulse is looking at itself in the mirror…",
     "empty": {
       "title": "What the report shows",
       "cards": [
@@ -945,6 +946,9 @@
     "allowanceHint": "A repository already analysed today does not count twice.",
     "recentTitle": "Recent analyses",
     "recentEmpty": "Your analyses will appear here.",
+    "selfNote": "Ha! Using my own tool to analyse me? Clever. Let's see whether I follow my own advice…",
+    "authorNote": "Browsing the author's other projects? Good idea. That is exactly what they are here for.",
+    "noteSignature": "Brahim, author of DevPulse",
     "glossaryTitle": "Glossary",
     "glossary": [
       {

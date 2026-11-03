@@ -24,6 +24,14 @@ const PAGES: Readonly<Record<string, () => JSX.Element>> = {
 const render =
   PAGES[window.location.pathname.replace(/\/+$/, '')] ?? ((): JSX.Element => <Landing />);
 
+// For the developers who open the console: who built this, and where to find them.
+// eslint-disable-next-line no-console -- a deliberate greeting, not leftover debugging
+console.info(
+  '%cDevPulse%c\nReading the console? You are my kind of visitor.\nBuilt by Brahim NAJI · https://github.com/BrahimNJ · https://linkedin.com/in/brahimnaji',
+  'font: 700 20px "Space Grotesk Variable", sans-serif; color: #9cbcff',
+  'font: 13px "Inter Variable", sans-serif; line-height: 1.6',
+);
+
 createRoot(root).render(
   <StrictMode>
     <I18nProvider>

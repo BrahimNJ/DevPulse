@@ -39,6 +39,7 @@ import { Loading } from './Loading.tsx';
 import { EASE_OUT } from './motion.tsx';
 import { describeQuota, timeUntil, useQuota } from './quota.ts';
 import { readRecent, rememberRecent } from './recent.ts';
+import { relationOf, SELF_REPOSITORY } from './self.ts';
 import { Summary } from './Summary.tsx';
 
 type Load<T> =
@@ -50,7 +51,13 @@ type Load<T> =
 type Tab = 'branches' | 'delivery' | 'activity';
 
 const STALE_OPTIONS = [30, 90, 180, 365] as const;
-const EXAMPLES = ['nodejs/node', 'facebook/react', 'kubernetes/kubernetes'] as const;
+// The last one lets a visitor see what DevPulse says about itself.
+const EXAMPLES = [
+  'nodejs/node',
+  'facebook/react',
+  'kubernetes/kubernetes',
+  SELF_REPOSITORY,
+] as const;
 const TABS: readonly Tab[] = ['branches', 'delivery', 'activity'];
 /** One automatic retry while GitHub computes the activity statistics. */
 const PENDING_RETRY_MS = 10_000;
@@ -221,7 +228,12 @@ export function App(): JSX.Element {
 
   const isDemo = branches.kind === 'idle';
   return (
-    <Layout page="app" quota={quota}>
+    <Layout
+      page="app"
+      quota={quota}
+      // A tab among many then says which repository it holds.
+      title={branches.kind === 'ready' ? `${branches.report.repository} · DevPulse` : undefined}
+    >
       <div className="container workspace">
         <Sidebar
           repository={repository}
@@ -242,6 +254,7 @@ export function App(): JSX.Element {
             generatedAt={branches.kind === 'ready' ? branches.report.generatedAt : null}
             demo={isDemo}
           />
+          {branches.kind === 'ready' && <PersonalNote repository={branches.report.repository} />}
           <Tabs tab={tab} onSelect={selectTab} />
           {/* A new panel per tab, so it fades in; the old one leaves at once, so the
               tab's aria-controls always names a panel in the page. */}
@@ -524,6 +537,21 @@ function WorkspaceHeader({
   );
 }
 
+/** A word from the author when the report is about DevPulse or another of their repositories. */
+function PersonalNote({ repository }: { readonly repository: string }): JSX.Element | null {
+  const { t } = useI18n();
+  const relation = relationOf(repository);
+  if (relation === null) {
+    return null;
+  }
+  return (
+    <aside className="personal-note">
+      <p>{relation === 'self' ? t.workspace.selfNote : t.workspace.authorNote}</p>
+      <p className="personal-note-signature">{t.workspace.noteSignature}</p>
+    </aside>
+  );
+}
+
 /** The tab a key leads to from `index`, wrapping around, or null for other keys. */
 function tabForKey(key: string, index: number): Tab | null {
   const targets: Readonly<Record<string, number>> = {
@@ -633,7 +661,15 @@ function BranchesPanel({
 }): JSX.Element {
   const { t } = useI18n();
   return (
-    <LoadView load={load} limit={limit} loading={interpolate(t.app.loading, { repository })}>
+    <LoadView
+      load={load}
+      limit={limit}
+      loading={
+        relationOf(repository) === 'self'
+          ? t.app.loadingSelf
+          : interpolate(t.app.loading, { repository })
+      }
+    >
       {(report) => (
         <>
           <Summary report={report} />
