@@ -338,6 +338,7 @@
     "analysing": "Analyse en cours…",
     "examples": "Exemples",
     "loading": "Lecture des branches de {repository}…",
+    "loadingSelf": "DevPulse se regarde dans le miroir…",
     "empty": {
       "title": "Ce que montre le rapport",
       "cards": [

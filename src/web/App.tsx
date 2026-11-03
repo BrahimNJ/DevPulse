@@ -650,7 +650,15 @@ function BranchesPanel({
 }): JSX.Element {
   const { t } = useI18n();
   return (
-    <LoadView load={load} limit={limit} loading={interpolate(t.app.loading, { repository })}>
+    <LoadView
+      load={load}
+      limit={limit}
+      loading={
+        relationOf(repository) === 'self'
+          ? t.app.loadingSelf
+          : interpolate(t.app.loading, { repository })
+      }
+    >
       {(report) => (
         <>
           <Summary report={report} />
