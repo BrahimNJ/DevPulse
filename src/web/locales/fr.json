@@ -948,6 +948,8 @@
     "allowanceHint": "Un repository déjà analysé aujourd'hui ne compte pas deux fois.",
     "recentTitle": "Analyses récentes",
     "recentEmpty": "Vos analyses apparaîtront ici.",
+    "selfNote": "Haaa, vous utilisez mon outil pour m'analyser ? C'est malin. Voyons si je respecte mes propres conseils…",
+    "noteSignature": "Brahim, auteur de DevPulse",
     "glossaryTitle": "Glossaire",
     "glossary": [
       {

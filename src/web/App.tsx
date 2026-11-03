@@ -39,6 +39,7 @@ import { Loading } from './Loading.tsx';
 import { EASE_OUT } from './motion.tsx';
 import { describeQuota, timeUntil, useQuota } from './quota.ts';
 import { readRecent, rememberRecent } from './recent.ts';
+import { relationOf } from './self.ts';
 import { Summary } from './Summary.tsx';
 
 type Load<T> =
@@ -242,6 +243,7 @@ export function App(): JSX.Element {
             generatedAt={branches.kind === 'ready' ? branches.report.generatedAt : null}
             demo={isDemo}
           />
+          {branches.kind === 'ready' && <PersonalNote repository={branches.report.repository} />}
           <Tabs tab={tab} onSelect={selectTab} />
           {/* A new panel per tab, so it fades in; the old one leaves at once, so the
               tab's aria-controls always names a panel in the page. */}
@@ -521,6 +523,20 @@ function WorkspaceHeader({
         </a>
       )}
     </header>
+  );
+}
+
+/** A word from the author when the report is about DevPulse itself. */
+function PersonalNote({ repository }: { readonly repository: string }): JSX.Element | null {
+  const { t } = useI18n();
+  if (relationOf(repository) !== 'self') {
+    return null;
+  }
+  return (
+    <aside className="personal-note">
+      <p>{t.workspace.selfNote}</p>
+      <p className="personal-note-signature">{t.workspace.noteSignature}</p>
+    </aside>
   );
 }
 

@@ -1437,6 +1437,29 @@ code,
   color: var(--info);
 }
 
+/* A word from the author (App.tsx), set apart like a margin note, not an alert. */
+.personal-note {
+  margin: 0 0 18px;
+  padding: 4px 0 4px 16px;
+  border-left: 2px solid var(--info);
+  font-style: italic;
+}
+
+.personal-note p {
+  margin: 0;
+}
+
+.personal-note-signature {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-style: normal;
+}
+
+.personal-note-signature::before {
+  content: '— ';
+}
+
 /* Loading (Loading.tsx): the shape of the report to come, shimmering. */
 .loading {
   display: grid;
