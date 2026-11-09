@@ -154,7 +154,7 @@ The `main` ruleset enforces these rules; nobody can bypass them.
 - All review comments resolved.
 - `ci-success` and `pr-title` are green. The branch does not need to be up to date
   with `main`.
-- Squash merge only; the merged branch is deleted.
+- Squash or rebase merge only; the merged branch is deleted.
 - No approval is required while the project has a single maintainer, because GitHub
   does not let an author approve their own pull request.
 

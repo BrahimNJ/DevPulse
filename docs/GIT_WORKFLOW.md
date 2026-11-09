@@ -4,7 +4,7 @@ The path every change takes from idea to release. Naming and message rules are d
 in [CONTRIBUTING.md](../CONTRIBUTING.md); this document shows how they fit together.
 
 ```text
- issue ──► branch ──► atomic commits ──► pull request ──► squash merge ──► release PR ──► tag
+ issue ──► branch ──► atomic commits ──► pull request ──►    merge     ──► release PR ──► tag
   #12     docs/fix-x   hooks validate     CI + review      main updated    release-please  vX.Y.Z
 ```
 
@@ -50,8 +50,9 @@ git push --force-with-lease   # own feature branch only, never main
 
 ## 5. Merge
 
-Pull requests are squash-merged so `main` has one Conventional Commit per change. The
-branch is deleted after merge. `main` is never pushed to directly.
+Pull requests are squash-merged so `main` has one Conventional Commit per change, or
+rebase-merged when every commit of a series stands on its own. The branch is deleted
+after merge. `main` is never pushed to directly.
 
 ## 6. Release
 
