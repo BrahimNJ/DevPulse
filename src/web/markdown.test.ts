@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { escapeMarkdown } from './markdown.ts';
+import { escapeMarkdown, markdownTable } from './markdown.ts';
 
 describe('Markdown escaping', () => {
   it('leaves ordinary text alone', () => {
@@ -21,5 +21,31 @@ describe('Markdown escaping', () => {
 
   it('keeps a value on one line', () => {
     assert.equal(escapeMarkdown('one\r\ntwo\nthree'), 'one two three');
+  });
+});
+
+describe('Markdown table', () => {
+  it('writes the header, the alignment and one line per row', () => {
+    assert.equal(
+      markdownTable(
+        [{ title: 'Branch' }, { title: 'Age', numeric: true }],
+        [
+          ['main', '1 day'],
+          ['dev', '3 days'],
+        ],
+      ),
+      ['| Branch | Age |', '| --- | ---: |', '| main | 1 day |', '| dev | 3 days |'].join('\n'),
+    );
+  });
+
+  it('escapes every value, so a pipe stays inside its cell', () => {
+    assert.equal(
+      markdownTable([{ title: 'A|B' }], [['x|y']]),
+      ['| A\\|B |', '| --- |', '| x\\|y |'].join('\n'),
+    );
+  });
+
+  it('accepts a table without rows', () => {
+    assert.equal(markdownTable([{ title: 'A' }], []), '| A |\n| --- |');
   });
 });
