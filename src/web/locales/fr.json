@@ -368,6 +368,9 @@
       "statisticsPending": "GitHub calcule encore les statistiques de ce repository. Réessayez dans quelques secondes."
     }
   },
+  "export": {
+    "generated": "Rapport généré par DevPulse le {date}."
+  },
   "summary": {
     "branches": "Branches",
     "defaultBranch": "par défaut : {name}",
