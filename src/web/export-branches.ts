@@ -1,7 +1,7 @@
-import type { BranchReportResponse } from './api.ts';
-import { formatAge, formatDate, median, percentage } from './format.ts';
+import type { BranchReportResponse, BranchRow } from './api.ts';
+import { formatAge, formatDate, formatDivergence, median, percentage } from './format.ts';
 import { formatNumber, interpolate, type Locale, type Messages } from './i18n.ts';
-import { escapeMarkdown } from './markdown.ts';
+import { escapeMarkdown, markdownTable } from './markdown.ts';
 
 /** The branch report as a Markdown document, in the visitor's language. */
 export function branchReportMarkdown(
@@ -9,7 +9,12 @@ export function branchReportMarkdown(
   t: Messages,
   locale: Locale,
 ): string {
-  return `${[...heading(report, t, locale), '', ...summary(report, t, locale)].join('\n')}\n`;
+  const sections = [
+    heading(report, t, locale),
+    summary(report, t, locale),
+    table(report, t, locale),
+  ];
+  return `${sections.map((lines) => lines.join('\n')).join('\n\n')}\n`;
 }
 
 function heading(report: BranchReportResponse, t: Messages, locale: Locale): readonly string[] {
@@ -52,4 +57,47 @@ function summary(report: BranchReportResponse, t: Messages, locale: Locale): rea
       copy.medianDetail,
     ),
   ];
+}
+
+/** Every branch, whatever the filter on screen, in the order of the report. */
+function table(report: BranchReportResponse, t: Messages, locale: Locale): readonly string[] {
+  const { columns } = t.table;
+  const title = `## ${t.table.label}`;
+  if (report.branches.length === 0) {
+    return [title, '', t.insights.noBranches.text];
+  }
+  const rows = report.branches.map((branch) => [
+    branch.name,
+    formatDate(branch.lastCommit.date, locale),
+    formatAge(branch.ageDays, locale, t.time.today),
+    formatDivergence(branch.divergence, locale),
+    branch.lastCommit.author ?? '–',
+    statusOf(branch, t),
+  ]);
+  return [
+    title,
+    '',
+    markdownTable(
+      [
+        { title: columns.branch },
+        { title: columns.lastCommit },
+        { title: columns.age, numeric: true },
+        { title: columns.divergence, numeric: true },
+        { title: columns.author },
+        { title: columns.status },
+      ],
+      rows,
+    ),
+  ];
+}
+
+function statusOf(branch: BranchRow, t: Messages): string {
+  const { badges } = t.table;
+  return [
+    branch.isDefault ? badges.default : null,
+    branch.isProtected ? badges.protected : null,
+    branch.isStale ? badges.stale : null,
+  ]
+    .filter((badge) => badge !== null)
+    .join(', ');
 }
