@@ -71,5 +71,27 @@ describe('branch report as Markdown', () => {
     });
     assert.ok(text.includes('- Branches: 0 (default none)'));
     assert.ok(text.includes('- Median age: – (since the last commit)'));
+    assert.ok(text.endsWith('## Branches\n\nThis repository has no branch yet.\n'));
+  });
+
+  it('lists every branch with its figures and status', () => {
+    const text = english();
+    assert.ok(text.includes('| Branch | Last commit | Age | Ahead / behind | Author | Status |\n'));
+    assert.ok(text.includes('| --- | --- | ---: | ---: | --- | --- |\n'));
+    assert.ok(text.includes('| main | 7 Nov 2026 | 2 days | – | ada | default, protected |\n'));
+  });
+
+  it('escapes a branch name and fills in a missing author', () => {
+    assert.ok(
+      english().includes(
+        String.raw`| old\|work | 12 Jul 2026 | 4` + ' months | +3 / −40 | – | stale |\n',
+      ),
+    );
+  });
+
+  it('writes the summary and the table in French', () => {
+    const text = french();
+    assert.ok(text.includes('| Branch | Dernier commit |'));
+    assert.ok(text.includes('- Protégées\u202f: 1 (50 % des branches)'));
   });
 });
