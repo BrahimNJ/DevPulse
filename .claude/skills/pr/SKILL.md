@@ -13,6 +13,6 @@ Open a pull request that closes #$ARGUMENTS.
 4. Read `.github/PULL_REQUEST_TEMPLATE.md` and fill every section from the commits
    (`git log origin/main..HEAD`) and the diff. Be specific and honest in Verification:
    list the commands run and their results.
-5. Title: a Conventional Commit header, because it becomes the squash commit on `main`.
+5. Title: a Conventional Commit header, because it becomes the commit on `main` of a squash merge.
 6. `git push -u origin HEAD`, then `gh pr create --base main --title "..." --body-file -`.
 7. Return the URL and the status of `gh pr checks` once it starts. Never merge.

@@ -154,8 +154,9 @@ Use [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md).
 
 - `main` is merged into only through a pull request with `ci-success` and `pr-title`
   green and every conversation resolved.
-- Squash merge is the only method allowed, so `main` history stays readable.
-- The commit message of a squash merge follows Conventional Commits.
+- Squash merge and rebase merge are the two methods allowed. Squash gives `main` one
+  commit per change; rebase keeps every commit of a series that stands on its own.
+- Every commit that reaches `main` follows Conventional Commits, whichever the method.
 
 ## 5. Testing Expectations
 
