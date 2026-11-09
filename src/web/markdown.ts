@@ -1,9 +1,13 @@
-/** The characters Markdown would read as formatting or as the edge of a table cell. */
-const SPECIAL = /[\\`*_[\]<>|~&]/g;
+/**
+ * The characters Markdown would read as formatting or as the edge of a table cell, and
+ * those that start a mention, an issue link, an emoji or a URL once pasted on GitHub.
+ */
+const SPECIAL = /[\\`*_[\]<>|~&@#:]/g;
 
 /**
  * Text from GitHub, such as a branch or author name, as literal Markdown: its characters
- * cannot format the document, and a line break cannot end a table row.
+ * cannot format the document, and a line break cannot end a table row. A bare `www.`
+ * address remains a link: no escape prevents it, and it stays readable as text.
  */
 export function escapeMarkdown(value: string): string {
   return value.replace(/[\r\n]+/g, ' ').replace(SPECIAL, (character) => `\\${character}`);
