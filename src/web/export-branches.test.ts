@@ -89,6 +89,11 @@ describe('branch report as Markdown', () => {
     );
   });
 
+  it('escapes the default branch in the summary', () => {
+    const text = english({ ...REPORT, defaultBranch: 'trunk|_x_' });
+    assert.ok(text.includes(String.raw`(default trunk\|\_x\_)`));
+  });
+
   it('writes the summary and the table in French', () => {
     const text = french();
     assert.ok(text.includes('| Branch | Dernier commit |'));

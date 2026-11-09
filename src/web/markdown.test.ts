@@ -19,6 +19,13 @@ describe('Markdown escaping', () => {
     assert.equal(escapeMarkdown(String.raw`back\slash`), String.raw`back\\slash`);
   });
 
+  it('keeps mentions, issue links, emoji and URLs from coming alive on GitHub', () => {
+    assert.equal(escapeMarkdown('@ada'), String.raw`\@ada`);
+    assert.equal(escapeMarkdown('fix#12'), String.raw`fix\#12`);
+    assert.equal(escapeMarkdown(':smile:'), String.raw`\:smile\:`);
+    assert.equal(escapeMarkdown('https://x.example'), String.raw`https\://x.example`);
+  });
+
   it('keeps a value on one line', () => {
     assert.equal(escapeMarkdown('one\r\ntwo\nthree'), 'one two three');
   });
