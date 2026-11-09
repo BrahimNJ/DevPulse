@@ -369,7 +369,9 @@
     }
   },
   "export": {
-    "generated": "Rapport généré par DevPulse le {date}."
+    "generated": "Rapport généré par DevPulse le {date}.",
+    "summary": "Résumé",
+    "entry": "{label} : {value} ({detail})"
   },
   "summary": {
     "branches": "Branches",

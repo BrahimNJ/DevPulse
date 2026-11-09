@@ -52,4 +52,24 @@ describe('branch report as Markdown', () => {
     assert.ok(french().includes('Rapport généré par DevPulse le 9 nov. 2026.'));
     assert.ok(french().includes('Inactive après 90 jours.'));
   });
+
+  it('sums the branches up with the figures of the dashboard', () => {
+    const text = english();
+    assert.ok(text.includes('## Summary\n'));
+    assert.ok(text.includes('- Branches: 2 (default main)'));
+    assert.ok(text.includes('- Protected: 1 (50% of branches)'));
+    assert.ok(text.includes('- Stale: 1 (no commit for 90+ days)'));
+    assert.ok(text.includes('- Median age: 2\u00a0months (since the last commit)'));
+  });
+
+  it('sums up a repository without branches', () => {
+    const text = english({
+      ...REPORT,
+      defaultBranch: null,
+      totals: { branches: 0, protected: 0, stale: 0 },
+      branches: [],
+    });
+    assert.ok(text.includes('- Branches: 0 (default none)'));
+    assert.ok(text.includes('- Median age: – (since the last commit)'));
+  });
 });
