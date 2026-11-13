@@ -52,6 +52,7 @@ export const AlertIcon = icon(TriangleAlert);
 export const ArrowIcon = icon(ArrowRight);
 export const CheckIcon = icon(Check);
 export const LinkIcon = icon(Link);
+export const DownloadIcon = icon(Download);
 export const BookIcon = icon(BookOpen);
 export const KeyIcon = icon(KeyRound);
 export const CloudIcon = icon(Cloud);

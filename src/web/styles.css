@@ -2017,6 +2017,25 @@ code,
   gap: 8px;
 }
 
+/* The export sits with the other actions, set apart by a divider and its own label. */
+.export-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding-right: 10px;
+  border-right: 1px solid var(--line);
+}
+
+.export-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 2px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .repository-heading {
   display: flex;
   flex-wrap: wrap;
