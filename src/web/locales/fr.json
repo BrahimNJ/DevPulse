@@ -371,7 +371,13 @@
   "export": {
     "generated": "Rapport généré par DevPulse le {date}.",
     "summary": "Résumé",
-    "entry": "{label} : {value} ({detail})"
+    "entry": "{label} : {value} ({detail})",
+    "label": "Exporter",
+    "groupLabel": "Télécharger le rapport",
+    "markdown": "Markdown",
+    "markdownHint": "Pour un document, un wiki ou une issue",
+    "csv": "CSV",
+    "csvHint": "Pour un tableur"
   },
   "summary": {
     "branches": "Branches",
