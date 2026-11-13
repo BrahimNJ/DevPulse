@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { csvField } from './csv.ts';
+import { csvDocument, csvField } from './csv.ts';
 
 describe('CSV field', () => {
   it('writes plain values as they are', () => {
@@ -27,5 +27,24 @@ describe('CSV field', () => {
 
   it('leaves numbers alone, negative ones included', () => {
     assert.equal(csvField(-3), '-3');
+  });
+});
+
+describe('CSV document', () => {
+  it('writes the header and the rows, each line ended by CRLF', () => {
+    assert.equal(
+      csvDocument(
+        ['branch', 'stale'],
+        [
+          ['main', false],
+          ['a,b', true],
+        ],
+      ),
+      'branch,stale\r\nmain,false\r\n"a,b",true\r\n',
+    );
+  });
+
+  it('writes only the header when there are no rows', () => {
+    assert.equal(csvDocument(['branch'], []), 'branch\r\n');
   });
 });

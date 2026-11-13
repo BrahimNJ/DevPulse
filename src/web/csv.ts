@@ -17,3 +17,11 @@ export function csvField(value: CsvValue): string {
   const text = FORMULA_START.test(value) ? `'${value}` : value;
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
+
+/** A header line, then one line per row, each ended by CRLF as RFC 4180 asks. */
+export function csvDocument(
+  header: readonly string[],
+  rows: readonly (readonly CsvValue[])[],
+): string {
+  return [header, ...rows].map((row) => `${row.map(csvField).join(',')}\r\n`).join('');
+}
