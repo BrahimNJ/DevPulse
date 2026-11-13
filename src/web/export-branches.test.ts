@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import type { BranchReportResponse } from './api.ts';
-import { branchReportMarkdown } from './export-branches.ts';
+import { branchReportCsv, branchReportMarkdown } from './export-branches.ts';
 import { messagesFor } from './i18n.ts';
 
 const REPORT: BranchReportResponse = {
@@ -98,5 +98,26 @@ describe('branch report as Markdown', () => {
     const text = french();
     assert.ok(text.includes('| Branch | Dernier commit |'));
     assert.ok(text.includes('- Protégées\u202f: 1 (50 % des branches)'));
+  });
+});
+
+describe('branch report as CSV', () => {
+  it('writes one line per branch with raw values', () => {
+    assert.equal(
+      branchReportCsv(REPORT),
+      [
+        'branch,last_commit,age_days,ahead,behind,author,default,protected,stale',
+        'main,2026-11-07T10:00:00.000Z,2,,,ada,true,true,false',
+        'old|work,2026-07-12T10:00:00.000Z,120,3,40,,false,false,true',
+        '',
+      ].join('\r\n'),
+    );
+  });
+
+  it('writes only the header for a repository without branches', () => {
+    assert.equal(
+      branchReportCsv({ ...REPORT, branches: [] }),
+      'branch,last_commit,age_days,ahead,behind,author,default,protected,stale\r\n',
+    );
   });
 });
