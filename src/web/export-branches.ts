@@ -1,4 +1,5 @@
 import type { BranchReportResponse, BranchRow } from './api.ts';
+import { csvDocument } from './csv.ts';
 import { formatAge, formatDate, formatDivergence, median, percentage } from './format.ts';
 import { formatNumber, interpolate, type Locale, type Messages } from './i18n.ts';
 import { escapeMarkdown, markdownTable } from './markdown.ts';
@@ -100,4 +101,35 @@ function statusOf(branch: BranchRow, t: Messages): string {
   ]
     .filter((badge) => badge !== null)
     .join(', ');
+}
+
+/**
+ * The branches as CSV for a spreadsheet: raw values under stable English headers, so
+ * that dates sort and numbers add up whatever the language of the dashboard.
+ */
+export function branchReportCsv(report: BranchReportResponse): string {
+  return csvDocument(
+    [
+      'branch',
+      'last_commit',
+      'age_days',
+      'ahead',
+      'behind',
+      'author',
+      'default',
+      'protected',
+      'stale',
+    ],
+    report.branches.map((branch) => [
+      branch.name,
+      branch.lastCommit.date,
+      branch.ageDays,
+      branch.divergence?.ahead ?? null,
+      branch.divergence?.behind ?? null,
+      branch.lastCommit.author,
+      branch.isDefault,
+      branch.isProtected,
+      branch.isStale,
+    ]),
+  );
 }
