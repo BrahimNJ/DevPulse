@@ -2017,14 +2017,14 @@ code,
   gap: 8px;
 }
 
-/* The export sits with the other actions, set apart by a divider and its own label. */
+/* The export sits with the other actions, set apart by its own label and a wider gap:
+   a divider would hang alone once the actions wrap on a narrow screen. */
 .export-control {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  padding-right: 10px;
-  border-right: 1px solid var(--line);
+  margin-right: 8px;
 }
 
 .export-label {
