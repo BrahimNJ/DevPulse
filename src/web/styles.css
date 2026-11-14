@@ -2017,6 +2017,25 @@ code,
   gap: 8px;
 }
 
+/* The export sits with the other actions, set apart by its own label and a wider gap:
+   a divider would hang alone once the actions wrap on a narrow screen. */
+.export-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-right: 8px;
+}
+
+.export-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 2px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .repository-heading {
   display: flex;
   flex-wrap: wrap;
