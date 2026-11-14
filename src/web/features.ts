@@ -111,7 +111,7 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
     features: [
       { id: 'health-score', icon: 'gauge', status: 'planned' },
       { id: 'repository-comparison', icon: 'compare', status: 'planned' },
-      { id: 'report-export', icon: 'download', status: 'planned' },
+      { id: 'report-export', icon: 'download', status: 'available' },
     ],
   },
 ];
