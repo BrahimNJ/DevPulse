@@ -4,15 +4,15 @@ import { describe, it } from 'node:test';
 import { countByStatus, FEATURE_GROUPS } from './features.ts';
 
 describe('feature catalogue', () => {
-  it('lists only the branch, delivery and activity reports as available, matching the code', () => {
+  it('lists the reports and their export as available, matching the code', () => {
     const available = FEATURE_GROUPS.flatMap((group) =>
       group.features.filter((feature) => feature.status === 'available').map(() => group.id),
     );
     assert.deepEqual(
       new Set(available),
-      new Set(['branches', 'collaboration', 'activity', 'contributors']),
+      new Set(['branches', 'collaboration', 'activity', 'contributors', 'insights']),
     );
-    assert.equal(countByStatus('available'), 14);
+    assert.equal(countByStatus('available'), 15);
   });
 
   it('gives every group and feature a unique name', () => {
