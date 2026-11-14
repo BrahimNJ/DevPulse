@@ -59,6 +59,7 @@ on **production-grade engineering practices** rather than on volume of code:
 | **Accurate protection** | Classic protection rules _and_ rulesets, visible without admin rights                             |
 | **Filters**             | All, active, stale or protected branches, and search by name                                      |
 | **Shareable views**     | The URL holds the query, so `?repo=nodejs/node` reopens the same report                           |
+| **Export**              | The branch report downloads as Markdown, in the visitor's language, or as CSV for a spreadsheet   |
 | **Command line**        | The branch report in a terminal, as an aligned table or as JSON for scripting                     |
 | **Delivery health**     | DORA-style metrics over 90 days (below); a Delivery tab beside Branches, web and API only         |
 | **Activity**            | A year of commits, concentration and contributor flow (below); an Activity tab, web and API only  |
@@ -85,11 +86,11 @@ Every panel says how to read it and what it cannot see; no contributor is ranked
 These analyses are proposals shown on the landing page as **Planned**. Each one is
 specified in an issue before it is built, and the list may change.
 
-| Area                         | Planned analyses                                             |
-| ---------------------------- | ------------------------------------------------------------ |
-| **Contributors**             | Top contributors                                             |
-| **Pull requests and issues** | Issue response time                                          |
-| **Insights**                 | Health score, repository comparison, CSV and Markdown export |
+| Area                         | Planned analyses                    |
+| ---------------------------- | ----------------------------------- |
+| **Contributors**             | Top contributors                    |
+| **Pull requests and issues** | Issue response time                 |
+| **Insights**                 | Health score, repository comparison |
 
 ## Architecture
 
