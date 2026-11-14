@@ -29,6 +29,8 @@ import {
   DEMO_DELIVERY_REPORT,
   DEMO_REPOSITORY,
 } from './demo.ts';
+import { branchReportCsv, branchReportMarkdown } from './export-branches.ts';
+import { ExportControl } from './ExportControl.tsx';
 import { formatDate } from './format.ts';
 import { formatNumber, interpolate, type Messages } from './i18n.ts';
 import { useI18n } from './I18nProvider.tsx';
@@ -262,6 +264,11 @@ export function App(): JSX.Element {
             repository={isDemo ? DEMO_REPOSITORY : headingOf(branches, repository)}
             generatedAt={branches.kind === 'ready' ? branches.report.generatedAt : null}
             demo={isDemo}
+            exportControl={
+              tab === 'branches' && branches.kind === 'ready' ? (
+                <BranchExport report={branches.report} />
+              ) : null
+            }
           />
           {branches.kind === 'ready' && <PersonalNote repository={branches.report.repository} />}
           <Tabs tab={tab} onSelect={selectTab} />
@@ -522,10 +529,13 @@ function WorkspaceHeader({
   repository,
   generatedAt,
   demo: isDemo,
+  exportControl,
 }: {
   readonly repository: string;
   readonly generatedAt: string | null;
   readonly demo: boolean;
+  /** The download of the report in the selected tab, when that tab can be exported. */
+  readonly exportControl: ReactNode;
 }): JSX.Element {
   const { t, locale } = useI18n();
   return (
@@ -546,6 +556,7 @@ function WorkspaceHeader({
       {/* Only for a report: then the name is the one the server read on GitHub. */}
       {!isDemo && generatedAt !== null && (
         <div className="workspace-actions">
+          {exportControl}
           <CopyLinkButton />
           <a className="button button-ghost button-small" href={`https://github.com/${repository}`}>
             <GitHubIcon /> {t.workspace.openOnGitHub}
@@ -553,6 +564,20 @@ function WorkspaceHeader({
         </div>
       )}
     </header>
+  );
+}
+
+/** The branch report as Markdown, in the visitor's language, or as CSV. */
+function BranchExport({ report }: { readonly report: BranchReportResponse }): JSX.Element {
+  const { t, locale } = useI18n();
+  return (
+    <ExportControl
+      repository={report.repository}
+      report="branches"
+      generatedAt={report.generatedAt}
+      markdown={() => branchReportMarkdown(report, t, locale)}
+      csv={() => branchReportCsv(report)}
+    />
   );
 }
 
