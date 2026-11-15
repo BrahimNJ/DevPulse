@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.0](https://github.com/BrahimNJ/DevPulse/compare/v0.13.1...v0.14.0) (2026-11-15)
+
+
+### Features
+
+* **web:** export the branch report as Markdown or CSV ([189f9a5](https://github.com/BrahimNJ/DevPulse/commit/189f9a5f65900c726602e30a7b68f1f79951f1fd)), closes [#93](https://github.com/BrahimNJ/DevPulse/issues/93)
+* **web:** list report export as available in the catalogue ([e338aca](https://github.com/BrahimNJ/DevPulse/commit/e338acac925f261c142904df3060503a1e28ad7d)), closes [#93](https://github.com/BrahimNJ/DevPulse/issues/93)
+
 ## [0.13.1](https://github.com/BrahimNJ/DevPulse/compare/v0.13.0...v0.13.1) (2026-11-03)
 
 
