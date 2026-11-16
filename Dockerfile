@@ -3,7 +3,7 @@
 # use the same Node.js major version, which changes only through an ADR.
 
 # Build stage: development dependencies and Vite, to build the interface.
-FROM node:24-slim@sha256:01d566e8d94d8c619591d78652babfccd3c6992a3dffa9ed5ab39e11cf6c70e9 AS build
+FROM node:24-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54 AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 # The only lifecycle script installs Git hooks, which an image does not need.
